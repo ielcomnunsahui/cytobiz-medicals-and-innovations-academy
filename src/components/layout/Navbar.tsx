@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, GraduationCap } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import logoFull from "@/assets/logo-full.png";
+import logoIcon from "@/assets/logo-icon.png";
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -46,13 +48,15 @@ export function Navbar() {
           <nav className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 group">
-              <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center group-hover:shadow-glow transition-shadow duration-300">
-                <GraduationCap className="w-6 h-6 text-secondary-foreground" />
-              </div>
+              <img 
+                src={logoIcon} 
+                alt="Cytobiz Logo" 
+                className="h-10 w-10 object-contain"
+              />
               <div className="flex flex-col">
                 <span className={cn(
                   "font-display font-bold text-lg leading-tight transition-colors",
-                  isScrolled ? "text-foreground" : "text-primary-foreground"
+                  isScrolled ? "text-primary" : "text-primary-foreground"
                 )}>
                   Cytobiz
                 </span>
@@ -60,7 +64,7 @@ export function Navbar() {
                   "text-xs font-medium leading-tight transition-colors",
                   isScrolled ? "text-muted-foreground" : "text-primary-foreground/70"
                 )}>
-                  Medical Academy
+                  Medical & Innovation Hub
                 </span>
               </div>
             </Link>
@@ -75,8 +79,8 @@ export function Navbar() {
                     "px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200",
                     location.pathname === link.href
                       ? isScrolled
-                        ? "text-secondary bg-secondary/10"
-                        : "text-secondary-foreground bg-white/10"
+                        ? "text-primary bg-primary/10"
+                        : "text-primary-foreground bg-white/10"
                       : isScrolled
                         ? "text-muted-foreground hover:text-foreground hover:bg-muted"
                         : "text-primary-foreground/80 hover:text-primary-foreground hover:bg-white/10"
@@ -101,7 +105,7 @@ export function Navbar() {
                 Sign In
               </Button>
               <Button
-                className="bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-md hover:shadow-lg transition-all"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all"
               >
                 Get Started
               </Button>
@@ -144,13 +148,13 @@ export function Navbar() {
                   >
                     <Link
                       to={link.href}
-                      className={cn(
-                        "block px-4 py-3 text-lg font-medium rounded-xl transition-colors",
-                        location.pathname === link.href
-                          ? "text-secondary bg-secondary/10"
-                          : "text-foreground hover:bg-muted"
-                      )}
-                    >
+                        className={cn(
+                          "block px-4 py-3 text-lg font-medium rounded-xl transition-colors",
+                          location.pathname === link.href
+                            ? "text-primary bg-primary/10"
+                            : "text-foreground hover:bg-muted"
+                        )}
+                      >
                       {link.name}
                     </Link>
                   </motion.div>
@@ -161,10 +165,10 @@ export function Navbar() {
                   transition={{ delay: 0.4 }}
                   className="pt-4 flex flex-col gap-3"
                 >
-                  <Button variant="outline" size="lg" className="w-full">
-                    Sign In
-                  </Button>
-                  <Button size="lg" className="w-full bg-secondary hover:bg-secondary/90">
+                    <Button variant="outline" size="lg" className="w-full">
+                      Sign In
+                    </Button>
+                    <Button size="lg" className="w-full bg-primary hover:bg-primary/90">
                     Get Started
                   </Button>
                 </motion.div>

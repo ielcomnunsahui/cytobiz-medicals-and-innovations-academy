@@ -114,21 +114,21 @@ const Contact = () => {
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                     className="flex gap-4 p-4 rounded-xl bg-muted/50"
                   >
-                    <div className="w-12 h-12 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0">
-                      <item.icon className="w-5 h-5 text-secondary" />
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <item.icon className="w-5 h-5 text-primary" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-foreground">{item.title}</h3>
                       <p className="text-sm text-muted-foreground">{item.description}</p>
-                      <p className="text-sm font-medium text-secondary mt-1">{item.value}</p>
+                      <p className="text-sm font-medium text-primary mt-1">{item.value}</p>
                     </div>
                   </motion.div>
                 ))}
 
                 {/* FAQ Link */}
-                <div className="p-6 rounded-xl bg-secondary/10 border border-secondary/20">
+                <div className="p-6 rounded-xl bg-primary/10 border border-primary/20">
                   <div className="flex items-center gap-3 mb-3">
-                    <MessageCircle className="w-5 h-5 text-secondary" />
+                    <MessageCircle className="w-5 h-5 text-primary" />
                     <h3 className="font-semibold text-foreground">Have a quick question?</h3>
                   </div>
                   <p className="text-sm text-muted-foreground mb-4">

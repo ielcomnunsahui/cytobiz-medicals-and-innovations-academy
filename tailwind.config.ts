@@ -65,10 +65,10 @@ export default {
           DEFAULT: "hsl(var(--navy))",
           light: "hsl(var(--navy-light))",
         },
-        teal: {
-          DEFAULT: "hsl(var(--teal))",
-          light: "hsl(var(--teal-light))",
-          dark: "hsl(var(--teal-dark))",
+        cytobiz: {
+          DEFAULT: "hsl(var(--cytobiz-blue))",
+          light: "hsl(var(--cytobiz-blue-light))",
+          dark: "hsl(var(--cytobiz-blue-dark))",
         },
         gold: "hsl(var(--gold))",
         success: "hsl(var(--success))",
@@ -121,7 +121,7 @@ export default {
       backgroundImage: {
         "hero-gradient": "var(--gradient-hero)",
         "card-gradient": "var(--gradient-card)",
-        "teal-gradient": "var(--gradient-teal)",
+        "blue-gradient": "var(--gradient-blue)",
       },
       boxShadow: {
         glow: "var(--shadow-glow)",

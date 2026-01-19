@@ -8,54 +8,54 @@
 
 @layer base {
   :root {
-    /* Core brand colors - Medical trust palette */
-    --background: 210 20% 99%;
-    --foreground: 222 47% 11%;
+    /* Core brand colors - Cytobiz blue palette */
+    --background: 240 20% 99%;
+    --foreground: 252 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 252 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 252 47% 11%;
 
-    /* Deep navy - authority & trust */
-    --primary: 222 47% 15%;
-    --primary-foreground: 210 40% 98%;
+    /* Cytobiz vibrant blue - authority & innovation */
+    --primary: 252 100% 48%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Teal - innovation & health */
-    --secondary: 174 62% 35%;
+    /* Secondary - lighter blue variation */
+    --secondary: 252 100% 55%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 240 14% 96%;
+    --muted-foreground: 240 9% 46%;
 
-    /* Accent teal for highlights */
-    --accent: 174 72% 40%;
+    /* Accent - bright variation for highlights */
+    --accent: 252 100% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 174 62% 35%;
+    --border: 240 13% 91%;
+    --input: 240 13% 91%;
+    --ring: 252 100% 48%;
 
     --radius: 0.75rem;
 
-    /* Extended palette */
-    --navy: 222 47% 15%;
-    --navy-light: 222 40% 25%;
-    --teal: 174 62% 35%;
-    --teal-light: 174 52% 45%;
-    --teal-dark: 174 72% 28%;
+    /* Extended palette - Cytobiz brand */
+    --cytobiz-blue: 252 100% 48%;
+    --cytobiz-blue-light: 252 100% 60%;
+    --cytobiz-blue-dark: 252 100% 40%;
+    --navy: 252 50% 15%;
+    --navy-light: 252 45% 25%;
     --gold: 45 93% 58%;
     --success: 160 84% 39%;
     --warning: 38 92% 50%;
 
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(222 47% 15%) 0%, hsl(222 40% 22%) 50%, hsl(174 62% 25%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 20% 98%) 100%);
-    --gradient-teal: linear-gradient(135deg, hsl(174 62% 35%) 0%, hsl(174 72% 28%) 100%);
+    /* Gradients - using Cytobiz blue */
+    --gradient-hero: linear-gradient(135deg, hsl(252 50% 12%) 0%, hsl(252 60% 20%) 50%, hsl(252 100% 35%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(240 20% 98%) 100%);
+    --gradient-blue: linear-gradient(135deg, hsl(252 100% 48%) 0%, hsl(252 100% 40%) 100%);
     --gradient-overlay: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%);
 
     /* Shadows */
@@ -63,58 +63,58 @@
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-    --shadow-glow: 0 0 40px -10px hsl(174 62% 35% / 0.3);
+    --shadow-glow: 0 0 40px -10px hsl(252 100% 48% / 0.3);
     --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
     --shadow-elevated: 0 25px 50px -12px rgb(0 0 0 / 0.25);
 
     /* Sidebar */
-    --sidebar-background: 222 47% 15%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 174 62% 35%;
+    --sidebar-background: 252 50% 12%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 252 100% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 40% 22%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222 30% 25%;
-    --sidebar-ring: 174 62% 35%;
+    --sidebar-accent: 252 50% 20%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 252 40% 25%;
+    --sidebar-ring: 252 100% 55%;
   }
 
   .dark {
-    --background: 222 47% 8%;
-    --foreground: 210 40% 98%;
+    --background: 252 47% 6%;
+    --foreground: 0 0% 98%;
 
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
+    --card: 252 47% 10%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 252 47% 10%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 174 62% 45%;
-    --primary-foreground: 222 47% 11%;
+    --primary: 252 100% 60%;
+    --primary-foreground: 252 50% 10%;
 
-    --secondary: 222 40% 25%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 252 80% 50%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 222 30% 18%;
-    --muted-foreground: 220 14% 65%;
+    --muted: 252 30% 18%;
+    --muted-foreground: 240 14% 65%;
 
-    --accent: 174 62% 40%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 252 100% 55%;
+    --accent-foreground: 252 50% 10%;
 
     --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 222 30% 20%;
-    --input: 222 30% 20%;
-    --ring: 174 62% 45%;
+    --border: 252 30% 20%;
+    --input: 252 30% 20%;
+    --ring: 252 100% 55%;
 
-    --sidebar-background: 222 47% 6%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 174 62% 45%;
-    --sidebar-primary-foreground: 222 47% 11%;
-    --sidebar-accent: 222 40% 15%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222 30% 15%;
-    --sidebar-ring: 174 62% 45%;
+    --sidebar-background: 252 47% 5%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 252 100% 55%;
+    --sidebar-primary-foreground: 252 50% 10%;
+    --sidebar-accent: 252 40% 15%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 252 30% 15%;
+    --sidebar-ring: 252 100% 55%;
   }
 }
 
@@ -149,7 +149,7 @@
 
   .text-gradient {
     @apply bg-clip-text text-transparent;
-    background-image: var(--gradient-teal);
+    background-image: var(--gradient-blue);
   }
 
   .section-padding {

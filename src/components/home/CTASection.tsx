@@ -15,7 +15,7 @@ export function CTASection() {
         whileInView={{ opacity: 0.1 }}
         viewport={{ once: true }}
         transition={{ duration: 1 }}
-        className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full bg-secondary blur-3xl"
+        className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full bg-primary blur-3xl"
       />
       <motion.div
         initial={{ opacity: 0 }}
@@ -38,9 +38,9 @@ export function CTASection() {
             whileInView={{ scale: 1, opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/20 backdrop-blur-sm border border-secondary/30 mb-6"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/20 backdrop-blur-sm border border-accent/30 mb-6"
           >
-            <Sparkles className="w-4 h-4 text-secondary" />
+            <Sparkles className="w-4 h-4 text-accent" />
             <span className="text-sm font-medium text-primary-foreground/90">
               Limited Spots Available
             </span>
@@ -48,7 +48,7 @@ export function CTASection() {
 
           <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-primary-foreground mb-6">
             Ready to Transform Your{" "}
-            <span className="text-secondary">Healthcare Career?</span>
+            <span className="text-accent">Healthcare Career?</span>
           </h2>
 
           <p className="text-lg text-primary-foreground/70 mb-10 max-w-2xl mx-auto">
@@ -60,7 +60,7 @@ export function CTASection() {
             <Button
               size="lg"
               asChild
-              className="bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg hover:shadow-xl transition-all group text-base px-8"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg hover:shadow-xl transition-all group text-base px-8"
             >
               <Link to="/courses">
                 Explore All Courses

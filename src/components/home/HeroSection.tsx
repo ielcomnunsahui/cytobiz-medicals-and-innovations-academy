@@ -18,13 +18,13 @@ export function HeroSection() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.1 }}
           transition={{ duration: 1 }}
-          className="absolute top-1/4 -right-1/4 w-[800px] h-[800px] rounded-full bg-secondary blur-3xl"
+          className="absolute top-1/4 -right-1/4 w-[800px] h-[800px] rounded-full bg-primary blur-3xl"
         />
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.05 }}
           transition={{ duration: 1, delay: 0.3 }}
-          className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] rounded-full bg-secondary blur-3xl"
+          className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] rounded-full bg-primary blur-3xl"
         />
         {/* Grid Pattern */}
         <div 
@@ -47,9 +47,9 @@ export function HeroSection() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/20 backdrop-blur-sm border border-secondary/30 mb-6"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 backdrop-blur-sm border border-primary/30 mb-6"
             >
-              <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               <span className="text-sm font-medium text-primary-foreground/90">
                 Cohort Applications Now Open
               </span>
@@ -58,12 +58,12 @@ export function HeroSection() {
             <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-primary-foreground leading-[1.1] mb-6">
               Medical Education.{" "}
               <span className="relative">
-                <span className="relative z-10 text-secondary">Innovation.</span>
+                <span className="relative z-10 text-accent">Innovation.</span>
                 <motion.span
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
                   transition={{ duration: 0.6, delay: 0.8 }}
-                  className="absolute bottom-2 left-0 right-0 h-3 bg-secondary/20 -z-10 origin-left"
+                  className="absolute bottom-2 left-0 right-0 h-3 bg-accent/20 -z-10 origin-left"
                 />
               </span>{" "}
               Real-World Impact.
@@ -79,7 +79,7 @@ export function HeroSection() {
               <Button
                 size="lg"
                 asChild
-                className="bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-lg hover:shadow-xl transition-all group"
+                className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg hover:shadow-xl transition-all group"
               >
                 <Link to="/courses">
                   Explore Courses
@@ -106,7 +106,7 @@ export function HeroSection() {
                   transition={{ duration: 0.5, delay: 1 + index * 0.1 }}
                 >
                   <div className="flex items-center gap-2 mb-1">
-                    <stat.icon className="w-4 h-4 text-secondary" />
+                    <stat.icon className="w-4 h-4 text-accent" />
                     <span className="text-2xl font-bold text-primary-foreground">
                       {stat.value}
                     </span>
@@ -134,8 +134,8 @@ export function HeroSection() {
                 <div className="aspect-[4/3] bg-gradient-to-br from-navy-light to-primary p-8 flex flex-col justify-end">
                   <div className="bg-card/95 backdrop-blur-lg rounded-xl p-6">
                     <div className="flex items-center gap-4 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center">
-                        <BookOpen className="w-6 h-6 text-secondary" />
+                      <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+                        <BookOpen className="w-6 h-6 text-accent" />
                       </div>
                       <div>
                         <h3 className="font-display font-semibold text-card-foreground">
@@ -152,11 +152,11 @@ export function HeroSection() {
                             className="w-8 h-8 rounded-full bg-muted border-2 border-card"
                           />
                         ))}
-                        <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-medium text-secondary-foreground border-2 border-card">
+                        <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-xs font-medium text-accent-foreground border-2 border-card">
                           +24
                         </div>
                       </div>
-                      <span className="text-sm font-medium text-secondary">
+                      <span className="text-sm font-medium text-accent">
                         Starting Feb 2026
                       </span>
                     </div>
@@ -188,8 +188,8 @@ export function HeroSection() {
               >
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-1">
-                    <div className="w-6 h-6 rounded-full bg-secondary" />
-                    <div className="w-6 h-6 rounded-full bg-teal-light" />
+                    <div className="w-6 h-6 rounded-full bg-primary" />
+                    <div className="w-6 h-6 rounded-full bg-accent" />
                     <div className="w-6 h-6 rounded-full bg-gold" />
                   </div>
                   <p className="text-sm font-medium text-card-foreground">3 Learning Paths</p>

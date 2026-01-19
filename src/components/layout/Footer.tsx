@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
-import { GraduationCap, Mail, MapPin, Phone, ArrowRight } from "lucide-react";
+import { Mail, MapPin, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import logoIcon from "@/assets/logo-icon.png";
 
 const footerLinks = {
   learning: [
@@ -50,7 +51,7 @@ export function Footer() {
                 placeholder="Enter your email"
                 className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 max-w-sm"
               />
-              <Button className="bg-secondary hover:bg-secondary/90 text-secondary-foreground shrink-0">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shrink-0">
                 Subscribe
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
@@ -65,15 +66,17 @@ export function Footer() {
           {/* Brand Column */}
           <div className="col-span-2">
             <Link to="/" className="flex items-center gap-2 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-                <GraduationCap className="w-6 h-6 text-secondary-foreground" />
-              </div>
+              <img 
+                src={logoIcon} 
+                alt="Cytobiz Logo" 
+                className="h-10 w-10 object-contain brightness-0 invert"
+              />
               <div className="flex flex-col">
                 <span className="font-display font-bold text-lg leading-tight">
                   Cytobiz
                 </span>
                 <span className="text-xs font-medium text-primary-foreground/70 leading-tight">
-                  Medical Academy
+                  Medical & Innovation Hub
                 </span>
               </div>
             </Link>
@@ -82,11 +85,11 @@ export function Footer() {
             </p>
             <div className="space-y-3 text-sm text-primary-foreground/70">
               <div className="flex items-center gap-3">
-                <Mail className="w-4 h-4 text-secondary" />
+                <Mail className="w-4 h-4 text-primary-foreground" />
                 <span>hello@cytobiz.academy</span>
               </div>
               <div className="flex items-center gap-3">
-                <MapPin className="w-4 h-4 text-secondary" />
+                <MapPin className="w-4 h-4 text-primary-foreground" />
                 <span>Global Online Learning</span>
               </div>
             </div>

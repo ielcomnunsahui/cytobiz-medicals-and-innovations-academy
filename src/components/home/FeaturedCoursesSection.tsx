@@ -17,7 +17,7 @@ const featuredCourses = [
     learners: 234,
     rating: 4.9,
     category: "Digital Health",
-    image: "bg-gradient-to-br from-secondary via-teal-light to-secondary/60",
+    image: "bg-gradient-to-br from-primary via-primary/80 to-primary/60",
   },
   {
     id: 2,
@@ -60,7 +60,7 @@ export function FeaturedCoursesSection() {
           className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12"
         >
           <div>
-            <span className="inline-block px-4 py-1.5 rounded-full bg-secondary/10 text-secondary text-sm font-medium mb-4">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
               Featured Courses
             </span>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
@@ -98,7 +98,7 @@ export function FeaturedCoursesSection() {
                       variant={course.type === "cohort" ? "default" : "secondary"}
                       className={cn(
                         course.type === "cohort"
-                          ? "bg-secondary text-secondary-foreground"
+                          ? "bg-primary text-primary-foreground"
                           : "bg-gold/90 text-foreground"
                       )}
                     >
@@ -114,7 +114,7 @@ export function FeaturedCoursesSection() {
 
                 {/* Content */}
                 <div className="flex flex-col flex-1 p-6">
-                  <h3 className="font-display text-lg font-semibold text-foreground mb-2 group-hover:text-secondary transition-colors line-clamp-2">
+                  <h3 className="font-display text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
                     {course.title}
                   </h3>
                   <p className="text-sm text-muted-foreground mb-4 line-clamp-2 flex-1">
@@ -142,7 +142,7 @@ export function FeaturedCoursesSection() {
                         ({course.learners.toLocaleString()})
                       </span>
                     </div>
-                    <span className="text-sm font-medium text-secondary group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                    <span className="text-sm font-medium text-primary group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
                       Learn more
                       <ArrowRight className="w-4 h-4" />
                     </span>

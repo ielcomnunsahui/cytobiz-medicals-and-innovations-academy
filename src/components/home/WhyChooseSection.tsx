@@ -54,12 +54,12 @@ export function WhyChooseSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <span className="inline-block px-4 py-1.5 rounded-full bg-secondary/10 text-secondary text-sm font-medium mb-4">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
               Why Cytobiz
             </span>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-6">
               Education Designed for{" "}
-              <span className="text-secondary">Real-World Impact</span>
+              <span className="text-primary">Real-World Impact</span>
             </h2>
             <p className="text-muted-foreground text-lg mb-8">
               We don't just teach theory. Every course is designed to help you 
@@ -78,8 +78,8 @@ export function WhyChooseSection() {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   className="flex gap-4"
                 >
-                  <div className="shrink-0 w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
-                    <feature.icon className="w-5 h-5 text-secondary" />
+                  <div className="shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <feature.icon className="w-5 h-5 text-primary" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">
@@ -104,7 +104,7 @@ export function WhyChooseSection() {
           >
             <div className="relative rounded-2xl overflow-hidden">
               {/* Main Image Placeholder */}
-              <div className="aspect-[4/3] bg-gradient-to-br from-primary via-navy-light to-secondary/80 rounded-2xl p-8 flex items-end">
+              <div className="aspect-[4/3] bg-gradient-to-br from-navy via-navy-light to-primary/80 rounded-2xl p-8 flex items-end">
                 <div className="w-full">
                   <div className="grid grid-cols-2 gap-4">
                     {features.slice(4).map((feature, index) => (
@@ -116,8 +116,8 @@ export function WhyChooseSection() {
                         transition={{ duration: 0.5, delay: 0.4 + index * 0.15 }}
                         className="bg-card/95 backdrop-blur-lg rounded-xl p-4"
                       >
-                        <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center mb-3">
-                          <feature.icon className="w-5 h-5 text-secondary" />
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
+                          <feature.icon className="w-5 h-5 text-primary" />
                         </div>
                         <h4 className="font-semibold text-card-foreground text-sm mb-1">
                           {feature.title}
@@ -132,7 +132,7 @@ export function WhyChooseSection() {
               </div>
 
               {/* Decorative Elements */}
-              <div className="absolute -top-4 -right-4 w-24 h-24 bg-secondary/20 rounded-full blur-2xl" />
+              <div className="absolute -top-4 -right-4 w-24 h-24 bg-primary/20 rounded-full blur-2xl" />
               <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-gold/20 rounded-full blur-2xl" />
             </div>
           </motion.div>
