@@ -43,12 +43,12 @@ const About = () => {
               transition={{ duration: 0.6 }}
               className="max-w-3xl"
             >
-              <span className="inline-block px-4 py-1.5 rounded-full bg-secondary/20 text-secondary text-sm font-medium mb-6">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-primary/20 text-primary text-sm font-medium mb-6">
                 About Cytobiz Academy
               </span>
               <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground mb-6">
                 Transforming Healthcare Education for the{" "}
-                <span className="text-secondary">Modern Era</span>
+                <span className="text-accent">Modern Era</span>
               </h1>
               <p className="text-xl text-primary-foreground/70">
                 We're on a mission to democratize access to world-class medical and public health education, 
@@ -98,23 +98,23 @@ const About = () => {
                 transition={{ duration: 0.6, delay: 0.2 }}
                 className="relative"
               >
-                <div className="aspect-square rounded-2xl bg-gradient-to-br from-secondary/20 to-secondary/5 p-8 flex items-center justify-center">
-                  <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
-                    <div className="bg-card rounded-xl p-6 shadow-lg text-center">
-                      <div className="text-3xl font-bold text-secondary mb-1">5K+</div>
-                      <div className="text-sm text-muted-foreground">Active Learners</div>
-                    </div>
-                    <div className="bg-card rounded-xl p-6 shadow-lg text-center">
-                      <div className="text-3xl font-bold text-secondary mb-1">50+</div>
-                      <div className="text-sm text-muted-foreground">Expert Courses</div>
-                    </div>
-                    <div className="bg-card rounded-xl p-6 shadow-lg text-center">
-                      <div className="text-3xl font-bold text-secondary mb-1">40+</div>
-                      <div className="text-sm text-muted-foreground">Countries</div>
-                    </div>
-                    <div className="bg-card rounded-xl p-6 shadow-lg text-center">
-                      <div className="text-3xl font-bold text-secondary mb-1">98%</div>
-                      <div className="text-sm text-muted-foreground">Completion Rate</div>
+                <div className="aspect-square rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 p-8 flex items-center justify-center">
+                    <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
+                      <div className="bg-card rounded-xl p-6 shadow-lg text-center">
+                        <div className="text-3xl font-bold text-primary mb-1">5K+</div>
+                        <div className="text-sm text-muted-foreground">Active Learners</div>
+                      </div>
+                      <div className="bg-card rounded-xl p-6 shadow-lg text-center">
+                        <div className="text-3xl font-bold text-primary mb-1">50+</div>
+                        <div className="text-sm text-muted-foreground">Expert Courses</div>
+                      </div>
+                      <div className="bg-card rounded-xl p-6 shadow-lg text-center">
+                        <div className="text-3xl font-bold text-primary mb-1">40+</div>
+                        <div className="text-sm text-muted-foreground">Countries</div>
+                      </div>
+                      <div className="bg-card rounded-xl p-6 shadow-lg text-center">
+                        <div className="text-3xl font-bold text-primary mb-1">98%</div>
+                        <div className="text-sm text-muted-foreground">Completion Rate</div>
                     </div>
                   </div>
                 </div>
@@ -151,8 +151,8 @@ const About = () => {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   className="bg-card rounded-2xl p-6 border border-border"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4">
-                    <value.icon className="w-6 h-6 text-secondary" />
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                    <value.icon className="w-6 h-6 text-primary" />
                   </div>
                   <h3 className="font-display text-lg font-semibold text-foreground mb-2">
                     {value.title}
@@ -185,7 +185,7 @@ const About = () => {
               <Button
                 size="lg"
                 asChild
-                className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+                className="bg-accent hover:bg-accent/90 text-accent-foreground"
               >
                 <Link to="/courses">
                   Browse All Courses

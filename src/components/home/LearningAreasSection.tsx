@@ -38,9 +38,9 @@ const learningAreas = [
     description: "Health tech innovation, telemedicine, AI in healthcare, and digital therapeutics.",
     icon: Cpu,
     courses: 15,
-    color: "text-secondary",
-    bgColor: "bg-secondary/10",
-    hoverBorder: "hover:border-secondary/30",
+    color: "text-primary",
+    bgColor: "bg-primary/10",
+    hoverBorder: "hover:border-primary/30",
   },
   {
     id: "research",
@@ -86,7 +86,7 @@ export function LearningAreasSection() {
           transition={{ duration: 0.6 }}
           className="text-center max-w-2xl mx-auto mb-12 md:mb-16"
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-secondary/10 text-secondary text-sm font-medium mb-4">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
             Learning Areas
           </span>
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -124,13 +124,13 @@ export function LearningAreasSection() {
                     {area.courses} courses
                   </span>
                 </div>
-                <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-secondary transition-colors">
+                <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                   {area.title}
                 </h3>
                 <p className="text-muted-foreground text-sm flex-1">
                   {area.description}
                 </p>
-                <div className="flex items-center gap-2 mt-4 text-sm font-medium text-secondary opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-2 mt-4 text-sm font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                   View courses
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>

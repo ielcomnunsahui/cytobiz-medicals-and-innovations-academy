@@ -18,13 +18,13 @@ const learningModels = [
       "Certificate upon completion",
     ],
     badge: "Most Popular",
-    badgeColor: "bg-secondary text-secondary-foreground",
+    badgeColor: "bg-primary text-primary-foreground",
     cta: "View Cohort Programs",
     href: "/courses?type=cohort",
-    gradient: "from-secondary/10 to-secondary/5",
-    borderColor: "border-secondary/30",
-    iconBg: "bg-secondary/20",
-    iconColor: "text-secondary",
+    gradient: "from-primary/10 to-primary/5",
+    borderColor: "border-primary/30",
+    iconBg: "bg-primary/20",
+    iconColor: "text-primary",
   },
   {
     id: "self-paced",
@@ -61,7 +61,7 @@ export function LearningModelsSection() {
           transition={{ duration: 0.6 }}
           className="text-center max-w-2xl mx-auto mb-12 md:mb-16"
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-secondary/10 text-secondary text-sm font-medium mb-4">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
             Learning Models
           </span>
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
