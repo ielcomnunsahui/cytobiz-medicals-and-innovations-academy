@@ -55,6 +55,48 @@ export type Database = {
           },
         ]
       }
+      case_studies: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          is_featured: boolean
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_featured?: boolean
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_featured?: boolean
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       certificates: {
         Row: {
           course_id: string
@@ -133,6 +175,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      content_submissions: {
+        Row: {
+          author_id: string
+          category: string
+          content: string
+          created_at: string
+          excerpt: string | null
+          id: string
+          image_url: string | null
+          is_featured: boolean
+          published_at: string | null
+          status: Database["public"]["Enums"]["content_status"]
+          title: string
+          updated_at: string
+          views: number
+        }
+        Insert: {
+          author_id: string
+          category: string
+          content: string
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean
+          published_at?: string | null
+          status?: Database["public"]["Enums"]["content_status"]
+          title: string
+          updated_at?: string
+          views?: number
+        }
+        Update: {
+          author_id?: string
+          category?: string
+          content?: string
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean
+          published_at?: string | null
+          status?: Database["public"]["Enums"]["content_status"]
+          title?: string
+          updated_at?: string
+          views?: number
+        }
+        Relationships: []
       }
       courses: {
         Row: {
@@ -245,6 +335,115 @@ export type Database = {
           },
         ]
       }
+      event_attendance: {
+        Row: {
+          check_in_method: string | null
+          checked_in_at: string
+          event_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          check_in_method?: string | null
+          checked_in_at?: string
+          event_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          check_in_method?: string | null
+          checked_in_at?: string
+          event_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_attendance_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_registrations: {
+        Row: {
+          event_id: string
+          id: string
+          registered_at: string
+          user_id: string
+        }
+        Insert: {
+          event_id: string
+          id?: string
+          registered_at?: string
+          user_id: string
+        }
+        Update: {
+          event_id?: string
+          id?: string
+          registered_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_date: string | null
+          event_date: string
+          id: string
+          image_url: string | null
+          location: string | null
+          max_attendees: number | null
+          registration_required: boolean
+          status: Database["public"]["Enums"]["event_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          event_date: string
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          max_attendees?: number | null
+          registration_required?: boolean
+          status?: Database["public"]["Enums"]["event_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          event_date?: string
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          max_attendees?: number | null
+          registration_required?: boolean
+          status?: Database["public"]["Enums"]["event_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       facilitator_cohorts: {
         Row: {
           cohort_id: string
@@ -351,6 +550,72 @@ export type Database = {
           },
         ]
       }
+      freshers_guidelines: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_active: boolean
+          order_index: number
+          section_title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          order_index?: number
+          section_title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          order_index?: number
+          section_title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      legislatives: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          document_url: string | null
+          id: string
+          is_active: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          document_url?: string | null
+          id?: string
+          is_active?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          document_url?: string | null
+          id?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lesson_progress: {
         Row: {
           completed: boolean | null
@@ -433,6 +698,51 @@ export type Database = {
           },
         ]
       }
+      marketplace_listings: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          price: number
+          seller_id: string
+          status: Database["public"]["Enums"]["content_status"]
+          title: string
+          updated_at: string
+          whatsapp_number: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          price?: number
+          seller_id: string
+          status?: Database["public"]["Enums"]["content_status"]
+          title: string
+          updated_at?: string
+          whatsapp_number: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          price?: number
+          seller_id?: string
+          status?: Database["public"]["Enums"]["content_status"]
+          title?: string
+          updated_at?: string
+          whatsapp_number?: string
+        }
+        Relationships: []
+      }
       modules: {
         Row: {
           course_id: string
@@ -471,6 +781,45 @@ export type Database = {
           },
         ]
       }
+      official_links: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          icon_name: string | null
+          id: string
+          is_active: boolean
+          order_index: number
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean
+          order_index?: number
+          title: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean
+          order_index?: number
+          title?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -478,7 +827,9 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          matric_number: string | null
           phone: string | null
+          receipt_url: string | null
           updated_at: string
           user_id: string
         }
@@ -488,7 +839,9 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          matric_number?: string | null
           phone?: string | null
+          receipt_url?: string | null
           updated_at?: string
           user_id: string
         }
@@ -498,9 +851,86 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          matric_number?: string | null
           phone?: string | null
+          receipt_url?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      research: {
+        Row: {
+          abstract: string | null
+          authors: string[] | null
+          category: string | null
+          created_at: string
+          created_by: string | null
+          document_url: string | null
+          id: string
+          is_active: boolean
+          published_date: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          abstract?: string | null
+          authors?: string[] | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_url?: string | null
+          id?: string
+          is_active?: boolean
+          published_date?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          abstract?: string | null
+          authors?: string[] | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_url?: string | null
+          id?: string
+          is_active?: boolean
+          published_date?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          setting_key: string
+          setting_type: string
+          setting_value: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_type?: string
+          setting_value?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_type?: string
+          setting_value?: string | null
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -600,8 +1030,10 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "facilitator" | "learner"
+      content_status: "pending" | "approved" | "rejected"
       course_status: "draft" | "published" | "archived"
       course_type: "cohort" | "self_paced"
+      event_status: "upcoming" | "ongoing" | "completed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -730,8 +1162,10 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "facilitator", "learner"],
+      content_status: ["pending", "approved", "rejected"],
       course_status: ["draft", "published", "archived"],
       course_type: ["cohort", "self_paced"],
+      event_status: ["upcoming", "ongoing", "completed", "cancelled"],
     },
   },
 } as const
