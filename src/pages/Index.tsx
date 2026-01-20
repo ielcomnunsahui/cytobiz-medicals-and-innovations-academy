@@ -4,6 +4,7 @@ import { HeroSection } from "@/components/home/HeroSection";
 import { StatsSection } from "@/components/home/StatsSection";
 import { LearningModelsSection } from "@/components/home/LearningModelsSection";
 import { FeaturedCoursesSection } from "@/components/home/FeaturedCoursesSection";
+import { CourseCarouselSection } from "@/components/home/CourseCarouselSection";
 import { PracticeAreasSection } from "@/components/home/PracticeAreasSection";
 import { WhyChooseSection } from "@/components/home/WhyChooseSection";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
@@ -26,16 +27,19 @@ const Index = () => {
         {/* 4. Featured Courses - Guided Entry */}
         <FeaturedCoursesSection />
         
-        {/* 5. Practice Areas - Exploration */}
+        {/* 5. Course Carousel - Browse without pressure */}
+        <CourseCarouselSection />
+        
+        {/* 6. Practice Areas - Exploration by Specialty */}
         <PracticeAreasSection />
         
-        {/* 6. Why Choose - Trust Reinforcement */}
+        {/* 7. Why Choose - Trust Reinforcement */}
         <WhyChooseSection />
         
-        {/* 7. Testimonials - Social Proof */}
+        {/* 8. Testimonials - Social Proof */}
         <TestimonialsSection />
         
-        {/* 8. Final CTA - Conversion */}
+        {/* 9. Final CTA - Conversion */}
         <FinalCTASection />
       </main>
       <Footer />

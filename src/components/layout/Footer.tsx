@@ -51,7 +51,7 @@ export function Footer() {
                 placeholder="Enter your email"
                 className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 max-w-sm"
               />
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shrink-0">
+              <Button className="bg-white hover:bg-white/90 text-foreground shrink-0">
                 Subscribe
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
