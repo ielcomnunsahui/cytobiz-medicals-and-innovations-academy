@@ -1,220 +1,152 @@
-import { motion } from "framer-motion";
-import { ArrowRight, Play, Users, Award, BookOpen } from "lucide-react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { ArrowRight, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-
-const stats = [
-  { icon: Users, value: "5,000+", label: "Active Learners" },
-  { icon: BookOpen, value: "50+", label: "Courses" },
-  { icon: Award, value: "98%", label: "Completion Rate" },
-];
+import { useRef } from "react";
 
 export function HeroSection() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], [0, 150]);
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-hero-gradient">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.1 }}
-          transition={{ duration: 1 }}
-          className="absolute top-1/4 -right-1/4 w-[800px] h-[800px] rounded-full bg-primary blur-3xl"
-        />
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.05 }}
-          transition={{ duration: 1, delay: 0.3 }}
-          className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] rounded-full bg-primary blur-3xl"
-        />
-        {/* Grid Pattern */}
-        <div 
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }}
-        />
+    <section
+      ref={containerRef}
+      className="relative min-h-[90vh] flex items-center overflow-hidden bg-hero-gradient"
+    >
+      {/* Subtle Grid Pattern */}
+      <div className="absolute inset-0 opacity-[0.03]">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), 
+                           linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+          backgroundSize: '60px 60px'
+        }} />
       </div>
 
-      <div className="container-wide relative z-10 pt-24 pb-16 md:pt-32 md:pb-24">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Content */}
+      {/* Gradient Orbs */}
+      <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] rounded-full bg-primary/20 blur-[120px] opacity-60" />
+      <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] rounded-full bg-accent/15 blur-[100px] opacity-50" />
+
+      {/* Main Content */}
+      <motion.div style={{ opacity }} className="container-wide relative z-10 pt-24 pb-16">
+        <div className="max-w-4xl mx-auto text-center">
+          {/* Authority Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 mb-8 backdrop-blur-sm"
+          >
+            <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+            <span className="text-sm font-medium text-primary-foreground/90">
+              New Cohort Starting March 2026
+            </span>
+          </motion.div>
+
+          {/* Headline - Authority + Clarity */}
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            className="font-display text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-primary-foreground leading-[1.1] mb-6 tracking-tight"
+          >
+            Medical Education.
+            <br />
+            <span className="text-primary-foreground/80">Innovation.</span>
+            <br />
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-white/90 to-white/70">
+              Real-World Impact.
+            </span>
+          </motion.h1>
+
+          {/* Subheadline - Outcome focused */}
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-lg sm:text-xl text-primary-foreground/70 mb-10 max-w-2xl mx-auto leading-relaxed"
+          >
+            Build competence, curiosity, and confidence through practical, 
+            expert-led education designed for healthcare professionals and innovators.
+          </motion.p>
+
+          {/* Primary CTAs */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 backdrop-blur-sm border border-primary/30 mb-6"
+            <Button
+              size="lg"
+              asChild
+              className="bg-white text-navy hover:bg-white/90 shadow-lg hover:shadow-xl transition-all group h-14 px-8 text-base font-semibold"
             >
-              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-sm font-medium text-primary-foreground/90">
-                Cohort Applications Now Open
-              </span>
-            </motion.div>
-
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-primary-foreground leading-[1.1] mb-6">
-              Medical Education.{" "}
-              <span className="relative">
-                <span className="relative z-10 text-accent">Innovation.</span>
-                <motion.span
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ duration: 0.6, delay: 0.8 }}
-                  className="absolute bottom-2 left-0 right-0 h-3 bg-accent/20 -z-10 origin-left"
-                />
-              </span>{" "}
-              Real-World Impact.
-            </h1>
-
-            <p className="text-lg text-primary-foreground/70 mb-8 max-w-xl">
-              Practical, innovation-driven education for healthcare professionals, 
-              public health experts, and digital health pioneers. Learn from industry 
-              leaders and create real-world impact.
-            </p>
-
-            <div className="flex flex-wrap gap-4 mb-12">
-              <Button
-                size="lg"
-                asChild
-                className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg hover:shadow-xl transition-all group"
-              >
-                <Link to="/courses">
-                  Explore Courses
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 backdrop-blur-sm"
-              >
-                <Play className="w-4 h-4 mr-2" />
-                Watch Overview
-              </Button>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-6 pt-8 border-t border-primary-foreground/10">
-              {stats.map((stat, index) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 1 + index * 0.1 }}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <stat.icon className="w-4 h-4 text-accent" />
-                    <span className="text-2xl font-bold text-primary-foreground">
-                      {stat.value}
-                    </span>
-                  </div>
-                  <span className="text-sm text-primary-foreground/60">{stat.label}</span>
-                </motion.div>
-              ))}
-            </div>
+              <Link to="/courses">
+                Explore Courses
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              asChild
+              className="border-white/30 text-primary-foreground hover:bg-white/10 h-14 px-8 text-base font-semibold backdrop-blur-sm"
+            >
+              <Link to="/courses?type=cohort">
+                <Users className="w-5 h-5 mr-2" />
+                Join a Cohort
+              </Link>
+            </Button>
           </motion.div>
 
-          {/* Visual Element */}
+          {/* Trust Indicators */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="relative hidden lg:block"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="mt-16 flex flex-wrap justify-center gap-8 text-sm text-primary-foreground/60"
           >
-            <div className="relative">
-              {/* Main Card */}
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                className="relative z-10 rounded-2xl overflow-hidden shadow-elevated"
-              >
-                <div className="aspect-[4/3] bg-gradient-to-br from-navy-light to-primary p-8 flex flex-col justify-end">
-                  <div className="bg-card/95 backdrop-blur-lg rounded-xl p-6">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
-                        <BookOpen className="w-6 h-6 text-accent" />
-                      </div>
-                      <div>
-                        <h3 className="font-display font-semibold text-card-foreground">
-                          Digital Health Innovation
-                        </h3>
-                        <p className="text-sm text-muted-foreground">12-Week Cohort Program</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex -space-x-2">
-                        {[1, 2, 3, 4].map((i) => (
-                          <div
-                            key={i}
-                            className="w-8 h-8 rounded-full bg-muted border-2 border-card"
-                          />
-                        ))}
-                        <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-xs font-medium text-accent-foreground border-2 border-card">
-                          +24
-                        </div>
-                      </div>
-                      <span className="text-sm font-medium text-accent">
-                        Starting Feb 2026
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Floating Cards */}
-              <motion.div
-                animate={{ y: [0, 8, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                className="absolute -top-6 -right-6 z-20 bg-card rounded-xl p-4 shadow-lg border border-border"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
-                    <Award className="w-5 h-5 text-success" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-card-foreground">Certificate Earned!</p>
-                    <p className="text-xs text-muted-foreground">Public Health Leadership</p>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="absolute -bottom-4 -left-6 z-20 bg-card rounded-xl p-4 shadow-lg border border-border"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="flex -space-x-1">
-                    <div className="w-6 h-6 rounded-full bg-primary" />
-                    <div className="w-6 h-6 rounded-full bg-accent" />
-                    <div className="w-6 h-6 rounded-full bg-gold" />
-                  </div>
-                  <p className="text-sm font-medium text-card-foreground">3 Learning Paths</p>
-                </div>
-              </motion.div>
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-success" />
+              Certificate of Completion
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-success" />
+              Expert Facilitators
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-success" />
+              Global Community
             </div>
           </motion.div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Bottom Wave */}
-      <div className="absolute bottom-0 left-0 right-0">
-        <svg
-          viewBox="0 0 1440 120"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-auto"
-          preserveAspectRatio="none"
+      {/* Scroll Indicator */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.2 }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+      >
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="w-6 h-10 border-2 border-primary-foreground/30 rounded-full flex justify-center pt-2"
         >
-          <path
-            d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0V120Z"
-            className="fill-background"
+          <motion.div
+            animate={{ opacity: [1, 0.3, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="w-1.5 h-1.5 rounded-full bg-primary-foreground/60"
           />
-        </svg>
-      </div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }
