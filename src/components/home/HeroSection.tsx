@@ -85,7 +85,7 @@ export function HeroSection() {
             <Button
               size="lg"
               asChild
-              className="bg-white text-navy hover:bg-white/90 shadow-lg hover:shadow-xl transition-all group h-14 px-8 text-base font-semibold"
+              className="bg-white text-foreground hover:bg-white/90 shadow-lg hover:shadow-xl transition-all group h-14 px-8 text-base font-semibold"
             >
               <Link to="/courses">
                 Explore Courses
