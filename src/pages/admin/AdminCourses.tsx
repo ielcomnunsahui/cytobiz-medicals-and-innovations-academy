@@ -7,11 +7,12 @@ import {
   Edit,
   Trash2,
   Eye,
-  Filter,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -33,65 +34,63 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-
-const mockCourses = [
-  {
-    id: "1",
-    title: "Digital Health Innovation Leadership",
-    type: "cohort",
-    status: "published",
-    students: 245,
-    price: 499,
-    createdAt: "2025-12-15",
-  },
-  {
-    id: "2",
-    title: "Public Health Data Analytics",
-    type: "self_paced",
-    status: "published",
-    students: 189,
-    price: 349,
-    createdAt: "2025-11-20",
-  },
-  {
-    id: "3",
-    title: "Healthcare AI Implementation",
-    type: "cohort",
-    status: "draft",
-    students: 0,
-    price: 599,
-    createdAt: "2026-01-10",
-  },
-  {
-    id: "4",
-    title: "Medical Research Methodology",
-    type: "cohort",
-    status: "published",
-    students: 120,
-    price: 699,
-    createdAt: "2025-10-05",
-  },
-  {
-    id: "5",
-    title: "Telemedicine Excellence",
-    type: "self_paced",
-    status: "archived",
-    students: 310,
-    price: 199,
-    createdAt: "2025-08-22",
-  },
-];
+import { useAdminCourses, useCreateCourse, useUpdateCourse, useDeleteCourse } from "@/hooks/useAdminData";
+import { Link } from "react-router-dom";
+import { format } from "date-fns";
 
 export default function AdminCourses() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingCourse, setEditingCourse] = useState<any>(null);
+  const [deletingCourse, setDeletingCourse] = useState<any>(null);
 
-  const filteredCourses = mockCourses.filter((course) => {
+  const { data: courses, isLoading } = useAdminCourses();
+  const createCourse = useCreateCourse();
+  const updateCourse = useUpdateCourse();
+  const deleteCourse = useDeleteCourse();
+
+  // Form state
+  const [formData, setFormData] = useState({
+    title: "",
+    slug: "",
+    short_description: "",
+    description: "",
+    course_type: "self_paced" as "cohort" | "self_paced",
+    status: "draft" as "draft" | "published" | "archived",
+    level: "beginner",
+    price: 0,
+    duration_weeks: 4,
+    effort_hours_per_week: 4,
+    category: "",
+  });
+
+  const filteredCourses = courses?.filter((course) => {
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || course.status === statusFilter;
-    const matchesType = typeFilter === "all" || course.type === typeFilter;
+    const matchesType = typeFilter === "all" || course.course_type === typeFilter;
     return matchesSearch && matchesStatus && matchesType;
   });
 
@@ -108,6 +107,66 @@ export default function AdminCourses() {
     }
   };
 
+  const handleCreate = () => {
+    setFormData({
+      title: "",
+      slug: "",
+      short_description: "",
+      description: "",
+      course_type: "self_paced",
+      status: "draft",
+      level: "beginner",
+      price: 0,
+      duration_weeks: 4,
+      effort_hours_per_week: 4,
+      category: "",
+    });
+    setIsCreateOpen(true);
+  };
+
+  const handleEdit = (course: any) => {
+    setFormData({
+      title: course.title,
+      slug: course.slug,
+      short_description: course.short_description || "",
+      description: course.description || "",
+      course_type: course.course_type,
+      status: course.status,
+      level: course.level || "beginner",
+      price: course.price || 0,
+      duration_weeks: course.duration_weeks || 4,
+      effort_hours_per_week: course.effort_hours_per_week || 4,
+      category: course.category || "",
+    });
+    setEditingCourse(course);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (editingCourse) {
+      await updateCourse.mutateAsync({ id: editingCourse.id, ...formData });
+      setEditingCourse(null);
+    } else {
+      await createCourse.mutateAsync(formData);
+      setIsCreateOpen(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (deletingCourse) {
+      await deleteCourse.mutateAsync(deletingCourse.id);
+      setDeletingCourse(null);
+    }
+  };
+
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -117,7 +176,7 @@ export default function AdminCourses() {
             <h1 className="text-3xl font-bold text-foreground">Courses</h1>
             <p className="text-muted-foreground">Manage your course catalog</p>
           </div>
-          <Button className="bg-primary hover:bg-primary/90">
+          <Button onClick={handleCreate} className="bg-primary hover:bg-primary/90">
             <Plus className="w-4 h-4 mr-2" />
             Create Course
           </Button>
@@ -172,46 +231,267 @@ export default function AdminCourses() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredCourses.map((course) => (
-                <TableRow key={course.id}>
-                  <TableCell className="font-medium">{course.title}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="capitalize">
-                      {course.type.replace("_", "-")}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{getStatusBadge(course.status)}</TableCell>
-                  <TableCell>{course.students}</TableCell>
-                  <TableCell>${course.price}</TableCell>
-                  <TableCell>{course.createdAt}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Eye className="w-4 h-4 mr-2" />
-                          View
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+              {isLoading ? (
+                [...Array(5)].map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-12" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-8" /></TableCell>
+                  </TableRow>
+                ))
+              ) : filteredCourses?.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    No courses found
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                filteredCourses?.map((course) => (
+                  <TableRow key={course.id}>
+                    <TableCell className="font-medium max-w-xs truncate">{course.title}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="capitalize">
+                        {course.course_type.replace("_", "-")}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{getStatusBadge(course.status)}</TableCell>
+                    <TableCell>{course.enrollmentCount}</TableCell>
+                    <TableCell>${course.price || 0}</TableCell>
+                    <TableCell>{format(new Date(course.created_at), "MMM d, yyyy")}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link to={`/courses/${course.slug}`}>
+                              <Eye className="w-4 h-4 mr-2" />
+                              View
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEdit(course)}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="text-red-600"
+                            onClick={() => setDeletingCourse(course)}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
+
+        {/* Create/Edit Dialog */}
+        <Dialog open={isCreateOpen || !!editingCourse} onOpenChange={(open) => {
+          if (!open) {
+            setIsCreateOpen(false);
+            setEditingCourse(null);
+          }
+        }}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{editingCourse ? "Edit Course" : "Create New Course"}</DialogTitle>
+              <DialogDescription>
+                {editingCourse ? "Update the course details below." : "Fill in the details to create a new course."}
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => {
+                      setFormData({ 
+                        ...formData, 
+                        title: e.target.value,
+                        slug: !editingCourse ? generateSlug(e.target.value) : formData.slug
+                      });
+                    }}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="slug">Slug</Label>
+                  <Input
+                    id="slug"
+                    value={formData.slug}
+                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="short_description">Short Description</Label>
+                <Textarea
+                  id="short_description"
+                  value={formData.short_description}
+                  onChange={(e) => setFormData({ ...formData, short_description: e.target.value })}
+                  rows={2}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Full Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={4}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="course_type">Course Type</Label>
+                  <Select 
+                    value={formData.course_type} 
+                    onValueChange={(v) => setFormData({ ...formData, course_type: v as any })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="self_paced">Self-Paced</SelectItem>
+                      <SelectItem value="cohort">Cohort</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select 
+                    value={formData.status} 
+                    onValueChange={(v) => setFormData({ ...formData, status: v as any })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="published">Published</SelectItem>
+                      <SelectItem value="archived">Archived</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="level">Level</Label>
+                  <Select 
+                    value={formData.level} 
+                    onValueChange={(v) => setFormData({ ...formData, level: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">Beginner</SelectItem>
+                      <SelectItem value="intermediate">Intermediate</SelectItem>
+                      <SelectItem value="advanced">Advanced</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="price">Price ($)</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    min="0"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Input
+                    id="category"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="duration_weeks">Duration (weeks)</Label>
+                  <Input
+                    id="duration_weeks"
+                    type="number"
+                    min="1"
+                    value={formData.duration_weeks}
+                    onChange={(e) => setFormData({ ...formData, duration_weeks: Number(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="effort_hours_per_week">Effort (hours/week)</Label>
+                  <Input
+                    id="effort_hours_per_week"
+                    type="number"
+                    min="1"
+                    value={formData.effort_hours_per_week}
+                    onChange={(e) => setFormData({ ...formData, effort_hours_per_week: Number(e.target.value) })}
+                  />
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => {
+                  setIsCreateOpen(false);
+                  setEditingCourse(null);
+                }}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={createCourse.isPending || updateCourse.isPending}>
+                  {(createCourse.isPending || updateCourse.isPending) && (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  )}
+                  {editingCourse ? "Update" : "Create"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation */}
+        <AlertDialog open={!!deletingCourse} onOpenChange={(open) => !open && setDeletingCourse(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Course</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{deletingCourse?.title}"? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleDelete}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {deleteCourse.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminLayout>
   );
