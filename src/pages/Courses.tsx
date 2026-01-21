@@ -6,7 +6,6 @@ import {
   Filter, 
   Clock, 
   Calendar, 
-  Star, 
   ArrowRight,
   X,
 } from "lucide-react";
@@ -335,9 +334,10 @@ const Courses = () => {
 
                           {/* Footer */}
                           <div className="flex items-center justify-between pt-4 border-t border-border">
-                            <div className="flex items-center gap-1.5">
-                              <Star className="w-4 h-4 text-gold fill-gold" />
-                              <span className="font-medium text-foreground">4.9</span>
+                            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <span className="font-medium text-foreground">
+                                {course.level || "All levels"}
+                              </span>
                             </div>
                             <span className="text-sm font-medium text-primary group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
                               View
