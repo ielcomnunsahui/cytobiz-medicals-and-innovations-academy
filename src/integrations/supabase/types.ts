@@ -292,30 +292,63 @@ export type Database = {
       }
       enrollments: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           cohort_id: string | null
           completed_at: string | null
           course_id: string
           enrolled_at: string
           id: string
+          payment_amount: number | null
+          payment_currency: string
+          payment_method: Database["public"]["Enums"]["payment_method"] | null
+          payment_provider_ref: string | null
+          payment_submitted_at: string | null
           progress_percentage: number | null
+          registration_submission_id: string | null
+          rejected_at: string | null
+          rejection_reason: string | null
+          status: Database["public"]["Enums"]["enrollment_status"]
           user_id: string
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           cohort_id?: string | null
           completed_at?: string | null
           course_id: string
           enrolled_at?: string
           id?: string
+          payment_amount?: number | null
+          payment_currency?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          payment_provider_ref?: string | null
+          payment_submitted_at?: string | null
           progress_percentage?: number | null
+          registration_submission_id?: string | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["enrollment_status"]
           user_id: string
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           cohort_id?: string | null
           completed_at?: string | null
           course_id?: string
           enrolled_at?: string
           id?: string
+          payment_amount?: number | null
+          payment_currency?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          payment_provider_ref?: string | null
+          payment_submitted_at?: string | null
           progress_percentage?: number | null
+          registration_submission_id?: string | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["enrollment_status"]
           user_id?: string
         }
         Relationships: [
@@ -331,6 +364,13 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_registration_submission_id_fkey"
+            columns: ["registration_submission_id"]
+            isOneToOne: false
+            referencedRelation: "registration_submissions"
             referencedColumns: ["id"]
           },
         ]
@@ -859,6 +899,133 @@ export type Database = {
         }
         Relationships: []
       }
+      registration_form_fields: {
+        Row: {
+          created_at: string
+          field_key: string
+          field_type: Database["public"]["Enums"]["form_field_type"]
+          form_id: string
+          help_text: string | null
+          id: string
+          label: string
+          options: Json | null
+          order_index: number
+          placeholder: string | null
+          required: boolean
+          updated_at: string
+          validation: Json | null
+        }
+        Insert: {
+          created_at?: string
+          field_key: string
+          field_type?: Database["public"]["Enums"]["form_field_type"]
+          form_id: string
+          help_text?: string | null
+          id?: string
+          label: string
+          options?: Json | null
+          order_index?: number
+          placeholder?: string | null
+          required?: boolean
+          updated_at?: string
+          validation?: Json | null
+        }
+        Update: {
+          created_at?: string
+          field_key?: string
+          field_type?: Database["public"]["Enums"]["form_field_type"]
+          form_id?: string
+          help_text?: string | null
+          id?: string
+          label?: string
+          options?: Json | null
+          order_index?: number
+          placeholder?: string | null
+          required?: boolean
+          updated_at?: string
+          validation?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registration_form_fields_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "registration_forms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      registration_forms: {
+        Row: {
+          course_id: string | null
+          course_type: Database["public"]["Enums"]["course_type"] | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          course_id?: string | null
+          course_type?: Database["public"]["Enums"]["course_type"] | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string | null
+          course_type?: Database["public"]["Enums"]["course_type"] | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      registration_submissions: {
+        Row: {
+          cohort_id: string | null
+          course_id: string
+          created_at: string
+          data: Json
+          form_id: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cohort_id?: string | null
+          course_id: string
+          created_at?: string
+          data?: Json
+          form_id: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cohort_id?: string | null
+          course_id?: string
+          created_at?: string
+          data?: Json
+          form_id?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registration_submissions_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "registration_forms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       research: {
         Row: {
           abstract: string | null
@@ -1033,7 +1200,18 @@ export type Database = {
       content_status: "pending" | "approved" | "rejected"
       course_status: "draft" | "published" | "archived"
       course_type: "cohort" | "self_paced"
+      enrollment_status: "pending" | "confirmed" | "rejected"
       event_status: "upcoming" | "ongoing" | "completed" | "cancelled"
+      form_field_type:
+        | "text"
+        | "textarea"
+        | "email"
+        | "phone"
+        | "number"
+        | "select"
+        | "multiselect"
+        | "checkbox"
+      payment_method: "stripe" | "paystack" | "bank_transfer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1165,7 +1343,19 @@ export const Constants = {
       content_status: ["pending", "approved", "rejected"],
       course_status: ["draft", "published", "archived"],
       course_type: ["cohort", "self_paced"],
+      enrollment_status: ["pending", "confirmed", "rejected"],
       event_status: ["upcoming", "ongoing", "completed", "cancelled"],
+      form_field_type: [
+        "text",
+        "textarea",
+        "email",
+        "phone",
+        "number",
+        "select",
+        "multiselect",
+        "checkbox",
+      ],
+      payment_method: ["stripe", "paystack", "bank_transfer"],
     },
   },
 } as const
