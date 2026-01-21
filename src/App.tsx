@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 // Public Pages
 import Index from "./pages/Index";
@@ -25,6 +26,9 @@ import Learn from "./pages/Learn";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminCourses from "./pages/admin/AdminCourses";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminEnrollments from "./pages/admin/AdminEnrollments";
+import AdminCertificates from "./pages/admin/AdminCertificates";
+import AdminSettings from "./pages/admin/AdminSettings";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +39,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Index />} />
@@ -57,6 +62,9 @@ const App = () => (
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/courses" element={<AdminCourses />} />
               <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/enrollments" element={<AdminEnrollments />} />
+              <Route path="/admin/certificates" element={<AdminCertificates />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
             </Route>
 
             {/* Catch-all */}

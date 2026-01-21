@@ -2,15 +2,16 @@ import { useState } from "react";
 import {
   Search,
   MoreVertical,
-  Edit,
-  Trash2,
   Shield,
-  Mail,
+  ShieldCheck,
+  ShieldX,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -23,6 +24,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -33,64 +35,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-
-const mockUsers = [
-  {
-    id: "1",
-    email: "sarah.chen@example.com",
-    displayName: "Dr. Sarah Chen",
-    role: "admin",
-    enrollments: 0,
-    createdAt: "2025-06-15",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100",
-  },
-  {
-    id: "2",
-    email: "michael.j@example.com",
-    displayName: "Michael Johnson",
-    role: "learner",
-    enrollments: 3,
-    createdAt: "2025-08-20",
-    avatar: "",
-  },
-  {
-    id: "3",
-    email: "elena.r@example.com",
-    displayName: "Dr. Elena Rodriguez",
-    role: "facilitator",
-    enrollments: 2,
-    createdAt: "2025-07-10",
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100",
-  },
-  {
-    id: "4",
-    email: "james.w@example.com",
-    displayName: "James Wilson",
-    role: "learner",
-    enrollments: 5,
-    createdAt: "2025-09-05",
-    avatar: "",
-  },
-  {
-    id: "5",
-    email: "aisha.p@example.com",
-    displayName: "Dr. Aisha Patel",
-    role: "learner",
-    enrollments: 2,
-    createdAt: "2025-10-22",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100",
-  },
-];
+import { useAdminUsers, useUpdateUserRole } from "@/hooks/useAdminData";
+import { format } from "date-fns";
 
 export default function AdminUsers() {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
 
-  const filteredUsers = mockUsers.filter((user) => {
+  const { data: users, isLoading } = useAdminUsers();
+  const updateRole = useUpdateUserRole();
+
+  const filteredUsers = users?.filter((user) => {
     const matchesSearch =
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.displayName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
+      user.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.user_id?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = roleFilter === "all" || user.roles?.includes(roleFilter as any);
     return matchesSearch && matchesRole;
   });
 
@@ -105,6 +64,14 @@ export default function AdminUsers() {
       default:
         return <Badge>{role}</Badge>;
     }
+  };
+
+  const handleRoleChange = async (userId: string, role: "admin" | "facilitator" | "learner", hasRole: boolean) => {
+    await updateRole.mutateAsync({
+      userId,
+      role,
+      action: hasRole ? "remove" : "add",
+    });
   };
 
   return (
@@ -146,61 +113,116 @@ export default function AdminUsers() {
             <TableHeader>
               <TableRow>
                 <TableHead>User</TableHead>
-                <TableHead>Role</TableHead>
+                <TableHead>Roles</TableHead>
                 <TableHead>Enrollments</TableHead>
                 <TableHead>Joined</TableHead>
                 <TableHead className="w-10"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarImage src={user.avatar} />
-                        <AvatarFallback className="bg-primary text-primary-foreground">
-                          {user.displayName[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{user.displayName}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
+              {isLoading ? (
+                [...Array(5)].map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="w-10 h-10 rounded-full" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-48" />
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{getRoleBadge(user.role)}</TableCell>
-                  <TableCell>{user.enrollments}</TableCell>
-                  <TableCell>{user.createdAt}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Shield className="w-4 h-4 mr-2" />
-                          Change Role
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Mail className="w-4 h-4 mr-2" />
-                          Send Email
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    </TableCell>
+                    <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-12" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-8" /></TableCell>
+                  </TableRow>
+                ))
+              ) : filteredUsers?.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    No users found
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                filteredUsers?.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarImage src={user.avatar_url || ""} />
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            {user.display_name?.[0]?.toUpperCase() || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{user.display_name || "Unknown"}</p>
+                          <p className="text-sm text-muted-foreground truncate max-w-[200px]">
+                            {user.user_id}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {user.roles?.map((role) => (
+                          <span key={role}>{getRoleBadge(role)}</span>
+                        ))}
+                        {user.roles?.length === 0 && (
+                          <span className="text-muted-foreground text-sm">No roles</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{user.enrollmentCount}</TableCell>
+                    <TableCell>{format(new Date(user.created_at), "MMM d, yyyy")}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" disabled={updateRole.isPending}>
+                            {updateRole.isPending ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <MoreVertical className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem 
+                            onClick={() => handleRoleChange(user.user_id, "admin", user.roles?.includes("admin"))}
+                          >
+                            {user.roles?.includes("admin") ? (
+                              <>
+                                <ShieldX className="w-4 h-4 mr-2" />
+                                Remove Admin
+                              </>
+                            ) : (
+                              <>
+                                <ShieldCheck className="w-4 h-4 mr-2" />
+                                Make Admin
+                              </>
+                            )}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleRoleChange(user.user_id, "facilitator", user.roles?.includes("facilitator"))}
+                          >
+                            {user.roles?.includes("facilitator") ? (
+                              <>
+                                <ShieldX className="w-4 h-4 mr-2" />
+                                Remove Facilitator
+                              </>
+                            ) : (
+                              <>
+                                <Shield className="w-4 h-4 mr-2" />
+                                Make Facilitator
+                              </>
+                            )}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
