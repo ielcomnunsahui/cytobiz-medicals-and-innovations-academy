@@ -1,0 +1,396 @@
+import { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  Play,
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle,
+  Lock,
+  FileText,
+  Video,
+  Award,
+  Users,
+  Menu,
+  X,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { useCourseWithDetails } from "@/hooks/useCourses";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+export default function LearnPage() {
+  const { courseId } = useParams();
+  const navigate = useNavigate();
+  const { user, isLoading: authLoading } = useAuth();
+  const queryClient = useQueryClient();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [currentLessonId, setCurrentLessonId] = useState<string | null>(null);
+
+  // Check if user is enrolled
+  const { data: enrollment, isLoading: enrollmentLoading } = useQuery({
+    queryKey: ["enrollment", courseId, user?.id],
+    queryFn: async () => {
+      if (!user?.id || !courseId) return null;
+      const { data, error } = await supabase
+        .from("enrollments")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("course_id", courseId)
+        .single();
+      
+      if (error) return null;
+      return data;
+    },
+    enabled: !!user?.id && !!courseId,
+  });
+
+  // Fetch course with modules and lessons
+  const { data: course, isLoading: courseLoading } = useQuery({
+    queryKey: ["learn-course", courseId],
+    queryFn: async () => {
+      if (!courseId) return null;
+      
+      const { data: courseData, error: courseError } = await supabase
+        .from("courses")
+        .select("*")
+        .eq("id", courseId)
+        .single();
+      
+      if (courseError) throw courseError;
+      
+      const { data: modules, error: modulesError } = await supabase
+        .from("modules")
+        .select(`
+          *,
+          lessons (*)
+        `)
+        .eq("course_id", courseId)
+        .order("order_index");
+      
+      if (modulesError) throw modulesError;
+      
+      return {
+        ...courseData,
+        modules: modules?.map(m => ({
+          ...m,
+          lessons: m.lessons?.sort((a: { order_index: number }, b: { order_index: number }) => a.order_index - b.order_index) || []
+        })) || [],
+      };
+    },
+    enabled: !!courseId,
+  });
+
+  // Fetch lesson progress
+  const { data: lessonProgress } = useQuery({
+    queryKey: ["lesson-progress", user?.id, courseId],
+    queryFn: async () => {
+      if (!user?.id || !courseId) return {};
+      
+      const { data, error } = await supabase
+        .from("lesson_progress")
+        .select("*")
+        .eq("user_id", user.id);
+      
+      if (error) return {};
+      
+      const progressMap: Record<string, boolean> = {};
+      data?.forEach((p) => {
+        progressMap[p.lesson_id] = p.completed || false;
+      });
+      return progressMap;
+    },
+    enabled: !!user?.id && !!courseId,
+  });
+
+  // Mark lesson complete mutation
+  const markCompleteMutation = useMutation({
+    mutationFn: async (lessonId: string) => {
+      if (!user?.id) return;
+      
+      const { error } = await supabase
+        .from("lesson_progress")
+        .upsert({
+          user_id: user.id,
+          lesson_id: lessonId,
+          completed: true,
+          completed_at: new Date().toISOString(),
+        }, { onConflict: "user_id,lesson_id" });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lesson-progress"] });
+    },
+  });
+
+  // Get all lessons flat
+  const allLessons = course?.modules?.flatMap((m) => m.lessons) || [];
+  
+  // Set initial lesson
+  useEffect(() => {
+    if (allLessons.length > 0 && !currentLessonId) {
+      // Find first incomplete lesson or first lesson
+      const firstIncomplete = allLessons.find((l) => !lessonProgress?.[l.id]);
+      setCurrentLessonId(firstIncomplete?.id || allLessons[0]?.id);
+    }
+  }, [allLessons, lessonProgress, currentLessonId]);
+
+  const currentLesson = allLessons.find((l) => l.id === currentLessonId);
+  const currentLessonIndex = allLessons.findIndex((l) => l.id === currentLessonId);
+  const prevLesson = currentLessonIndex > 0 ? allLessons[currentLessonIndex - 1] : null;
+  const nextLesson = currentLessonIndex < allLessons.length - 1 ? allLessons[currentLessonIndex + 1] : null;
+
+  // Calculate progress
+  const completedCount = Object.values(lessonProgress || {}).filter(Boolean).length;
+  const progressPercent = allLessons.length > 0 ? (completedCount / allLessons.length) * 100 : 0;
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/login");
+    }
+  }, [user, authLoading, navigate]);
+
+  // Redirect if not enrolled
+  useEffect(() => {
+    if (!enrollmentLoading && !enrollment && user) {
+      navigate(`/courses/${course?.slug || courseId}`);
+    }
+  }, [enrollment, enrollmentLoading, user, navigate, course?.slug, courseId]);
+
+  if (authLoading || courseLoading || enrollmentLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (!course) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Course not found</h1>
+          <Button asChild>
+            <Link to="/dashboard">Return to Dashboard</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const getLessonIcon = (lesson: { video_url?: string | null; content?: string | null }) => {
+    if (lesson.video_url) return Video;
+    return FileText;
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex">
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 w-80 bg-card border-r border-border transform transition-transform duration-300 flex flex-col",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0 lg:w-0 lg:border-0"
+        )}
+      >
+        {/* Sidebar Header */}
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center justify-between mb-4">
+            <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
+              <ChevronLeft className="w-4 h-4" />
+              Back to Dashboard
+            </Link>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden p-2 hover:bg-muted rounded-lg"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <h2 className="font-semibold text-foreground line-clamp-2">{course.title}</h2>
+          <div className="mt-3">
+            <div className="flex items-center justify-between text-sm mb-1">
+              <span className="text-muted-foreground">Progress</span>
+              <span className="font-medium">{Math.round(progressPercent)}%</span>
+            </div>
+            <Progress value={progressPercent} className="h-2" />
+          </div>
+        </div>
+
+        {/* Modules List */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {course.modules?.map((module, moduleIndex) => (
+            <div key={module.id} className="mb-6">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                Module {moduleIndex + 1}: {module.title}
+              </h3>
+              <div className="space-y-1">
+                {module.lessons?.map((lesson) => {
+                  const isCompleted = lessonProgress?.[lesson.id];
+                  const isCurrent = lesson.id === currentLessonId;
+                  const LessonIcon = getLessonIcon(lesson);
+                  
+                  return (
+                    <button
+                      key={lesson.id}
+                      onClick={() => setCurrentLessonId(lesson.id)}
+                      className={cn(
+                        "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors",
+                        isCurrent
+                          ? "bg-primary/10 text-primary"
+                          : isCompleted
+                            ? "text-muted-foreground hover:bg-muted"
+                            : "text-foreground hover:bg-muted"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0",
+                        isCompleted ? "bg-success text-white" : isCurrent ? "bg-primary text-white" : "bg-muted"
+                      )}>
+                        {isCompleted ? (
+                          <CheckCircle className="w-4 h-4" />
+                        ) : (
+                          <LessonIcon className="w-3 h-3" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={cn("text-sm font-medium truncate", isCompleted && "line-through opacity-60")}>
+                          {lesson.title}
+                        </p>
+                        {lesson.duration_minutes && (
+                          <p className="text-xs text-muted-foreground">{lesson.duration_minutes} min</p>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className={cn(
+        "flex-1 transition-all duration-300",
+        sidebarOpen ? "lg:ml-80" : "ml-0"
+      )}>
+        {/* Top Bar */}
+        <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-border px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 hover:bg-muted rounded-lg"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              <span className="text-sm text-muted-foreground hidden sm:block">
+                {currentLesson?.title}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!prevLesson}
+                onClick={() => prevLesson && setCurrentLessonId(prevLesson.id)}
+              >
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                Previous
+              </Button>
+              <Button
+                size="sm"
+                disabled={!nextLesson}
+                onClick={() => nextLesson && setCurrentLessonId(nextLesson.id)}
+              >
+                Next
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        {/* Lesson Content */}
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          {currentLesson ? (
+            <motion.div
+              key={currentLesson.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* Video Player Placeholder */}
+              {currentLesson.video_url && (
+                <div className="aspect-video bg-black rounded-2xl mb-8 flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-sm opacity-70">Video: {currentLesson.video_url}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Lesson Title */}
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+                {currentLesson.title}
+              </h1>
+
+              {/* Lesson Content */}
+              {currentLesson.content && (
+                <div className="prose prose-lg max-w-none text-muted-foreground mb-8">
+                  {currentLesson.content.split('\n').map((paragraph, i) => (
+                    <p key={i}>{paragraph}</p>
+                  ))}
+                </div>
+              )}
+
+              {/* Mark Complete Button */}
+              <div className="flex items-center gap-4 pt-8 border-t border-border">
+                {lessonProgress?.[currentLesson.id] ? (
+                  <div className="flex items-center gap-2 text-success">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="font-medium">Completed</span>
+                  </div>
+                ) : (
+                  <Button
+                    onClick={() => markCompleteMutation.mutate(currentLesson.id)}
+                    disabled={markCompleteMutation.isPending}
+                    className="bg-success hover:bg-success/90"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Mark as Complete
+                  </Button>
+                )}
+
+                {nextLesson && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      if (!lessonProgress?.[currentLesson.id]) {
+                        markCompleteMutation.mutate(currentLesson.id);
+                      }
+                      setCurrentLessonId(nextLesson.id);
+                    }}
+                  >
+                    Continue to Next Lesson
+                    <ChevronRight className="w-4 h-4 ml-2" />
+                  </Button>
+                )}
+              </div>
+            </motion.div>
+          ) : (
+            <div className="text-center py-16">
+              <FileText className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+              <h2 className="text-xl font-semibold mb-2">No lesson selected</h2>
+              <p className="text-muted-foreground">Select a lesson from the sidebar to begin.</p>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
