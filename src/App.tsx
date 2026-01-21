@@ -19,6 +19,7 @@ import NotFound from "./pages/NotFound";
 
 // Protected Pages
 import Dashboard from "./pages/Dashboard";
+import Learn from "./pages/Learn";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -48,6 +49,7 @@ const App = () => (
             {/* Protected Learner Routes */}
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/learn/:courseId" element={<Learn />} />
             </Route>
 
             {/* Admin Routes */}

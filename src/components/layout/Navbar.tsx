@@ -1,10 +1,18 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown, LogOut, LayoutDashboard, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import logoFull from "@/assets/logo-full.png";
+import { useAuth } from "@/hooks/useAuth";
 import logoIcon from "@/assets/logo-icon.png";
 
 const navLinks = [
@@ -18,6 +26,8 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isLoading, isAdmin, signOut } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,6 +40,28 @@ export function Navbar() {
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileMenuOpen]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  const getUserInitials = () => {
+    if (!user?.email) return "U";
+    return user.email[0].toUpperCase();
+  };
 
   return (
     <>
@@ -61,10 +93,10 @@ export function Navbar() {
                   Cytobiz
                 </span>
                 <span className={cn(
-                  "text-xs font-medium leading-tight transition-colors",
+                  "text-xs font-medium leading-tight transition-colors hidden sm:block",
                   isScrolled ? "text-muted-foreground" : "text-primary-foreground/70"
                 )}>
-                  Medical & Innovation Hub
+                  Medical Academy
                 </span>
               </div>
             </Link>
@@ -91,24 +123,82 @@ export function Navbar() {
               ))}
             </div>
 
-            {/* Desktop CTA */}
+            {/* Desktop CTA / User Menu */}
             <div className="hidden md:flex items-center gap-3">
-              <Button
-                variant="ghost"
-                className={cn(
-                  "transition-colors",
-                  isScrolled
-                    ? "text-foreground hover:bg-muted"
-                    : "text-primary-foreground hover:bg-white/10"
-                )}
-              >
-                Sign In
-              </Button>
-              <Button
-                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all"
-              >
-                Get Started
-              </Button>
+              {isLoading ? (
+                <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
+              ) : user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "flex items-center gap-2 px-2",
+                        isScrolled
+                          ? "text-foreground hover:bg-muted"
+                          : "text-primary-foreground hover:bg-white/10"
+                      )}
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src="" />
+                        <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                          {getUserInitials()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <ChevronDown className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <div className="px-2 py-1.5">
+                      <p className="text-sm font-medium">{user.email}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {isAdmin ? "Administrator" : "Learner"}
+                      </p>
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/dashboard" className="flex items-center gap-2">
+                        <LayoutDashboard className="w-4 h-4" />
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    {isAdmin && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="flex items-center gap-2">
+                          <Settings className="w-4 h-4" />
+                          Admin Panel
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <>
+                  <Button
+                    variant="ghost"
+                    asChild
+                    className={cn(
+                      "transition-colors",
+                      isScrolled
+                        ? "text-foreground hover:bg-muted"
+                        : "text-primary-foreground hover:bg-white/10"
+                    )}
+                  >
+                    <Link to="/login">Sign In</Link>
+                  </Button>
+                  <Button
+                    asChild
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all"
+                  >
+                    <Link to="/signup">Get Started</Link>
+                  </Button>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -131,13 +221,18 @@ export function Navbar() {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-40 md:hidden"
           >
-            <div className="absolute inset-0 bg-background/95 backdrop-blur-lg pt-20">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-background/95 backdrop-blur-lg pt-20"
+            >
               <nav className="container-wide py-8 flex flex-col gap-2">
                 {navLinks.map((link, index) => (
                   <motion.div
@@ -148,32 +243,77 @@ export function Navbar() {
                   >
                     <Link
                       to={link.href}
-                        className={cn(
-                          "block px-4 py-3 text-lg font-medium rounded-xl transition-colors",
-                          location.pathname === link.href
-                            ? "text-primary bg-primary/10"
-                            : "text-foreground hover:bg-muted"
-                        )}
-                      >
+                      className={cn(
+                        "block px-4 py-3 text-lg font-medium rounded-xl transition-colors",
+                        location.pathname === link.href
+                          ? "text-primary bg-primary/10"
+                          : "text-foreground hover:bg-muted"
+                      )}
+                    >
                       {link.name}
                     </Link>
                   </motion.div>
                 ))}
+                
+                {user && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <Link
+                      to="/dashboard"
+                      className="block px-4 py-3 text-lg font-medium rounded-xl text-foreground hover:bg-muted"
+                    >
+                      Dashboard
+                    </Link>
+                  </motion.div>
+                )}
+                
+                {isAdmin && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    <Link
+                      to="/admin"
+                      className="block px-4 py-3 text-lg font-medium rounded-xl text-foreground hover:bg-muted"
+                    >
+                      Admin Panel
+                    </Link>
+                  </motion.div>
+                )}
+                
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 }}
+                  transition={{ delay: 0.6 }}
                   className="pt-4 flex flex-col gap-3"
                 >
-                    <Button variant="outline" size="lg" className="w-full">
-                      Sign In
+                  {user ? (
+                    <Button 
+                      variant="outline" 
+                      size="lg" 
+                      className="w-full"
+                      onClick={handleSignOut}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
                     </Button>
-                    <Button size="lg" className="w-full bg-primary hover:bg-primary/90">
-                    Get Started
-                  </Button>
+                  ) : (
+                    <>
+                      <Button variant="outline" size="lg" className="w-full" asChild>
+                        <Link to="/login">Sign In</Link>
+                      </Button>
+                      <Button size="lg" className="w-full bg-primary hover:bg-primary/90" asChild>
+                        <Link to="/signup">Get Started</Link>
+                      </Button>
+                    </>
+                  )}
                 </motion.div>
               </nav>
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
