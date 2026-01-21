@@ -11,25 +11,25 @@ export function StatsSection() {
   const statItems = [
     {
       icon: Users,
-      value: stats?.learnerCount || "10,000+",
+      value: stats?.learnerCount ?? "—",
       label: "Active Learners",
       description: "Healthcare professionals worldwide",
     },
     {
       icon: Globe,
-      value: stats?.countriesCount || "50+",
+      value: stats?.countriesCount ?? "—",
       label: "Countries",
       description: "Global community reach",
     },
     {
       icon: BookOpen,
-      value: stats?.programsCount || "40+",
+      value: stats?.programsCount ?? "—",
       label: "Programs",
       description: "Across 8 practice areas",
     },
     {
       icon: Award,
-      value: stats?.completionRate || "95%",
+      value: stats?.completionRate ?? "—",
       label: "Completion Rate",
       description: "Industry-leading success",
     },

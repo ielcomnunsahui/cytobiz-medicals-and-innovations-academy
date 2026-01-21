@@ -188,8 +188,12 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent className="space-y-3">
               {quickActions.map((action) => (
-                <Link key={action.title} to={action.href}>
-                  <button className="w-full p-4 text-left rounded-lg border border-border hover:bg-muted transition-colors">
+                <Link
+                  key={action.title}
+                  to={action.href}
+                  className="block w-full"
+                >
+                  <div className="w-full p-4 text-left rounded-lg border border-border hover:bg-muted transition-colors">
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-lg ${action.color} flex items-center justify-center`}>
                         <action.icon className="w-5 h-5" />
@@ -199,7 +203,7 @@ export default function AdminDashboard() {
                         <p className="text-sm text-muted-foreground">{action.description}</p>
                       </div>
                     </div>
-                  </button>
+                  </div>
                 </Link>
               ))}
             </CardContent>

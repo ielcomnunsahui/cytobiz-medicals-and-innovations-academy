@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { Clock, Users, Star, ArrowRight, Calendar, Award } from "lucide-react";
+import { Clock, Users, ArrowRight, Calendar, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -144,8 +144,8 @@ export function FeaturedCoursesSection() {
                         <span>{course.level || "All levels"}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <Star className="w-4 h-4 fill-gold text-gold flex-shrink-0" />
-                        <span>4.9 rating</span>
+                        <Award className="w-4 h-4 text-primary flex-shrink-0" />
+                        <span>Certificate</span>
                       </div>
                     </div>
 
