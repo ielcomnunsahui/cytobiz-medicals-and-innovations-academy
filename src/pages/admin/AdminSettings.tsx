@@ -9,8 +9,9 @@ import {
   FileText,
   Trash2,
   Edit,
-  Eye,
   CreditCard,
+  Building2,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +58,8 @@ import {
   useSaveFormFields,
   useUpdateRegistrationForm,
 } from "@/hooks/useRegistrationForms";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 export default function AdminSettings() {
   const [editingSettings, setEditingSettings] = useState<Record<string, string>>({});
@@ -112,13 +115,21 @@ export default function AdminSettings() {
     }
   }, [editingFormId, registrationForms]);
 
-  // Group settings by prefix
+  // Get grouped settings by prefix (excluding payment settings handled separately)
   const groupedSettings = settings?.reduce((acc, setting) => {
     const prefix = setting.setting_key.split("_")[0];
+    // Exclude payment/bank settings - they're handled in the Payment tab
+    if (prefix === "payment" || prefix === "bank") return acc;
     if (!acc[prefix]) acc[prefix] = [];
     acc[prefix].push(setting);
     return acc;
   }, {} as Record<string, typeof settings>);
+
+  // Get payment settings specifically
+  const paymentSettings = settings?.reduce((acc: Record<string, any>, s) => {
+    acc[s.setting_key] = s;
+    return acc;
+  }, {}) || {};
 
   const handleChange = (id: string, value: string) => {
     setEditingSettings({ ...editingSettings, [id]: value });
@@ -132,6 +143,41 @@ export default function AdminSettings() {
       delete newEditingSettings[setting.id];
       setEditingSettings(newEditingSettings);
     }
+  };
+
+  const handleTogglePaymentMethod = async (key: string, enabled: boolean) => {
+    const setting = paymentSettings[key];
+    if (setting) {
+      await updateSetting.mutateAsync({ id: setting.id, setting_value: String(enabled) });
+    } else {
+      await createSetting.mutateAsync({
+        setting_key: key,
+        setting_value: String(enabled),
+        setting_type: "boolean",
+        description: `Enable/disable ${key.replace(/_/g, " ")}`,
+      });
+    }
+  };
+
+  const handleSaveBankDetails = async () => {
+    const bankFields = [
+      { key: "bank_transfer_bank_name", label: "Bank name" },
+      { key: "bank_transfer_account_name", label: "Account holder name" },
+      { key: "bank_transfer_account_number", label: "Account number" },
+      { key: "bank_transfer_routing_number", label: "Routing number" },
+      { key: "bank_transfer_swift_code", label: "SWIFT code" },
+      { key: "bank_transfer_payment_instructions", label: "Payment instructions" },
+    ];
+
+    for (const field of bankFields) {
+      const setting = paymentSettings[field.key];
+      const newValue = editingSettings[setting?.id];
+      if (newValue !== undefined && newValue !== setting?.setting_value) {
+        await updateSetting.mutateAsync({ id: setting.id, setting_value: newValue });
+      }
+    }
+    toast.success("Bank details saved");
+    setEditingSettings({});
   };
 
   const handleCreateSetting = async (e: React.FormEvent) => {
@@ -177,8 +223,6 @@ export default function AdminSettings() {
         return BarChart3;
       case "site":
         return Globe;
-      case "payment":
-        return CreditCard;
       default:
         return Settings;
     }
@@ -190,8 +234,6 @@ export default function AdminSettings() {
         return "Statistics";
       case "site":
         return "Site Configuration";
-      case "payment":
-        return "Payment Settings";
       default:
         return group.charAt(0).toUpperCase() + group.slice(1) + " Settings";
     }
@@ -211,20 +253,256 @@ export default function AdminSettings() {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-          <p className="text-muted-foreground">Configure site settings and registration forms</p>
+          <p className="text-muted-foreground">Configure payment methods, site settings, and registration forms</p>
         </div>
 
-        <Tabs defaultValue="general" className="space-y-6">
-          <TabsList>
+        <Tabs defaultValue="payments" className="space-y-6">
+          <TabsList className="grid w-full max-w-lg grid-cols-3">
+            <TabsTrigger value="payments" className="gap-2">
+              <CreditCard className="w-4 h-4" />
+              Payments
+            </TabsTrigger>
             <TabsTrigger value="general" className="gap-2">
               <Settings className="w-4 h-4" />
               General
             </TabsTrigger>
             <TabsTrigger value="forms" className="gap-2">
               <FileText className="w-4 h-4" />
-              Registration Forms
+              Forms
             </TabsTrigger>
           </TabsList>
+
+          {/* Payment Methods Tab */}
+          <TabsContent value="payments" className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {/* Stripe */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0 }}
+              >
+                <Card className="relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/10 to-transparent rounded-bl-full" />
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                          <CreditCard className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">Stripe</CardTitle>
+                          <CardDescription>Credit card payments</CardDescription>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={paymentSettings["payment_stripe_enabled"]?.setting_value === "true"}
+                        onCheckedChange={(v) => handleTogglePaymentMethod("payment_stripe_enabled", v)}
+                      />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Accept credit cards, Apple Pay, and Google Pay via Stripe.
+                    </p>
+                    {paymentSettings["payment_stripe_enabled"]?.setting_value === "true" && (
+                      <Badge className="mt-3 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                        Active
+                      </Badge>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Paystack */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <Card className="relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-transparent rounded-bl-full" />
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                          <Zap className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">Paystack</CardTitle>
+                          <CardDescription>African payments</CardDescription>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={paymentSettings["payment_paystack_enabled"]?.setting_value === "true"}
+                        onCheckedChange={(v) => handleTogglePaymentMethod("payment_paystack_enabled", v)}
+                      />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Accept payments from African countries via Paystack.
+                    </p>
+                    {paymentSettings["payment_paystack_enabled"]?.setting_value === "true" && (
+                      <Badge className="mt-3 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                        Active
+                      </Badge>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Bank Transfer */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <Card className="relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-500/10 to-transparent rounded-bl-full" />
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                          <Building2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">Bank Transfer</CardTitle>
+                          <CardDescription>Manual verification</CardDescription>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={paymentSettings["payment_bank_transfer_enabled"]?.setting_value === "true"}
+                        onCheckedChange={(v) => handleTogglePaymentMethod("payment_bank_transfer_enabled", v)}
+                      />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Allow users to pay via bank transfer with receipt upload.
+                    </p>
+                    {paymentSettings["payment_bank_transfer_enabled"]?.setting_value === "true" && (
+                      <Badge className="mt-3 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                        Active
+                      </Badge>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+
+            {/* Bank Details Form */}
+            {paymentSettings["payment_bank_transfer_enabled"]?.setting_value === "true" && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Building2 className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle>Bank Account Details</CardTitle>
+                        <CardDescription>
+                          These details will be shown to users who choose bank transfer
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Bank Name</Label>
+                        <Input
+                          placeholder="e.g., First National Bank"
+                          value={
+                            editingSettings[paymentSettings["bank_transfer_bank_name"]?.id] ??
+                            paymentSettings["bank_transfer_bank_name"]?.setting_value ?? ""
+                          }
+                          onChange={(e) =>
+                            handleChange(paymentSettings["bank_transfer_bank_name"]?.id, e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Account Holder Name</Label>
+                        <Input
+                          placeholder="e.g., Cytobiz Academy"
+                          value={
+                            editingSettings[paymentSettings["bank_transfer_account_name"]?.id] ??
+                            paymentSettings["bank_transfer_account_name"]?.setting_value ?? ""
+                          }
+                          onChange={(e) =>
+                            handleChange(paymentSettings["bank_transfer_account_name"]?.id, e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Account Number</Label>
+                        <Input
+                          placeholder="e.g., 1234567890"
+                          value={
+                            editingSettings[paymentSettings["bank_transfer_account_number"]?.id] ??
+                            paymentSettings["bank_transfer_account_number"]?.setting_value ?? ""
+                          }
+                          onChange={(e) =>
+                            handleChange(paymentSettings["bank_transfer_account_number"]?.id, e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Routing Number</Label>
+                        <Input
+                          placeholder="e.g., 021000021"
+                          value={
+                            editingSettings[paymentSettings["bank_transfer_routing_number"]?.id] ??
+                            paymentSettings["bank_transfer_routing_number"]?.setting_value ?? ""
+                          }
+                          onChange={(e) =>
+                            handleChange(paymentSettings["bank_transfer_routing_number"]?.id, e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2 sm:col-span-2">
+                        <Label>SWIFT Code (for international transfers)</Label>
+                        <Input
+                          placeholder="e.g., FNBAUS33"
+                          value={
+                            editingSettings[paymentSettings["bank_transfer_swift_code"]?.id] ??
+                            paymentSettings["bank_transfer_swift_code"]?.setting_value ?? ""
+                          }
+                          onChange={(e) =>
+                            handleChange(paymentSettings["bank_transfer_swift_code"]?.id, e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2 sm:col-span-2">
+                        <Label>Payment Instructions</Label>
+                        <Textarea
+                          placeholder="Instructions shown to users after they choose bank transfer..."
+                          rows={3}
+                          value={
+                            editingSettings[paymentSettings["bank_transfer_payment_instructions"]?.id] ??
+                            paymentSettings["bank_transfer_payment_instructions"]?.setting_value ?? ""
+                          }
+                          onChange={(e) =>
+                            handleChange(paymentSettings["bank_transfer_payment_instructions"]?.id, e.target.value)
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end">
+                      <Button onClick={handleSaveBankDetails} disabled={updateSetting.isPending}>
+                        {updateSetting.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                        Save Bank Details
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </TabsContent>
 
           {/* General Settings Tab */}
           <TabsContent value="general" className="space-y-6">
@@ -257,7 +535,7 @@ export default function AdminSettings() {
             ) : Object.keys(groupedSettings || {}).length === 0 ? (
               <Card>
                 <CardContent className="py-8 text-center text-muted-foreground">
-                  No settings configured yet. Click "Add Setting" to create one.
+                  No general settings configured yet. Click "Add Setting" to create one.
                 </CardContent>
               </Card>
             ) : (
@@ -427,7 +705,7 @@ export default function AdminSettings() {
                 <Label htmlFor="setting_key">Setting Key</Label>
                 <Input
                   id="setting_key"
-                  placeholder="e.g., site_name or payment_bank_details"
+                  placeholder="e.g., site_name or stat_learners"
                   value={newSetting.setting_key}
                   onChange={(e) => setNewSetting({ ...newSetting, setting_key: e.target.value })}
                   required
@@ -503,7 +781,7 @@ export default function AdminSettings() {
               </div>
               <div className="space-y-2">
                 <Label>Apply to Course (optional)</Label>
-              <Select
+                <Select
                   value={newForm.course_id || "__all__"}
                   onValueChange={(v) => setNewForm({ ...newForm, course_id: v === "__all__" ? "" : v })}
                 >
@@ -522,7 +800,7 @@ export default function AdminSettings() {
               </div>
               <div className="space-y-2">
                 <Label>Or apply to course type</Label>
-              <Select
+                <Select
                   value={newForm.course_type || "__any__"}
                   onValueChange={(v) => setNewForm({ ...newForm, course_type: v === "__any__" ? "" : v as any })}
                 >

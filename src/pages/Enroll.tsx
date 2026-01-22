@@ -2,15 +2,29 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { ArrowLeft, CheckCircle2, CreditCard, Landmark, Loader2, Upload } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  CreditCard,
+  Landmark,
+  Loader2,
+  Upload,
+  Zap,
+  Copy,
+  Check,
+  Building2,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -40,6 +54,55 @@ function getInitialStep(courseType: string | null | undefined): WizardStep {
   return courseType === "cohort" ? "cohort" : "registration";
 }
 
+const stepOrder: WizardStep[] = ["cohort", "registration", "payment", "done"];
+
+function StepIndicator({ currentStep, courseType }: { currentStep: WizardStep; courseType: string | null }) {
+  const steps = courseType === "cohort" 
+    ? [
+        { key: "cohort", label: "Cohort" },
+        { key: "registration", label: "Details" },
+        { key: "payment", label: "Payment" },
+        { key: "done", label: "Complete" },
+      ]
+    : [
+        { key: "registration", label: "Details" },
+        { key: "payment", label: "Payment" },
+        { key: "done", label: "Complete" },
+      ];
+
+  const currentIndex = steps.findIndex((s) => s.key === currentStep);
+
+  return (
+    <div className="flex items-center justify-center gap-2 mb-8">
+      {steps.map((step, index) => {
+        const isActive = step.key === currentStep;
+        const isComplete = index < currentIndex;
+        return (
+          <div key={step.key} className="flex items-center gap-2">
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
+                isComplete
+                  ? "bg-green-500 text-white"
+                  : isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {isComplete ? <Check className="w-4 h-4" /> : index + 1}
+            </div>
+            <span className={`text-sm hidden sm:inline ${isActive ? "font-medium text-foreground" : "text-muted-foreground"}`}>
+              {step.label}
+            </span>
+            {index < steps.length - 1 && (
+              <div className={`w-8 h-0.5 ${isComplete ? "bg-green-500" : "bg-muted"}`} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function Enroll() {
   const { slug = "" } = useParams();
   const navigate = useNavigate();
@@ -50,10 +113,11 @@ export default function Enroll() {
 
   const [step, setStep] = useState<WizardStep>("registration");
   const [selectedCohortId, setSelectedCohortId] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank_transfer");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [submittedEnrollmentId, setSubmittedEnrollmentId] = useState<string | null>(null);
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   // Keep step in sync once course loads.
@@ -134,12 +198,15 @@ export default function Enroll() {
       if (course.course_type === "cohort" && !selectedCohortId) {
         throw new Error("Please select a cohort.");
       }
+      if (!paymentMethod) throw new Error("Please select a payment method.");
 
       // Basic required fields validation.
       for (const field of fields || []) {
         if (!field.required) continue;
         const v = formData[field.field_key];
-        if (v === undefined || v === null || String(v).trim() === "") {
+        if (field.field_type === "checkbox") {
+          if (!v) throw new Error(`Please check: ${field.label}`);
+        } else if (v === undefined || v === null || String(v).trim() === "") {
           throw new Error(`Please fill in: ${field.label}`);
         }
       }
@@ -168,6 +235,8 @@ export default function Enroll() {
           payment_amount: course.price ?? 0,
           payment_currency: "USD",
           registration_submission_id: submission.id,
+          receipt_url: receiptUrl,
+          payment_submitted_at: receiptUrl ? new Date().toISOString() : null,
         } as any)
         .select("*")
         .single();
@@ -177,7 +246,7 @@ export default function Enroll() {
     onSuccess: (enrollment) => {
       setSubmittedEnrollmentId(enrollment.id);
       setStep("done");
-      toast.success("Enrollment submitted");
+      toast.success("Enrollment submitted successfully!");
     },
     onError: (error: any) => {
       toast.error(error?.message || "Failed to submit enrollment");
@@ -186,397 +255,556 @@ export default function Enroll() {
 
   const isBusy = authLoading || courseLoading;
 
+  // Payment settings
+  const stripeEnabled = settings?.payment_stripe_enabled === "true";
+  const paystackEnabled = settings?.payment_paystack_enabled === "true";
+  const bankTransferEnabled = settings?.payment_bank_transfer_enabled === "true";
+
   const bankName = settings?.bank_transfer_bank_name || "";
   const accountName = settings?.bank_transfer_account_name || "";
   const accountNumber = settings?.bank_transfer_account_number || "";
+  const routingNumber = settings?.bank_transfer_routing_number || "";
+  const swiftCode = settings?.bank_transfer_swift_code || "";
   const bankInstructions = settings?.bank_transfer_payment_instructions || "";
+
+  const copyToClipboard = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    toast.success("Copied to clipboard");
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const availablePaymentMethods = [
+    stripeEnabled && { id: "stripe" as const, label: "Credit Card (Stripe)", icon: CreditCard, color: "purple" },
+    paystackEnabled && { id: "paystack" as const, label: "Paystack", icon: Zap, color: "blue" },
+    bankTransferEnabled && { id: "bank_transfer" as const, label: "Bank Transfer", icon: Building2, color: "green" },
+  ].filter(Boolean) as { id: PaymentMethod; label: string; icon: any; color: string }[];
 
   return (
     <PageTransition>
       <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
+        <Navbar />
 
-      <main className="flex-1 pt-20 pb-16">
-        <div className="container-wide">
-          <div className="mb-6 flex items-center justify-between gap-4">
-            <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
-            <div className="text-sm text-muted-foreground">
-              <Link to="/courses" className="hover:underline">Courses</Link>
-              {course?.title ? <span> / {course.title}</span> : null}
+        <main className="flex-1 pt-20 pb-16">
+          <div className="container max-w-4xl mx-auto px-4">
+            <div className="mb-6 flex items-center justify-between gap-4">
+              <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </Button>
+              <div className="text-sm text-muted-foreground">
+                <Link to="/courses" className="hover:underline">
+                  Courses
+                </Link>
+                {course?.title ? <span> / {course.title}</span> : null}
+              </div>
             </div>
-          </div>
 
-          <div className="grid lg:grid-cols-3 gap-8 items-start">
-            <div className="lg:col-span-2 space-y-6">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <CardTitle>Enroll</CardTitle>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {course ? course.title : "Loading course..."}
-                      </p>
-                    </div>
-                    {course?.course_type ? (
-                      <Badge variant="secondary" className="capitalize">
-                        {course.course_type === "cohort" ? "Cohort" : "Self-paced"}
-                      </Badge>
-                    ) : null}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {!user && !isBusy ? (
-                    <div className="rounded-lg border border-border bg-muted/30 p-4">
-                      <p className="text-sm text-foreground mb-3">
-                        Please log in or create an account to continue your enrollment.
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        <Button asChild>
-                          <Link to="/login">Log in</Link>
-                        </Button>
-                        <Button variant="outline" asChild>
-                          <Link to="/signup">Create account</Link>
-                        </Button>
+            {/* Step Indicator */}
+            {course && step !== "done" && (
+              <StepIndicator currentStep={step} courseType={course.course_type} />
+            )}
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={step}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Card className="border-border/50">
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <CardTitle className="text-2xl">
+                          {step === "done" ? "Enrollment Complete!" : "Enroll in Course"}
+                        </CardTitle>
+                        <CardDescription className="mt-1">
+                          {course ? course.title : "Loading course..."}
+                        </CardDescription>
                       </div>
-                    </div>
-                  ) : null}
-
-                  {isBusy ? (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Loading enrollment...
-                    </div>
-                  ) : null}
-
-                  {!isBusy && user && course ? (
-                    <div className="space-y-6">
-                      {/* Step: Cohort */}
-                      {step === "cohort" ? (
-                        <div className="space-y-3">
-                          <h2 className="text-lg font-semibold text-foreground">Choose your cohort</h2>
-                          <p className="text-sm text-muted-foreground">
-                            Select the cohort start date that fits your schedule.
-                          </p>
-                          {cohortsLoading ? (
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                              Loading cohorts...
-                            </div>
-                          ) : (
-                            <Select value={selectedCohortId ?? ""} onValueChange={(v) => setSelectedCohortId(v)}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a cohort" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {(cohorts || []).map((c) => (
-                                  <SelectItem key={c.id} value={c.id}>
-                                    {c.title} — {format(new Date(c.start_date as any), "MMM d, yyyy")}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
-
-                          <div className="flex justify-end">
-                            <Button
-                              onClick={() => setStep("registration")}
-                              disabled={!selectedCohortId}
-                            >
-                              Continue
-                            </Button>
-                          </div>
-                        </div>
+                      {course?.course_type ? (
+                        <Badge variant="secondary" className="capitalize">
+                          {course.course_type === "cohort" ? "Cohort" : "Self-paced"}
+                        </Badge>
                       ) : null}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {!user && !isBusy ? (
+                      <div className="rounded-lg border border-border bg-muted/30 p-6">
+                        <p className="text-foreground mb-4">
+                          Please log in or create an account to continue your enrollment.
+                        </p>
+                        <div className="flex flex-wrap gap-3">
+                          <Button asChild>
+                            <Link to="/login">Log in</Link>
+                          </Button>
+                          <Button variant="outline" asChild>
+                            <Link to="/signup">Create account</Link>
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
 
-                      {/* Step: Registration */}
-                      {step === "registration" ? (
-                        <div className="space-y-4">
-                          <div>
-                            <h2 className="text-lg font-semibold text-foreground">Registration details</h2>
-                            <p className="text-sm text-muted-foreground">
-                              Complete the short form. Your submission will be reviewed for cohort enrollments.
-                            </p>
-                          </div>
+                    {isBusy ? (
+                      <div className="flex items-center justify-center py-12 gap-2 text-muted-foreground">
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Loading enrollment...
+                      </div>
+                    ) : null}
 
-                          {formLoading || fieldsLoading ? (
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                              Loading form...
+                    {!isBusy && user && course ? (
+                      <div className="space-y-6">
+                        {/* Step: Cohort */}
+                        {step === "cohort" && (
+                          <div className="space-y-4">
+                            <div>
+                              <h2 className="text-lg font-semibold text-foreground">Choose your cohort</h2>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Select the cohort start date that fits your schedule.
+                              </p>
                             </div>
-                          ) : (fields || []).length === 0 ? (
-                            <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
-                              No registration form is configured yet.
-                            </div>
-                          ) : (
-                            <div className="grid sm:grid-cols-2 gap-4">
-                              {(fields || []).map((field) => {
-                                const value = formData[field.field_key] ?? "";
-                                const requiredMark = field.required ? " *" : "";
-
-                                if (field.field_type === "textarea") {
-                                  return (
-                                    <div key={field.id} className="sm:col-span-2 space-y-2">
-                                      <Label>
-                                        {field.label}
-                                        {requiredMark}
-                                      </Label>
-                                      <Textarea
-                                        placeholder={field.placeholder ?? ""}
-                                        value={value}
-                                        onChange={(e) =>
-                                          setFormData((prev) => ({ ...prev, [field.field_key]: e.target.value }))
-                                        }
-                                      />
-                                      {field.help_text ? (
-                                        <p className="text-xs text-muted-foreground">{field.help_text}</p>
-                                      ) : null}
+                            {cohortsLoading ? (
+                              <div className="flex items-center gap-2 text-muted-foreground py-4">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Loading cohorts...
+                              </div>
+                            ) : cohorts?.length === 0 ? (
+                              <div className="rounded-lg border border-dashed border-border p-6 text-center text-muted-foreground">
+                                No cohorts are currently available for this course.
+                              </div>
+                            ) : (
+                              <div className="grid gap-3">
+                                {cohorts?.map((c) => (
+                                  <button
+                                    key={c.id}
+                                    onClick={() => setSelectedCohortId(c.id)}
+                                    className={`w-full p-4 rounded-lg border text-left transition-all ${
+                                      selectedCohortId === c.id
+                                        ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                                        : "border-border hover:border-primary/50"
+                                    }`}
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <div>
+                                        <div className="font-medium text-foreground">{c.title}</div>
+                                        <div className="text-sm text-muted-foreground mt-1">
+                                          {format(new Date(c.start_date), "MMMM d, yyyy")} —{" "}
+                                          {format(new Date(c.end_date), "MMMM d, yyyy")}
+                                        </div>
+                                      </div>
+                                      {c.max_students && (
+                                        <Badge variant="outline">{c.max_students} spots</Badge>
+                                      )}
                                     </div>
-                                  );
-                                }
+                                  </button>
+                                ))}
+                              </div>
+                            )}
 
-                                if (field.field_type === "select") {
-                                  const opts = (field.options as any)?.options as string[] | undefined;
+                            <div className="flex justify-end pt-4">
+                              <Button onClick={() => setStep("registration")} disabled={!selectedCohortId}>
+                                Continue
+                                <ArrowRight className="w-4 h-4 ml-2" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Step: Registration */}
+                        {step === "registration" && (
+                          <div className="space-y-6">
+                            <div>
+                              <h2 className="text-lg font-semibold text-foreground">Registration details</h2>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Complete the form below. Your submission will be reviewed.
+                              </p>
+                            </div>
+
+                            {formLoading || fieldsLoading ? (
+                              <div className="flex items-center gap-2 text-muted-foreground py-4">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Loading form...
+                              </div>
+                            ) : (fields || []).length === 0 ? (
+                              <div className="rounded-lg border border-dashed border-border p-6 text-center text-muted-foreground">
+                                No registration form is configured for this course yet.
+                              </div>
+                            ) : (
+                              <div className="grid sm:grid-cols-2 gap-4">
+                                {(fields || []).map((field) => {
+                                  const value = formData[field.field_key] ?? "";
+                                  const requiredMark = field.required ? " *" : "";
+
+                                  if (field.field_type === "textarea") {
+                                    return (
+                                      <div key={field.id} className="sm:col-span-2 space-y-2">
+                                        <Label>
+                                          {field.label}
+                                          {requiredMark}
+                                        </Label>
+                                        <Textarea
+                                          placeholder={field.placeholder ?? ""}
+                                          value={value}
+                                          onChange={(e) =>
+                                            setFormData((prev) => ({
+                                              ...prev,
+                                              [field.field_key]: e.target.value,
+                                            }))
+                                          }
+                                        />
+                                        {field.help_text && (
+                                          <p className="text-xs text-muted-foreground">{field.help_text}</p>
+                                        )}
+                                      </div>
+                                    );
+                                  }
+
+                                  if (field.field_type === "select" || field.field_type === "multiselect") {
+                                    const opts = (field.options as any)?.items as string[] | undefined;
+                                    return (
+                                      <div key={field.id} className="space-y-2">
+                                        <Label>
+                                          {field.label}
+                                          {requiredMark}
+                                        </Label>
+                                        <Select
+                                          value={String(value) || "__placeholder__"}
+                                          onValueChange={(v) =>
+                                            setFormData((prev) => ({
+                                              ...prev,
+                                              [field.field_key]: v === "__placeholder__" ? "" : v,
+                                            }))
+                                          }
+                                        >
+                                          <SelectTrigger>
+                                            <SelectValue placeholder={field.placeholder || "Select"} />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="__placeholder__" disabled>
+                                              {field.placeholder || "Select an option"}
+                                            </SelectItem>
+                                            {(opts || []).map((o) => (
+                                              <SelectItem key={o} value={o}>
+                                                {o}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                        {field.help_text && (
+                                          <p className="text-xs text-muted-foreground">{field.help_text}</p>
+                                        )}
+                                      </div>
+                                    );
+                                  }
+
+                                  if (field.field_type === "checkbox") {
+                                    return (
+                                      <div key={field.id} className="sm:col-span-2 flex items-start gap-3">
+                                        <Checkbox
+                                          id={field.field_key}
+                                          checked={!!value}
+                                          onCheckedChange={(checked) =>
+                                            setFormData((prev) => ({
+                                              ...prev,
+                                              [field.field_key]: checked,
+                                            }))
+                                          }
+                                        />
+                                        <div className="space-y-1">
+                                          <Label htmlFor={field.field_key} className="cursor-pointer">
+                                            {field.label}
+                                            {requiredMark}
+                                          </Label>
+                                          {field.help_text && (
+                                            <p className="text-xs text-muted-foreground">{field.help_text}</p>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+
                                   return (
                                     <div key={field.id} className="space-y-2">
                                       <Label>
                                         {field.label}
                                         {requiredMark}
                                       </Label>
-                                      <Select
-                                        value={String(value)}
-                                        onValueChange={(v) =>
-                                          setFormData((prev) => ({ ...prev, [field.field_key]: v }))
+                                      <Input
+                                        type={field.field_type === "email" ? "email" : field.field_type === "phone" ? "tel" : field.field_type === "number" ? "number" : "text"}
+                                        placeholder={field.placeholder ?? ""}
+                                        value={value}
+                                        onChange={(e) =>
+                                          setFormData((prev) => ({
+                                            ...prev,
+                                            [field.field_key]: e.target.value,
+                                          }))
                                         }
-                                      >
-                                        <SelectTrigger>
-                                          <SelectValue placeholder={field.placeholder ?? "Select"} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {(opts || []).map((o) => (
-                                            <SelectItem key={o} value={o}>
-                                              {o}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                      {field.help_text ? (
+                                      />
+                                      {field.help_text && (
                                         <p className="text-xs text-muted-foreground">{field.help_text}</p>
-                                      ) : null}
+                                      )}
                                     </div>
                                   );
-                                }
+                                })}
+                              </div>
+                            )}
 
-                                return (
-                                  <div key={field.id} className="space-y-2">
-                                    <Label>
-                                      {field.label}
-                                      {requiredMark}
-                                    </Label>
-                                    <Input
-                                      placeholder={field.placeholder ?? ""}
-                                      value={value}
-                                      onChange={(e) =>
-                                        setFormData((prev) => ({ ...prev, [field.field_key]: e.target.value }))
-                                      }
-                                    />
-                                    {field.help_text ? (
-                                      <p className="text-xs text-muted-foreground">{field.help_text}</p>
-                                    ) : null}
-                                  </div>
-                                );
-                              })}
+                            <div className="flex items-center justify-between gap-3 pt-4">
+                              {course.course_type === "cohort" ? (
+                                <Button variant="outline" onClick={() => setStep("cohort")}>
+                                  <ArrowLeft className="w-4 h-4 mr-2" />
+                                  Back
+                                </Button>
+                              ) : (
+                                <div />
+                              )}
+                              <Button onClick={() => setStep("payment")}>
+                                Continue to Payment
+                                <ArrowRight className="w-4 h-4 ml-2" />
+                              </Button>
                             </div>
-                          )}
+                          </div>
+                        )}
 
-                          <div className="flex items-center justify-between gap-3">
-                            {course.course_type === "cohort" ? (
-                              <Button variant="outline" onClick={() => setStep("cohort")}>
+                        {/* Step: Payment */}
+                        {step === "payment" && (
+                          <div className="space-y-6">
+                            <div>
+                              <h2 className="text-lg font-semibold text-foreground">Payment method</h2>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Select how you'd like to pay for this course.
+                              </p>
+                            </div>
+
+                            {/* Course Price */}
+                            <div className="rounded-lg border border-border bg-muted/30 p-4">
+                              <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground">Course Fee</span>
+                                <span className="text-2xl font-bold text-foreground">
+                                  ${course.price?.toFixed(2) || "0.00"}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Payment Method Selection */}
+                            {availablePaymentMethods.length === 0 ? (
+                              <div className="rounded-lg border border-dashed border-border p-6 text-center text-muted-foreground">
+                                No payment methods are currently configured.
+                              </div>
+                            ) : (
+                              <div className="grid gap-3">
+                                {availablePaymentMethods.map((method) => {
+                                  const Icon = method.icon;
+                                  const isSelected = paymentMethod === method.id;
+                                  return (
+                                    <button
+                                      key={method.id}
+                                      onClick={() => setPaymentMethod(method.id)}
+                                      className={`w-full p-4 rounded-lg border text-left transition-all ${
+                                        isSelected
+                                          ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                                          : "border-border hover:border-primary/50"
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <div
+                                          className={`w-10 h-10 rounded-lg flex items-center justify-center bg-${method.color}-100 dark:bg-${method.color}-900/30`}
+                                        >
+                                          <Icon className={`w-5 h-5 text-${method.color}-600 dark:text-${method.color}-400`} />
+                                        </div>
+                                        <span className="font-medium text-foreground">{method.label}</span>
+                                      </div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {/* Bank Transfer Details */}
+                            {paymentMethod === "bank_transfer" && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                className="space-y-4"
+                              >
+                                <div className="rounded-lg border border-border bg-card p-5 space-y-4">
+                                  <h3 className="font-medium text-foreground flex items-center gap-2">
+                                    <Building2 className="w-4 h-4" />
+                                    Bank Account Details
+                                  </h3>
+                                  <div className="grid sm:grid-cols-2 gap-4 text-sm">
+                                    <div className="space-y-1">
+                                      <span className="text-muted-foreground">Bank Name</span>
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium text-foreground">{bankName || "—"}</span>
+                                        {bankName && (
+                                          <button
+                                            onClick={() => copyToClipboard(bankName, "bank")}
+                                            className="text-muted-foreground hover:text-foreground"
+                                          >
+                                            {copiedField === "bank" ? (
+                                              <Check className="w-4 h-4 text-green-500" />
+                                            ) : (
+                                              <Copy className="w-4 h-4" />
+                                            )}
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                      <span className="text-muted-foreground">Account Name</span>
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium text-foreground">{accountName || "—"}</span>
+                                        {accountName && (
+                                          <button
+                                            onClick={() => copyToClipboard(accountName, "name")}
+                                            className="text-muted-foreground hover:text-foreground"
+                                          >
+                                            {copiedField === "name" ? (
+                                              <Check className="w-4 h-4 text-green-500" />
+                                            ) : (
+                                              <Copy className="w-4 h-4" />
+                                            )}
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                      <span className="text-muted-foreground">Account Number</span>
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium text-foreground font-mono">
+                                          {accountNumber || "—"}
+                                        </span>
+                                        {accountNumber && (
+                                          <button
+                                            onClick={() => copyToClipboard(accountNumber, "number")}
+                                            className="text-muted-foreground hover:text-foreground"
+                                          >
+                                            {copiedField === "number" ? (
+                                              <Check className="w-4 h-4 text-green-500" />
+                                            ) : (
+                                              <Copy className="w-4 h-4" />
+                                            )}
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {routingNumber && (
+                                      <div className="space-y-1">
+                                        <span className="text-muted-foreground">Routing Number</span>
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-medium text-foreground font-mono">{routingNumber}</span>
+                                          <button
+                                            onClick={() => copyToClipboard(routingNumber, "routing")}
+                                            className="text-muted-foreground hover:text-foreground"
+                                          >
+                                            {copiedField === "routing" ? (
+                                              <Check className="w-4 h-4 text-green-500" />
+                                            ) : (
+                                              <Copy className="w-4 h-4" />
+                                            )}
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
+                                    {swiftCode && (
+                                      <div className="space-y-1">
+                                        <span className="text-muted-foreground">SWIFT Code</span>
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-medium text-foreground font-mono">{swiftCode}</span>
+                                          <button
+                                            onClick={() => copyToClipboard(swiftCode, "swift")}
+                                            className="text-muted-foreground hover:text-foreground"
+                                          >
+                                            {copiedField === "swift" ? (
+                                              <Check className="w-4 h-4 text-green-500" />
+                                            ) : (
+                                              <Copy className="w-4 h-4" />
+                                            )}
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {bankInstructions && (
+                                    <p className="text-sm text-muted-foreground mt-2 p-3 bg-muted/50 rounded-lg">
+                                      {bankInstructions}
+                                    </p>
+                                  )}
+                                </div>
+
+                                {/* Receipt Upload */}
+                                <div className="space-y-2">
+                                  <Label>Upload Payment Proof *</Label>
+                                  <ReceiptUpload
+                                    onUploadComplete={(url) => setReceiptUrl(url)}
+                                    existingUrl={receiptUrl}
+                                  />
+                                  <p className="text-xs text-muted-foreground">
+                                    Upload a screenshot or photo of your payment confirmation.
+                                  </p>
+                                </div>
+                              </motion.div>
+                            )}
+
+                            <div className="flex items-center justify-between gap-3 pt-4">
+                              <Button variant="outline" onClick={() => setStep("registration")}>
+                                <ArrowLeft className="w-4 h-4 mr-2" />
                                 Back
                               </Button>
-                            ) : (
-                              <div />
-                            )}
-                            <Button onClick={() => setStep("payment")} disabled={(fields || []).length === 0}>
-                              Continue to payment
-                            </Button>
+                              <Button
+                                onClick={() => submitMutation.mutate()}
+                                disabled={
+                                  submitMutation.isPending ||
+                                  !paymentMethod ||
+                                  (paymentMethod === "bank_transfer" && !receiptUrl)
+                                }
+                              >
+                                {submitMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                                Submit Enrollment
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      ) : null}
+                        )}
 
-                      {/* Step: Payment */}
-                      {step === "payment" ? (
-                        <div className="space-y-4">
-                          <div>
-                            <h2 className="text-lg font-semibold text-foreground">Payment method</h2>
-                            <p className="text-sm text-muted-foreground">
-                              Choose how you want to pay. Your enrollment will be created in a pending state.
+                        {/* Step: Done */}
+                        {step === "done" && (
+                          <div className="text-center py-8">
+                            <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 mx-auto flex items-center justify-center mb-6">
+                              <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-foreground mb-2">
+                              Enrollment Submitted!
+                            </h2>
+                            <p className="text-muted-foreground max-w-md mx-auto mb-6">
+                              {paymentMethod === "bank_transfer"
+                                ? "Your enrollment is pending review. We'll verify your payment and notify you via email once approved."
+                                : "Your enrollment has been submitted. You'll receive a confirmation email shortly."}
                             </p>
-                          </div>
-
-                          <div className="grid sm:grid-cols-3 gap-3">
-                            <Button
-                              type="button"
-                              variant={paymentMethod === "stripe" ? "default" : "outline"}
-                              className="justify-start gap-2"
-                              onClick={() => setPaymentMethod("stripe")}
-                            >
-                              <CreditCard className="w-4 h-4" />
-                              Stripe
-                            </Button>
-                            <Button
-                              type="button"
-                              variant={paymentMethod === "paystack" ? "default" : "outline"}
-                              className="justify-start gap-2"
-                              onClick={() => setPaymentMethod("paystack")}
-                            >
-                              <CreditCard className="w-4 h-4" />
-                              Paystack
-                            </Button>
-                            <Button
-                              type="button"
-                              variant={paymentMethod === "bank_transfer" ? "default" : "outline"}
-                              className="justify-start gap-2"
-                              onClick={() => setPaymentMethod("bank_transfer")}
-                            >
-                              <Landmark className="w-4 h-4" />
-                              Bank transfer
-                            </Button>
-                          </div>
-
-                          {paymentMethod === "bank_transfer" ? (
-                            <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-2">
-                              <div className="text-sm text-foreground font-medium">Bank transfer details</div>
-                              <div className="text-sm text-muted-foreground">
-                                <div>Bank: {bankName || "—"}</div>
-                                <div>Account Name: {accountName || "—"}</div>
-                                <div>Account Number: {accountNumber || "—"}</div>
-                              </div>
-                              {bankInstructions ? (
-                                <p className="text-sm text-muted-foreground">{bankInstructions}</p>
-                              ) : null}
-                              <p className="text-xs text-muted-foreground">
-                                After you pay, an admin will review and confirm your enrollment.
-                              </p>
-                            </div>
-                          ) : (
-                            <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
-                              This is UI-only for now. We’ll connect {paymentMethod} payment confirmation via Edge
-                              Functions next.
-                            </div>
-                          )}
-
-                          <div className="flex items-center justify-between gap-3">
-                            <Button variant="outline" onClick={() => setStep("registration")}>Back</Button>
-                            <Button
-                              onClick={() => submitMutation.mutate()}
-                              disabled={submitMutation.isPending}
-                            >
-                              {submitMutation.isPending ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                  Submitting...
-                                </>
-                              ) : (
-                                "Submit enrollment"
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                      ) : null}
-
-                      {/* Step: Done */}
-                      {step === "done" ? (
-                        <div className="space-y-4">
-                          <div className="flex items-start gap-3">
-                            <div className="mt-0.5">
-                              <CheckCircle2 className="w-5 h-5 text-primary" />
-                            </div>
-                            <div>
-                              <h2 className="text-lg font-semibold text-foreground">Enrollment Submitted!</h2>
-                              <p className="text-sm text-muted-foreground">
-                                Your enrollment is pending review. We'll notify you when it's confirmed.
-                              </p>
+                            <div className="flex flex-wrap justify-center gap-3">
+                              <Button asChild>
+                                <Link to="/my-enrollments">View My Enrollments</Link>
+                              </Button>
+                              <Button variant="outline" asChild>
+                                <Link to="/courses">Browse More Courses</Link>
+                              </Button>
                             </div>
                           </div>
-
-                          {submittedEnrollmentId ? (
-                            <p className="text-xs text-muted-foreground">
-                              Reference: <span className="font-mono">{submittedEnrollmentId}</span>
-                            </p>
-                          ) : null}
-
-                          {/* Receipt Upload for bank transfers */}
-                          {paymentMethod === "bank_transfer" && submittedEnrollmentId && user && (
-                            <div className="space-y-3">
-                              <h3 className="text-sm font-medium text-foreground">
-                                Upload Payment Receipt
-                              </h3>
-                              <p className="text-xs text-muted-foreground">
-                                Upload your bank transfer receipt to speed up the approval process.
-                              </p>
-                              <ReceiptUpload
-                                userId={user.id}
-                                enrollmentId={submittedEnrollmentId}
-                                existingUrl={receiptUrl}
-                                onUploadComplete={(url) => {
-                                  setReceiptUrl(url);
-                                  queryClient.invalidateQueries({ queryKey: ["my-enrollments"] });
-                                }}
-                              />
-                            </div>
-                          )}
-
-                          <div className="flex flex-wrap gap-2">
-                            <Button asChild>
-                              <Link to="/my-enrollments">View My Enrollments</Link>
-                            </Button>
-                            <Button variant="outline" asChild>
-                              <Link to="/courses">Browse More Courses</Link>
-                            </Button>
-                          </div>
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Summary */}
-            <div className="lg:sticky lg:top-24">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Price</span>
-                    <span className="font-medium text-foreground">{course?.price ? `$${course.price}` : "$0"}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Status</span>
-                    <span className="font-medium text-foreground">Pending</span>
-                  </div>
-                  {course?.course_type === "cohort" ? (
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Cohort</span>
-                      <span className="font-medium text-foreground">
-                        {selectedCohortId ? "Selected" : "Not selected"}
-                      </span>
-                    </div>
-                  ) : null}
-                </CardContent>
-              </Card>
-            </div>
+                        )}
+                      </div>
+                    ) : null}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </AnimatePresence>
           </div>
-        </div>
-      </main>
+        </main>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
     </PageTransition>
   );
 }
