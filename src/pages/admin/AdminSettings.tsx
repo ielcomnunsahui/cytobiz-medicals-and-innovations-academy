@@ -503,15 +503,15 @@ export default function AdminSettings() {
               </div>
               <div className="space-y-2">
                 <Label>Apply to Course (optional)</Label>
-                <Select
-                  value={newForm.course_id}
-                  onValueChange={(v) => setNewForm({ ...newForm, course_id: v })}
+              <Select
+                  value={newForm.course_id || "__all__"}
+                  onValueChange={(v) => setNewForm({ ...newForm, course_id: v === "__all__" ? "" : v })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a course or leave empty for all" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All courses</SelectItem>
+                    <SelectItem value="__all__">All courses</SelectItem>
                     {courses?.map((course: any) => (
                       <SelectItem key={course.id} value={course.id}>
                         {course.title}
@@ -522,15 +522,15 @@ export default function AdminSettings() {
               </div>
               <div className="space-y-2">
                 <Label>Or apply to course type</Label>
-                <Select
-                  value={newForm.course_type}
-                  onValueChange={(v) => setNewForm({ ...newForm, course_type: v as any })}
+              <Select
+                  value={newForm.course_type || "__any__"}
+                  onValueChange={(v) => setNewForm({ ...newForm, course_type: v === "__any__" ? "" : v as any })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select course type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Any type</SelectItem>
+                    <SelectItem value="__any__">Any type</SelectItem>
                     <SelectItem value="cohort">Cohort-based courses</SelectItem>
                     <SelectItem value="self_paced">Self-paced courses</SelectItem>
                   </SelectContent>
