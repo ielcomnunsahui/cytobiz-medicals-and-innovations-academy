@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   Plus,
@@ -8,6 +8,9 @@ import {
   Trash2,
   Eye,
   Loader2,
+  Upload,
+  ImageIcon,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,10 +59,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { useAdminCourses, useCreateCourse, useUpdateCourse, useDeleteCourse } from "@/hooks/useAdminData";
+import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 export default function AdminCourses() {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -85,6 +92,7 @@ export default function AdminCourses() {
     duration_weeks: 4,
     effort_hours_per_week: 4,
     category: "",
+    thumbnail_url: "",
   });
 
   const filteredCourses = courses?.filter((course) => {
@@ -120,6 +128,7 @@ export default function AdminCourses() {
       duration_weeks: 4,
       effort_hours_per_week: 4,
       category: "",
+      thumbnail_url: "",
     });
     setIsCreateOpen(true);
   };
@@ -137,8 +146,60 @@ export default function AdminCourses() {
       duration_weeks: course.duration_weeks || 4,
       effort_hours_per_week: course.effort_hours_per_week || 4,
       category: course.category || "",
+      thumbnail_url: course.thumbnail_url || "",
     });
     setEditingCourse(course);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!validTypes.includes(file.type)) {
+      toast.error("Please upload a valid image (JPG, PNG, WebP, or GIF)");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be less than 5MB");
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `courses/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("course-thumbnails")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("course-thumbnails")
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, thumbnail_url: publicUrl });
+      toast.success("Image uploaded successfully");
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      toast.error(`Failed to upload image: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData({ ...formData, thumbnail_url: "" });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -357,6 +418,64 @@ export default function AdminCourses() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={4}
                 />
+              </div>
+
+              {/* Course Thumbnail Upload */}
+              <div className="space-y-2">
+                <Label>Course Thumbnail</Label>
+                <div className="flex items-start gap-4">
+                  {formData.thumbnail_url ? (
+                    <div className="relative w-32 h-20 rounded-lg overflow-hidden border border-border">
+                      <img
+                        src={formData.thumbnail_url}
+                        alt="Course thumbnail"
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="absolute top-1 right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center hover:bg-destructive/90"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-32 h-20 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-muted/30">
+                      <ImageIcon className="w-8 h-8 text-muted-foreground/50" />
+                    </div>
+                  )}
+                  <div className="flex-1 space-y-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                    >
+                      {isUploading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4 mr-2" />
+                          Upload Image
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      JPG, PNG, WebP or GIF (max 5MB)
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

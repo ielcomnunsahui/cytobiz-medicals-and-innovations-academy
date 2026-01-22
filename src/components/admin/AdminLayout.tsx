@@ -24,7 +24,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import logoIcon from "@/assets/logo-icon.png";
 
@@ -33,7 +36,7 @@ const adminNavItems = [
   { name: "Courses", href: "/admin/courses", icon: BookOpen },
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Enrollments", href: "/admin/enrollments", icon: GraduationCap },
-  { name: "Enrollment Review", href: "/admin/enrollment-review", icon: ClipboardCheck },
+  { name: "Enrollment Review", href: "/admin/enrollment-review", icon: ClipboardCheck, showPendingBadge: true },
   { name: "Certificates", href: "/admin/certificates", icon: Award },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
@@ -47,6 +50,20 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+
+  // Fetch pending enrollment count
+  const { data: pendingCount = 0 } = useQuery({
+    queryKey: ["pending-enrollments-count"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("enrollments")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending");
+      if (error) throw error;
+      return count || 0;
+    },
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
 
   const handleSignOut = async () => {
     await signOut();
@@ -84,6 +101,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
             {adminNavItems.map((item) => {
               const isActive = location.pathname === item.href;
+              const showBadge = (item as any).showPendingBadge && pendingCount > 0;
               return (
                 <Link
                   key={item.name}
@@ -97,7 +115,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   onClick={() => setSidebarOpen(false)}
                 >
                   <item.icon className="w-5 h-5" />
-                  {item.name}
+                  <span className="flex-1">{item.name}</span>
+                  {showBadge && (
+                    <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-xs">
+                      {pendingCount}
+                    </Badge>
+                  )}
                 </Link>
               );
             })}
