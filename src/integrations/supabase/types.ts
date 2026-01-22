@@ -305,6 +305,7 @@ export type Database = {
           payment_provider_ref: string | null
           payment_submitted_at: string | null
           progress_percentage: number | null
+          receipt_url: string | null
           registration_submission_id: string | null
           rejected_at: string | null
           rejection_reason: string | null
@@ -325,6 +326,7 @@ export type Database = {
           payment_provider_ref?: string | null
           payment_submitted_at?: string | null
           progress_percentage?: number | null
+          receipt_url?: string | null
           registration_submission_id?: string | null
           rejected_at?: string | null
           rejection_reason?: string | null
@@ -345,6 +347,7 @@ export type Database = {
           payment_provider_ref?: string | null
           payment_submitted_at?: string | null
           progress_percentage?: number | null
+          receipt_url?: string | null
           registration_submission_id?: string | null
           rejected_at?: string | null
           rejection_reason?: string | null

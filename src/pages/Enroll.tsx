@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { ArrowLeft, CheckCircle2, CreditCard, Landmark, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CreditCard, Landmark, Loader2, Upload } from "lucide-react";
 
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -25,6 +25,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCourse } from "@/hooks/useCourses";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { toast } from "sonner";
+import { ReceiptUpload } from "@/components/enrollment/ReceiptUpload";
+import { PageTransition } from "@/components/PageTransition";
 
 type Cohort = Tables<"cohorts">;
 type RegistrationForm = Tables<"registration_forms">;
@@ -51,6 +53,8 @@ export default function Enroll() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank_transfer");
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [submittedEnrollmentId, setSubmittedEnrollmentId] = useState<string | null>(null);
+  const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   // Keep step in sync once course loads.
   useEffect(() => {
@@ -188,7 +192,8 @@ export default function Enroll() {
   const bankInstructions = settings?.bank_transfer_payment_instructions || "";
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <PageTransition>
+      <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
       <main className="flex-1 pt-20 pb-16">
@@ -484,15 +489,15 @@ export default function Enroll() {
 
                       {/* Step: Done */}
                       {step === "done" ? (
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           <div className="flex items-start gap-3">
                             <div className="mt-0.5">
                               <CheckCircle2 className="w-5 h-5 text-primary" />
                             </div>
                             <div>
-                              <h2 className="text-lg font-semibold text-foreground">Submitted</h2>
+                              <h2 className="text-lg font-semibold text-foreground">Enrollment Submitted!</h2>
                               <p className="text-sm text-muted-foreground">
-                                Your enrollment is pending. We’ll notify you when it’s confirmed.
+                                Your enrollment is pending review. We'll notify you when it's confirmed.
                               </p>
                             </div>
                           </div>
@@ -503,12 +508,33 @@ export default function Enroll() {
                             </p>
                           ) : null}
 
+                          {/* Receipt Upload for bank transfers */}
+                          {paymentMethod === "bank_transfer" && submittedEnrollmentId && user && (
+                            <div className="space-y-3">
+                              <h3 className="text-sm font-medium text-foreground">
+                                Upload Payment Receipt
+                              </h3>
+                              <p className="text-xs text-muted-foreground">
+                                Upload your bank transfer receipt to speed up the approval process.
+                              </p>
+                              <ReceiptUpload
+                                userId={user.id}
+                                enrollmentId={submittedEnrollmentId}
+                                existingUrl={receiptUrl}
+                                onUploadComplete={(url) => {
+                                  setReceiptUrl(url);
+                                  queryClient.invalidateQueries({ queryKey: ["my-enrollments"] });
+                                }}
+                              />
+                            </div>
+                          )}
+
                           <div className="flex flex-wrap gap-2">
                             <Button asChild>
-                              <Link to="/dashboard">Go to dashboard</Link>
+                              <Link to="/my-enrollments">View My Enrollments</Link>
                             </Button>
                             <Button variant="outline" asChild>
-                              <Link to="/courses">Browse courses</Link>
+                              <Link to="/courses">Browse More Courses</Link>
                             </Button>
                           </div>
                         </div>
@@ -551,5 +577,6 @@ export default function Enroll() {
 
       <Footer />
     </div>
+    </PageTransition>
   );
 }
