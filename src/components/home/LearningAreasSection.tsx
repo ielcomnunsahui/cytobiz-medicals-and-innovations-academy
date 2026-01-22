@@ -1,139 +1,117 @@
-import { motion } from "framer-motion";
-import { 
-  Heart, 
-  Microscope, 
-  Globe2, 
-  Cpu, 
-  Stethoscope,
-  Brain,
-  ArrowRight
-} from "lucide-react";
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { cn } from "@/lib/utils";
 
 const learningAreas = [
   {
-    id: "clinical",
-    title: "Clinical Medicine",
-    description: "Evidence-based clinical practice, diagnostics, and patient care excellence.",
-    icon: Stethoscope,
-    courses: 12,
-    color: "text-rose-600",
-    bgColor: "bg-rose-50",
-    hoverBorder: "hover:border-rose-200",
+    title: "Medical & Clinical Capacity Building",
+    description: "Strengthen clinical skills and medical knowledge",
+    icon: "🏥",
+    color: "from-blue-500/20 to-blue-600/5",
+    hoverColor: "group-hover:border-blue-500/40",
   },
   {
-    id: "public-health",
-    title: "Public Health",
-    description: "Population health, epidemiology, health policy, and global health initiatives.",
-    icon: Globe2,
-    courses: 8,
-    color: "text-blue-600",
-    bgColor: "bg-blue-50",
-    hoverBorder: "hover:border-blue-200",
+    title: "Public Health & Health Systems",
+    description: "Population health and system strengthening",
+    icon: "🌍",
+    color: "from-emerald-500/20 to-emerald-600/5",
+    hoverColor: "group-hover:border-emerald-500/40",
   },
   {
-    id: "digital-health",
-    title: "Digital Health",
-    description: "Health tech innovation, telemedicine, AI in healthcare, and digital therapeutics.",
-    icon: Cpu,
-    courses: 15,
-    color: "text-primary",
-    bgColor: "bg-primary/10",
-    hoverBorder: "hover:border-primary/30",
+    title: "Healthcare Innovation & Entrepreneurship",
+    description: "Build and scale health solutions",
+    icon: "🚀",
+    color: "from-purple-500/20 to-purple-600/5",
+    hoverColor: "group-hover:border-purple-500/40",
   },
   {
-    id: "research",
-    title: "Medical Research",
-    description: "Research methodology, clinical trials, data analysis, and scientific writing.",
-    icon: Microscope,
-    courses: 6,
-    color: "text-purple-600",
-    bgColor: "bg-purple-50",
-    hoverBorder: "hover:border-purple-200",
+    title: "AI & Digital Health",
+    description: "Leverage technology in healthcare",
+    icon: "🤖",
+    color: "from-cyan-500/20 to-cyan-600/5",
+    hoverColor: "group-hover:border-cyan-500/40",
   },
   {
-    id: "wellness",
-    title: "Health & Wellness",
-    description: "Preventive medicine, nutrition, mental health, and lifestyle medicine.",
-    icon: Heart,
-    courses: 10,
-    color: "text-pink-600",
-    bgColor: "bg-pink-50",
-    hoverBorder: "hover:border-pink-200",
+    title: "Technology & Innovation",
+    description: "Cutting-edge health technologies",
+    icon: "💡",
+    color: "from-amber-500/20 to-amber-600/5",
+    hoverColor: "group-hover:border-amber-500/40",
   },
   {
-    id: "innovation",
-    title: "Healthcare Innovation",
-    description: "Medical entrepreneurship, health startups, and innovation management.",
-    icon: Brain,
-    courses: 7,
-    color: "text-amber-600",
-    bgColor: "bg-amber-50",
-    hoverBorder: "hover:border-amber-200",
+    title: "Research & Project Management in Health",
+    description: "Evidence-based practice and leadership",
+    icon: "📊",
+    color: "from-rose-500/20 to-rose-600/5",
+    hoverColor: "group-hover:border-rose-500/40",
   },
 ];
 
 export function LearningAreasSection() {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
   return (
-    <section className="section-padding bg-muted/50">
+    <section ref={ref} className="py-24 bg-background">
       <div className="container-wide">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center max-w-2xl mx-auto mb-12 md:mb-16"
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          className="text-center mb-16"
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+          <p className="text-primary font-medium mb-4 text-sm uppercase tracking-widest">
+            Explore by Specialty
+          </p>
+          <h2 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
             Learning Areas
-          </span>
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Explore Our Disciplines
           </h2>
-          <p className="text-muted-foreground text-lg">
-            From clinical excellence to digital innovation, discover courses designed 
-            by experts to advance your healthcare career.
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Discover courses across key domains in healthcare and innovation
           </p>
         </motion.div>
 
-        {/* Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {learningAreas.map((area, index) => (
             <motion.div
-              key={area.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              key={area.title}
+              initial={{ opacity: 0, y: 30 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: index * 0.08 }}
             >
               <Link
-                to={`/courses?area=${area.id}`}
-                className={cn(
-                  "group flex flex-col h-full p-6 rounded-2xl bg-card border-2 border-transparent",
-                  "transition-all duration-300 hover:shadow-lg hover:-translate-y-1",
-                  area.hoverBorder
-                )}
+                to={`/courses?area=${encodeURIComponent(area.title.toLowerCase().replace(/\s+/g, '-'))}`}
+                className="group block h-full"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className={cn("p-3 rounded-xl", area.bgColor)}>
-                    <area.icon className={cn("w-6 h-6", area.color)} />
+                <motion.div
+                  whileHover={{ y: -6, scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  className={`relative p-6 rounded-2xl bg-gradient-to-br ${area.color} border border-border ${area.hoverColor} transition-colors duration-300 h-full overflow-hidden`}
+                >
+                  {/* Decorative circles */}
+                  <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute -bottom-4 -left-4 w-16 h-16 rounded-full bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                  <div className="relative">
+                    <div className="flex items-start justify-between mb-4">
+                      <motion.span 
+                        className="text-4xl"
+                        animate={isInView ? { scale: [0.8, 1] } : {}}
+                        transition={{ delay: index * 0.1, type: "spring" }}
+                      >
+                        {area.icon}
+                      </motion.span>
+                      <ArrowRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+                    </div>
+                    
+                    <h3 className="font-display font-semibold text-lg text-foreground mb-2 group-hover:text-primary transition-colors leading-tight">
+                      {area.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {area.description}
+                    </p>
                   </div>
-                  <span className="text-sm text-muted-foreground">
-                    {area.courses} courses
-                  </span>
-                </div>
-                <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
-                  {area.title}
-                </h3>
-                <p className="text-muted-foreground text-sm flex-1">
-                  {area.description}
-                </p>
-                <div className="flex items-center gap-2 mt-4 text-sm font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                  View courses
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </div>
+                </motion.div>
               </Link>
             </motion.div>
           ))}
