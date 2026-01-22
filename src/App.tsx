@@ -2,8 +2,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ScrollToTop } from "@/components/ScrollToTop";
 
@@ -22,6 +24,7 @@ import Enroll from "./pages/Enroll";
 // Protected Pages
 import Dashboard from "./pages/Dashboard";
 import Learn from "./pages/Learn";
+import MyEnrollments from "./pages/MyEnrollments";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -33,48 +36,61 @@ import AdminSettings from "./pages/admin/AdminSettings";
 
 const queryClient = new QueryClient();
 
+function AnimatedRoutes() {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        {/* Public Routes */}
+        <Route path="/" element={<Index />} />
+        <Route path="/courses" element={<Courses />} />
+        <Route path="/courses/:slug" element={<CourseDetail />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/enroll/:slug" element={<Enroll />} />
+
+        {/* Protected Learner Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/learn/:courseId" element={<Learn />} />
+          <Route path="/my-enrollments" element={<MyEnrollments />} />
+        </Route>
+
+        {/* Admin Routes */}
+        <Route element={<ProtectedRoute requireAdmin />}>
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/courses" element={<AdminCourses />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/enrollments" element={<AdminEnrollments />} />
+          <Route path="/admin/certificates" element={<AdminCertificates />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
+        </Route>
+
+        {/* Catch-all */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </AnimatePresence>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ScrollToTop />
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Index />} />
-            <Route path="/courses" element={<Courses />} />
-            <Route path="/courses/:slug" element={<CourseDetail />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/enroll/:slug" element={<Enroll />} />
-
-            {/* Protected Learner Routes */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/learn/:courseId" element={<Learn />} />
-            </Route>
-
-            {/* Admin Routes */}
-            <Route element={<ProtectedRoute requireAdmin />}>
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/courses" element={<AdminCourses />} />
-              <Route path="/admin/users" element={<AdminUsers />} />
-              <Route path="/admin/enrollments" element={<AdminEnrollments />} />
-              <Route path="/admin/certificates" element={<AdminCertificates />} />
-              <Route path="/admin/settings" element={<AdminSettings />} />
-            </Route>
-
-            {/* Catch-all */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ScrollToTop />
+            <AnimatedRoutes />
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

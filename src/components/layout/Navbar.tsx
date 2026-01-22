@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, LogOut, LayoutDashboard, Settings } from "lucide-react";
+import { Menu, X, ChevronDown, LogOut, LayoutDashboard, Settings, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,6 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import logoIcon from "@/assets/logo-icon.png";
 
 const navLinks = [
@@ -124,7 +125,8 @@ export function Navbar() {
             </div>
 
             {/* Desktop CTA / User Menu */}
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-2">
+              <ThemeToggle />
               {isLoading ? (
                 <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
               ) : user ? (
@@ -160,6 +162,12 @@ export function Navbar() {
                       <Link to="/dashboard" className="flex items-center gap-2">
                         <LayoutDashboard className="w-4 h-4" />
                         Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/my-enrollments" className="flex items-center gap-2">
+                        <BookOpen className="w-4 h-4" />
+                        My Enrollments
                       </Link>
                     </DropdownMenuItem>
                     {isAdmin && (
