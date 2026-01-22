@@ -5,6 +5,9 @@ import {
   Trash2,
   Eye,
   Loader2,
+  Check,
+  X,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +15,15 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -37,16 +49,32 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { useAdminEnrollments, useDeleteEnrollment } from "@/hooks/useAdminData";
+import {
+  useAdminEnrollments,
+  useDeleteEnrollment,
+  useUpdateEnrollmentStatus,
+} from "@/hooks/useAdminData";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
+import { useAuth } from "@/hooks/useAuth";
+
+function StatusBadge({ status }: { status: string }) {
+  if (status === "confirmed") return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Confirmed</Badge>;
+  if (status === "rejected") return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Rejected</Badge>;
+  return <Badge variant="outline">Pending</Badge>;
+}
 
 export default function AdminEnrollments() {
   const [searchQuery, setSearchQuery] = useState("");
   const [deletingEnrollment, setDeletingEnrollment] = useState<any>(null);
+  const [viewingEnrollment, setViewingEnrollment] = useState<any>(null);
+  const [rejectingEnrollment, setRejectingEnrollment] = useState<any>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const { data: enrollments, isLoading } = useAdminEnrollments();
   const deleteEnrollment = useDeleteEnrollment();
+  const updateStatus = useUpdateEnrollmentStatus();
+  const { user } = useAuth();
 
   const filteredEnrollments = enrollments?.filter((enrollment: any) => {
     const matchesSearch =
@@ -60,6 +88,25 @@ export default function AdminEnrollments() {
       await deleteEnrollment.mutateAsync(deletingEnrollment.id);
       setDeletingEnrollment(null);
     }
+  };
+
+  const handleApprove = async (enrollment: any) => {
+    await updateStatus.mutateAsync({
+      id: enrollment.id,
+      status: "confirmed",
+      approved_by: user?.id ?? null,
+    });
+  };
+
+  const handleReject = async () => {
+    if (!rejectingEnrollment) return;
+    await updateStatus.mutateAsync({
+      id: rejectingEnrollment.id,
+      status: "rejected",
+      rejection_reason: rejectionReason || null,
+    });
+    setRejectingEnrollment(null);
+    setRejectionReason("");
   };
 
   return (
@@ -91,6 +138,8 @@ export default function AdminEnrollments() {
               <TableRow>
                 <TableHead>User</TableHead>
                 <TableHead>Course</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Payment</TableHead>
                 <TableHead>Progress</TableHead>
                 <TableHead>Enrolled</TableHead>
                 <TableHead>Completed</TableHead>
@@ -110,13 +159,15 @@ export default function AdminEnrollments() {
                     <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                   </TableRow>
                 ))
               ) : filteredEnrollments?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     No enrollments found
                   </TableCell>
                 </TableRow>
@@ -138,6 +189,17 @@ export default function AdminEnrollments() {
                     </TableCell>
                     <TableCell className="max-w-xs truncate">
                       {enrollment.course?.title || "Unknown Course"}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={enrollment.status} />
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <div className="text-foreground capitalize">{enrollment.payment_method || "—"}</div>
+                        <div className="text-muted-foreground">
+                          {enrollment.payment_amount != null ? `$${enrollment.payment_amount}` : ""}
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2 min-w-[120px]">
@@ -167,12 +229,30 @@ export default function AdminEnrollments() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setViewingEnrollment(enrollment)}>
+                            <Eye className="w-4 h-4 mr-2" />
+                            View details
+                          </DropdownMenuItem>
                           <DropdownMenuItem asChild>
                             <Link to={`/courses/${enrollment.course?.slug}`}>
                               <Eye className="w-4 h-4 mr-2" />
                               View Course
                             </Link>
                           </DropdownMenuItem>
+
+                          {enrollment.status === "pending" ? (
+                            <>
+                              <DropdownMenuItem onClick={() => handleApprove(enrollment)}>
+                                <Check className="w-4 h-4 mr-2" />
+                                Approve
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setRejectingEnrollment(enrollment)}>
+                                <X className="w-4 h-4 mr-2" />
+                                Reject
+                              </DropdownMenuItem>
+                            </>
+                          ) : null}
+
                           <DropdownMenuItem 
                             className="text-red-600"
                             onClick={() => setDeletingEnrollment(enrollment)}
@@ -189,6 +269,122 @@ export default function AdminEnrollments() {
             </TableBody>
           </Table>
         </div>
+
+        {/* View Details */}
+        <Dialog open={!!viewingEnrollment} onOpenChange={(open) => !open && setViewingEnrollment(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Enrollment details</DialogTitle>
+              <DialogDescription>Review registration submission and payment info.</DialogDescription>
+            </DialogHeader>
+
+            {viewingEnrollment ? (
+              <div className="space-y-4">
+                <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <div className="text-muted-foreground">User</div>
+                    <div className="text-foreground font-medium">{viewingEnrollment.profile?.display_name || "Unknown"}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Course</div>
+                    <div className="text-foreground font-medium">{viewingEnrollment.course?.title || "Unknown"}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Status</div>
+                    <div className="mt-1"><StatusBadge status={viewingEnrollment.status} /></div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Payment</div>
+                    <div className="text-foreground font-medium capitalize">{viewingEnrollment.payment_method || "—"}</div>
+                  </div>
+                  {viewingEnrollment.cohort?.title ? (
+                    <div>
+                      <div className="text-muted-foreground">Cohort</div>
+                      <div className="text-foreground font-medium">{viewingEnrollment.cohort.title}</div>
+                    </div>
+                  ) : null}
+                  {viewingEnrollment.profile?.receipt_url ? (
+                    <div>
+                      <div className="text-muted-foreground">Bank proof</div>
+                      <a
+                        href={viewingEnrollment.profile.receipt_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 text-primary hover:underline"
+                      >
+                        Open receipt
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="rounded-lg border border-border bg-muted/30 p-4">
+                  <div className="text-sm font-medium text-foreground mb-2">Registration submission</div>
+                  <pre className="text-xs whitespace-pre-wrap text-muted-foreground">
+                    {JSON.stringify(viewingEnrollment.submission?.data ?? {}, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            ) : null}
+
+            <DialogFooter>
+              {viewingEnrollment?.status === "pending" ? (
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setViewingEnrollment(null);
+                      setRejectingEnrollment(viewingEnrollment);
+                    }}
+                  >
+                    Reject
+                  </Button>
+                  <Button onClick={() => handleApprove(viewingEnrollment)}>
+                    Approve
+                  </Button>
+                </div>
+              ) : (
+                <Button onClick={() => setViewingEnrollment(null)}>Close</Button>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Reject Dialog */}
+        <Dialog open={!!rejectingEnrollment} onOpenChange={(open) => !open && setRejectingEnrollment(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Reject enrollment</DialogTitle>
+              <DialogDescription>Optionally include a short reason (visible to admins).</DialogDescription>
+            </DialogHeader>
+
+            <Textarea
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="Reason (optional)"
+            />
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setRejectingEnrollment(null)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleReject}
+                disabled={updateStatus.isPending}
+              >
+                {updateStatus.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Rejecting...
+                  </>
+                ) : (
+                  "Reject"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Delete Confirmation */}
         <AlertDialog open={!!deletingEnrollment} onOpenChange={(open) => !open && setDeletingEnrollment(null)}>

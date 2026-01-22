@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Clock,
@@ -18,6 +18,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -25,6 +33,7 @@ import {
 } from "@/components/ui/accordion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { useAuth } from "@/hooks/useAuth";
 
 // Mock course data - will be replaced with Supabase query
 const courseData = {
@@ -161,7 +170,10 @@ Through real-world case studies and hands-on projects, you'll develop practical 
 
 export default function CourseDetail() {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const [isSaved, setIsSaved] = useState(false);
+  const [enrollOpen, setEnrollOpen] = useState(false);
+  const { user } = useAuth();
 
   // In production, fetch course by slug from Supabase
   const course = courseData;
@@ -290,12 +302,10 @@ export default function CourseDetail() {
                   <Button
                     size="lg"
                     className="w-full bg-primary hover:bg-primary/90 mb-3 h-14 text-lg"
-                    asChild
+                    onClick={() => setEnrollOpen(true)}
                   >
-                    <Link to="/signup">
-                      Enroll Now
-                      <ArrowRight className="w-5 h-5 ml-2" />
-                    </Link>
+                    Enroll Now
+                    <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
 
                   <div className="flex gap-2">
@@ -341,6 +351,45 @@ export default function CourseDetail() {
           </div>
         </div>
       </section>
+
+      <Dialog open={enrollOpen} onOpenChange={setEnrollOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enroll in {course.title}</DialogTitle>
+            <DialogDescription>
+              You’ll complete a short registration form, then choose a payment method.
+            </DialogDescription>
+          </DialogHeader>
+
+          {!user ? (
+            <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+              Please log in or create an account to continue.
+            </div>
+          ) : null}
+
+          <DialogFooter>
+            {!user ? (
+              <>
+                <Button variant="outline" asChild>
+                  <Link to="/login">Log in</Link>
+                </Button>
+                <Button asChild>
+                  <Link to="/signup">Create account</Link>
+                </Button>
+              </>
+            ) : (
+              <Button
+                onClick={() => {
+                  setEnrollOpen(false);
+                  navigate(`/enroll/${course.slug}`);
+                }}
+              >
+                Continue
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Main Content */}
       <main className="flex-1 py-16">

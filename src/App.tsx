@@ -17,6 +17,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import NotFound from "./pages/NotFound";
+import Enroll from "./pages/Enroll";
 
 // Protected Pages
 import Dashboard from "./pages/Dashboard";
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/enroll/:slug" element={<Enroll />} />
 
             {/* Protected Learner Routes */}
             <Route element={<ProtectedRoute />}>

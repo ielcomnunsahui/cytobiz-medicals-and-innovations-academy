@@ -242,12 +242,65 @@ export function useAdminEnrollments() {
         .select(`
           *,
           course:courses(title, slug),
-          profile:profiles!enrollments_user_id_fkey(display_name, avatar_url)
+          cohort:cohorts(title, start_date),
+          profile:profiles!enrollments_user_id_fkey(display_name, avatar_url, receipt_url),
+          submission:registration_submissions(id, data, created_at)
         `)
         .order("enrolled_at", { ascending: false });
 
       if (error) throw error;
       return data;
+    },
+  });
+}
+
+export function useUpdateEnrollmentStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      status,
+      approved_by,
+      rejection_reason,
+    }: {
+      id: string;
+      status: "pending" | "confirmed" | "rejected";
+      approved_by?: string | null;
+      rejection_reason?: string | null;
+    }) => {
+      const now = new Date().toISOString();
+      const patch: any = { status };
+
+      if (status === "confirmed") {
+        patch.approved_at = now;
+        patch.approved_by = approved_by ?? null;
+        patch.rejected_at = null;
+        patch.rejection_reason = null;
+      }
+
+      if (status === "rejected") {
+        patch.rejected_at = now;
+        patch.rejection_reason = rejection_reason ?? null;
+        patch.approved_at = null;
+        patch.approved_by = null;
+      }
+
+      const { data, error } = await supabase
+        .from("enrollments")
+        .update(patch)
+        .eq("id", id)
+        .select("*")
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-enrollments"] });
+      toast.success("Enrollment updated");
+    },
+    onError: (error) => {
+      toast.error(`Failed to update enrollment: ${error.message}`);
     },
   });
 }
