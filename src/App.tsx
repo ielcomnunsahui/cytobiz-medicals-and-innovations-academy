@@ -20,6 +20,8 @@ import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import NotFound from "./pages/NotFound";
 import Enroll from "./pages/Enroll";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 
 // Protected Pages
 import Dashboard from "./pages/Dashboard";
@@ -52,6 +54,8 @@ function AnimatedRoutes() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/enroll/:slug" element={<Enroll />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
 
         {/* Protected Learner Routes */}
         <Route element={<ProtectedRoute />}>

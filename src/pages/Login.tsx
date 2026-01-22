@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,8 +29,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isMagicLinkLoading, setIsMagicLinkLoading] = useState(false);
-  const { signIn, signInWithMagicLink } = useAuth();
+  const { signIn } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -55,36 +54,6 @@ export default function Login() {
     }
 
     setIsLoading(false);
-  };
-
-  const handleMagicLink = async () => {
-    if (!email) {
-      toast({
-        title: "Email required",
-        description: "Please enter your email address to receive a magic link.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsMagicLinkLoading(true);
-
-    const { error } = await signInWithMagicLink(email);
-
-    if (error) {
-      toast({
-        title: "Failed to send magic link",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Magic link sent!",
-        description: "Check your email for a login link.",
-      });
-    }
-
-    setIsMagicLinkLoading(false);
   };
 
   return (
@@ -184,33 +153,6 @@ export default function Login() {
                 )}
               </Button>
             </motion.form>
-
-            <motion.div variants={fadeInUp} className="relative my-8">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-3 text-muted-foreground">Or continue with</span>
-              </div>
-            </motion.div>
-
-            <motion.div variants={fadeInUp}>
-              <Button
-                variant="outline"
-                className="w-full h-12 border-border hover:bg-muted transition-colors"
-                onClick={handleMagicLink}
-                disabled={isMagicLinkLoading}
-              >
-                {isMagicLinkLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5 mr-2 text-primary" />
-                    Send Magic Link
-                  </>
-                )}
-              </Button>
-            </motion.div>
 
             <motion.p 
               variants={fadeInUp}

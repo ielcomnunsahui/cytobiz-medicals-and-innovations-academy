@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link, useSearchParams } from "react-router-dom";
 import { 
   Search, 
-  Filter, 
   Clock, 
   Calendar, 
   ArrowRight,
@@ -37,6 +36,8 @@ const categories = [
   { value: "Clinical Leadership", label: "Clinical Leadership" },
   { value: "Research", label: "Research" },
   { value: "Healthcare Innovation", label: "Healthcare Innovation" },
+  { value: "Leadership", label: "Leadership" },
+  { value: "Data Science", label: "Data Science" },
 ];
 
 const types = [
@@ -94,6 +95,11 @@ const Courses = () => {
               className="absolute top-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-primary/20 blur-[100px]"
               animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
               transition={{ duration: 8, repeat: Infinity }}
+            />
+            <motion.div 
+              className="absolute bottom-0 left-1/4 w-[300px] h-[300px] rounded-full bg-accent/15 blur-[80px]"
+              animate={{ scale: [1.1, 1, 1.1], opacity: [0.4, 0.2, 0.4] }}
+              transition={{ duration: 10, repeat: Infinity }}
             />
           </div>
 
@@ -391,7 +397,7 @@ const Courses = () => {
                           <div className="flex items-center justify-between pt-5 border-t border-border">
                             <div className="flex items-center gap-2 text-sm">
                               <Users className="w-4 h-4 text-muted-foreground" />
-                              <span className="font-medium text-foreground">
+                              <span className="font-medium text-foreground capitalize">
                                 {course.level || "All levels"}
                               </span>
                             </div>
@@ -411,21 +417,18 @@ const Courses = () => {
               </div>
             ) : (
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 className="text-center py-20"
               >
-                <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-6">
-                  <Search className="w-10 h-10 text-muted-foreground" />
-                </div>
-                <h3 className="font-display text-2xl font-semibold text-foreground mb-3">
+                <BookOpen className="w-16 h-16 mx-auto text-muted-foreground mb-6" />
+                <h3 className="text-xl font-semibold text-foreground mb-2">
                   No courses found
                 </h3>
-                <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                  We couldn't find any courses matching your criteria. 
-                  Try adjusting your filters or search terms.
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                  We couldn't find any courses matching your filters. Try adjusting your search or clearing filters.
                 </p>
-                <Button onClick={clearFilters} size="lg">
+                <Button variant="outline" onClick={clearFilters}>
                   Clear all filters
                 </Button>
               </motion.div>
