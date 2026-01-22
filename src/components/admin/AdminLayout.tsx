@@ -13,6 +13,7 @@ import {
   X,
   ChevronDown,
   Bell,
+  ClipboardCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -32,6 +33,7 @@ const adminNavItems = [
   { name: "Courses", href: "/admin/courses", icon: BookOpen },
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Enrollments", href: "/admin/enrollments", icon: GraduationCap },
+  { name: "Enrollment Review", href: "/admin/enrollment-review", icon: ClipboardCheck },
   { name: "Certificates", href: "/admin/certificates", icon: Award },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
