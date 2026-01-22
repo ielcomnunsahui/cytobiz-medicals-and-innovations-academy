@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Quote, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,13 +36,27 @@ const testimonials = [
   },
 ];
 
+const AUTO_ROTATE_INTERVAL = 5000; // 5 seconds
+
 export function TestimonialsSection() {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [current, setCurrent] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
-  const next = () => setCurrent((prev) => (prev + 1) % testimonials.length);
-  const prev = () => setCurrent((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+  const next = useCallback(() => setCurrent((prev) => (prev + 1) % testimonials.length), []);
+  const prev = useCallback(() => setCurrent((prev) => (prev - 1 + testimonials.length) % testimonials.length), []);
+
+  // Auto-rotate effect
+  useEffect(() => {
+    if (isPaused) return;
+    
+    const interval = setInterval(() => {
+      next();
+    }, AUTO_ROTATE_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [isPaused, next]);
 
   return (
     <section ref={ref} className="py-24 bg-hero-gradient text-primary-foreground relative overflow-hidden">
@@ -77,7 +91,11 @@ export function TestimonialsSection() {
           </p>
         </motion.div>
 
-        <div className="relative max-w-4xl mx-auto">
+        <div 
+          className="relative max-w-4xl mx-auto"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
           <AnimatePresence mode="wait">
             <motion.div
               key={current}

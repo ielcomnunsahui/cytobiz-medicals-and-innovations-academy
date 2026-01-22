@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { Upload, X, Loader2, CheckCircle, FileText } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Upload, Loader2, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 interface ReceiptUploadProps {
-  userId: string;
-  enrollmentId: string;
+  userId?: string;
+  enrollmentId?: string;
   existingUrl?: string | null;
   onUploadComplete: (url: string) => void;
 }
@@ -20,6 +19,7 @@ export function ReceiptUpload({
 }: ReceiptUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const handleUpload = async (file: File) => {
     if (!file) return;
@@ -41,7 +41,10 @@ export function ReceiptUpload({
 
     try {
       const fileExt = file.name.split(".").pop();
-      const fileName = `${userId}/${enrollmentId}-${Date.now()}.${fileExt}`;
+      // Use a temporary folder if no userId/enrollmentId provided
+      const folder = userId || "temp";
+      const identifier = enrollmentId || `pending-${Date.now()}`;
+      const fileName = `${folder}/${identifier}-${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("payment-receipts")
@@ -53,14 +56,17 @@ export function ReceiptUpload({
         .from("payment-receipts")
         .getPublicUrl(fileName);
 
-      // Update the enrollment with the receipt URL
-      const { error: updateError } = await supabase
-        .from("enrollments")
-        .update({ receipt_url: publicUrl })
-        .eq("id", enrollmentId);
+      // If we have an enrollmentId, update the enrollment record
+      if (enrollmentId) {
+        const { error: updateError } = await supabase
+          .from("enrollments")
+          .update({ receipt_url: publicUrl })
+          .eq("id", enrollmentId);
 
-      if (updateError) throw updateError;
+        if (updateError) throw updateError;
+      }
 
+      setPreviewUrl(publicUrl);
       onUploadComplete(publicUrl);
       toast.success("Receipt uploaded successfully");
     } catch (error: any) {
@@ -97,7 +103,9 @@ export function ReceiptUpload({
     }
   };
 
-  if (existingUrl) {
+  const displayUrl = existingUrl || previewUrl;
+
+  if (displayUrl) {
     return (
       <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-4">
         <div className="flex items-center gap-3">
@@ -113,7 +121,7 @@ export function ReceiptUpload({
             </p>
           </div>
           <a
-            href={existingUrl}
+            href={displayUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-green-600 dark:text-green-400 hover:underline"
