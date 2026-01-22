@@ -295,7 +295,12 @@ export default function AdminCourses() {
               {isLoading ? (
                 [...Array(5)].map((_, i) => (
                   <TableRow key={i}>
-                    <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-14 rounded" />
+                        <Skeleton className="h-5 w-40" />
+                      </div>
+                    </TableCell>
                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-12" /></TableCell>
@@ -313,7 +318,24 @@ export default function AdminCourses() {
               ) : (
                 filteredCourses?.map((course) => (
                   <TableRow key={course.id}>
-                    <TableCell className="font-medium max-w-xs truncate">{course.title}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="w-14 h-10 rounded overflow-hidden bg-muted flex-shrink-0">
+                          {course.thumbnail_url ? (
+                            <img
+                              src={course.thumbnail_url}
+                              alt={course.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <ImageIcon className="w-5 h-5 text-muted-foreground/50" />
+                            </div>
+                          )}
+                        </div>
+                        <span className="font-medium truncate max-w-[200px]">{course.title}</span>
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="capitalize">
                         {course.course_type.replace("_", "-")}
