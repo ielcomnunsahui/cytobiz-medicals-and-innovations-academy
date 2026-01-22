@@ -35,6 +35,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminEnrollments from "./pages/admin/AdminEnrollments";
 import AdminCertificates from "./pages/admin/AdminCertificates";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminEnrollmentReview from "./pages/admin/AdminEnrollmentReview";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +73,7 @@ function AnimatedRoutes() {
           <Route path="/admin/enrollments" element={<AdminEnrollments />} />
           <Route path="/admin/certificates" element={<AdminCertificates />} />
           <Route path="/admin/settings" element={<AdminSettings />} />
+          <Route path="/admin/enrollment-review" element={<AdminEnrollmentReview />} />
         </Route>
 
         {/* Catch-all */}
