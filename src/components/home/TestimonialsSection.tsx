@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
+import { ChevronLeft, ChevronRight, Quote, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const testimonials = [
@@ -12,6 +12,7 @@ const testimonials = [
     company: "HealthTech Innovations",
     outcome: "Promoted within 6 months",
     image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop",
+    rating: 5,
   },
   {
     id: 2,
@@ -21,6 +22,7 @@ const testimonials = [
     company: "Regional Medical Center",
     outcome: "Led $2M transformation initiative",
     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop",
+    rating: 5,
   },
   {
     id: 3,
@@ -30,6 +32,7 @@ const testimonials = [
     company: "Global Health Institute",
     outcome: "Published 3 research papers",
     image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop",
+    rating: 5,
   },
 ];
 
@@ -42,20 +45,34 @@ export function TestimonialsSection() {
   const prev = () => setCurrent((prev) => (prev - 1 + testimonials.length) % testimonials.length);
 
   return (
-    <section ref={ref} className="section-padding bg-hero-gradient text-primary-foreground">
-      <div className="container-wide">
+    <section ref={ref} className="py-24 bg-hero-gradient text-primary-foreground relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 opacity-20">
+        <motion.div 
+          className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full border border-white/20"
+          animate={{ scale: [1, 1.2, 1], rotate: [0, 180, 360] }}
+          transition={{ duration: 20, repeat: Infinity }}
+        />
+        <motion.div 
+          className="absolute bottom-1/4 right-1/4 w-48 h-48 rounded-full border border-white/10"
+          animate={{ scale: [1.2, 1, 1.2], rotate: [360, 180, 0] }}
+          transition={{ duration: 15, repeat: Infinity }}
+        />
+      </div>
+
+      <div className="container-wide relative">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          className="text-center mb-12"
+          className="text-center mb-14"
         >
-          <p className="text-primary-foreground/70 font-medium mb-3 text-sm uppercase tracking-wider">
-            Learner Success Stories
+          <p className="text-primary-foreground/60 font-medium mb-4 text-sm uppercase tracking-widest">
+            Success Stories
           </p>
-          <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">
             Real Impact, Real Results
           </h2>
-          <p className="text-primary-foreground/60 max-w-2xl mx-auto">
+          <p className="text-primary-foreground/50 max-w-2xl mx-auto text-lg">
             Hear from healthcare professionals who transformed their careers through our programs
           </p>
         </motion.div>
@@ -64,33 +81,50 @@ export function TestimonialsSection() {
           <AnimatePresence mode="wait">
             <motion.div
               key={current}
-              initial={{ opacity: 0, x: 50 }}
+              initial={{ opacity: 0, x: 60 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              transition={{ duration: 0.3 }}
-              className="text-center"
+              exit={{ opacity: 0, x: -60 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="bg-white/5 backdrop-blur-md rounded-3xl border border-white/10 p-8 md:p-12"
             >
-              <Quote className="w-10 h-10 mx-auto mb-6 text-primary-foreground/20" />
+              <Quote className="w-12 h-12 mb-8 text-primary-foreground/20" />
               
-              <blockquote className="text-xl md:text-2xl font-medium mb-6 leading-relaxed">
+              {/* Stars */}
+              <div className="flex gap-1 mb-6">
+                {Array.from({ length: testimonials[current].rating }).map((_, i) => (
+                  <Star key={i} className="w-5 h-5 fill-gold text-gold" />
+                ))}
+              </div>
+              
+              <blockquote className="text-xl md:text-2xl font-medium mb-8 leading-relaxed">
                 "{testimonials[current].quote}"
               </blockquote>
 
               {/* Outcome Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/20 text-success mb-6">
-                <div className="w-2 h-2 rounded-full bg-success" />
-                <span className="text-sm font-medium">{testimonials[current].outcome}</span>
-              </div>
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-success/20 text-success mb-8"
+              >
+                <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                <span className="text-sm font-semibold">{testimonials[current].outcome}</span>
+              </motion.div>
 
-              <div className="flex items-center justify-center gap-4">
-                <img
+              {/* Author */}
+              <div className="flex items-center gap-5">
+                <motion.img
+                  key={testimonials[current].image}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
                   src={testimonials[current].image}
                   alt={testimonials[current].author}
-                  className="w-14 h-14 rounded-full object-cover border-2 border-primary-foreground/30"
+                  className="w-16 h-16 rounded-full object-cover border-2 border-primary-foreground/30"
                 />
-                <div className="text-left">
-                  <p className="font-semibold">{testimonials[current].author}</p>
-                  <p className="text-sm text-primary-foreground/70">
+                <div>
+                  <p className="font-semibold text-lg">{testimonials[current].author}</p>
+                  <p className="text-sm text-primary-foreground/60">
                     {testimonials[current].role}, {testimonials[current].company}
                   </p>
                 </div>
@@ -99,25 +133,25 @@ export function TestimonialsSection() {
           </AnimatePresence>
 
           {/* Navigation */}
-          <div className="flex justify-center gap-4 mt-10">
+          <div className="flex justify-center items-center gap-6 mt-10">
             <Button
               variant="outline"
               size="icon"
               onClick={prev}
-              className="rounded-full border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 bg-transparent"
+              className="rounded-full w-12 h-12 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 bg-transparent"
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {testimonials.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrent(index)}
-                  className={`w-2 h-2 rounded-full transition-all ${
+                  className={`h-2 rounded-full transition-all duration-300 ${
                     index === current
-                      ? "w-6 bg-primary-foreground"
-                      : "bg-primary-foreground/30"
+                      ? "w-8 bg-primary-foreground"
+                      : "w-2 bg-primary-foreground/30 hover:bg-primary-foreground/50"
                   }`}
                 />
               ))}
@@ -127,7 +161,7 @@ export function TestimonialsSection() {
               variant="outline"
               size="icon"
               onClick={next}
-              className="rounded-full border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 bg-transparent"
+              className="rounded-full w-12 h-12 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 bg-transparent"
             >
               <ChevronRight className="w-5 h-5" />
             </Button>

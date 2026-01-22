@@ -8,6 +8,11 @@ import {
   Calendar, 
   ArrowRight,
   X,
+  Award,
+  Users,
+  BookOpen,
+  Sparkles,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -81,46 +86,80 @@ const Courses = () => {
       <Navbar />
       
       <main className="flex-1 pt-20">
-        {/* Hero */}
-        <section className="bg-hero-gradient py-16 md:py-24">
-          <div className="container-wide">
+        {/* Hero Section */}
+        <section className="bg-hero-gradient py-20 md:py-28 relative overflow-hidden">
+          {/* Background decoration */}
+          <div className="absolute inset-0 overflow-hidden">
+            <motion.div 
+              className="absolute top-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-primary/20 blur-[100px]"
+              animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
+              transition={{ duration: 8, repeat: Infinity }}
+            />
+          </div>
+
+          <div className="container-wide relative">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="max-w-2xl"
+              transition={{ duration: 0.8 }}
+              className="max-w-3xl"
             >
-              <h1 className="font-display text-3xl md:text-5xl font-bold text-primary-foreground mb-4">
-                Explore Our Courses
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 mb-6 backdrop-blur-sm"
+              >
+                <Sparkles className="w-4 h-4 text-gold" />
+                <span className="text-sm font-medium text-primary-foreground/80">
+                  Explore Our Programs
+                </span>
+              </motion.div>
+
+              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground mb-6 leading-tight">
+                Build Your Healthcare
+                <br />
+                <span className="text-primary-foreground/70">Career</span>
               </h1>
-              <p className="text-lg text-primary-foreground/70">
-                Discover expert-led courses designed to advance your healthcare career. 
-                From cohort programs to self-paced learning.
+              <p className="text-lg md:text-xl text-primary-foreground/60 max-w-2xl">
+                Discover expert-led courses in medical education, public health, 
+                healthcare innovation, and digital health. From cohort programs 
+                to self-paced learning.
               </p>
             </motion.div>
           </div>
         </section>
 
-        {/* Search & Filters */}
-        <section className="sticky top-16 md:top-20 z-30 bg-card/95 backdrop-blur-lg border-b border-border py-4">
+        {/* Search & Filters Bar */}
+        <section className="sticky top-16 md:top-20 z-30 bg-card/95 backdrop-blur-xl border-b border-border py-5 shadow-sm">
           <div className="container-wide">
             <div className="flex flex-col md:flex-row gap-4">
-              {/* Search */}
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              {/* Search Input */}
+              <motion.div 
+                className="relative flex-1 max-w-lg"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search courses..."
+                  placeholder="Search courses by title or topic..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-12 h-12 bg-background border-2 border-border focus:border-primary transition-colors"
                 />
-              </div>
+              </motion.div>
 
               {/* Desktop Filters */}
-              <div className="hidden md:flex items-center gap-3">
+              <motion.div 
+                className="hidden md:flex items-center gap-3"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+              >
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="w-48 bg-background">
+                  <SelectTrigger className="w-52 h-12 bg-background border-2">
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -133,7 +172,7 @@ const Courses = () => {
                 </Select>
 
                 <Select value={selectedType} onValueChange={setSelectedType}>
-                  <SelectTrigger className="w-40 bg-background">
+                  <SelectTrigger className="w-44 h-12 bg-background border-2">
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -150,24 +189,24 @@ const Courses = () => {
                     variant="ghost"
                     size="sm"
                     onClick={clearFilters}
-                    className="text-muted-foreground"
+                    className="text-muted-foreground hover:text-destructive"
                   >
-                    Clear filters
+                    Clear all
                     <X className="w-4 h-4 ml-1" />
                   </Button>
                 )}
-              </div>
+              </motion.div>
 
               {/* Mobile Filter Toggle */}
               <Button
                 variant="outline"
                 onClick={() => setShowFilters(!showFilters)}
-                className="md:hidden"
+                className="md:hidden h-12 border-2"
               >
-                <Filter className="w-4 h-4 mr-2" />
+                <SlidersHorizontal className="w-4 h-4 mr-2" />
                 Filters
                 {activeFiltersCount > 0 && (
-                  <Badge variant="secondary" className="ml-2">
+                  <Badge variant="secondary" className="ml-2 bg-primary text-primary-foreground">
                     {activeFiltersCount}
                   </Badge>
                 )}
@@ -181,12 +220,12 @@ const Courses = () => {
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ duration: 0.3 }}
                   className="md:hidden overflow-hidden"
                 >
                   <div className="pt-4 flex flex-col gap-3">
                     <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger className="bg-background">
+                      <SelectTrigger className="bg-background h-12 border-2">
                         <SelectValue placeholder="Category" />
                       </SelectTrigger>
                       <SelectContent>
@@ -199,7 +238,7 @@ const Courses = () => {
                     </Select>
 
                     <Select value={selectedType} onValueChange={setSelectedType}>
-                      <SelectTrigger className="bg-background">
+                      <SelectTrigger className="bg-background h-12 border-2">
                         <SelectValue placeholder="Type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -229,30 +268,36 @@ const Courses = () => {
           </div>
         </section>
 
-        {/* Results */}
-        <section className="py-12">
+        {/* Results Section */}
+        <section className="py-12 md:py-16">
           <div className="container-wide">
             {/* Results Count */}
-            <div className="mb-8">
+            <motion.div 
+              className="mb-8 flex items-center justify-between"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
               <p className="text-muted-foreground">
                 Showing{" "}
-                <span className="font-medium text-foreground">
+                <span className="font-semibold text-foreground">
                   {isLoading ? "..." : filteredCourses.length}
                 </span>{" "}
                 {filteredCourses.length === 1 ? "course" : "courses"}
               </p>
-            </div>
+            </motion.div>
 
             {/* Course Grid */}
             {isLoading ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {Array.from({ length: 6 }).map((_, index) => (
                   <div key={index} className="bg-card rounded-2xl overflow-hidden border border-border">
-                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-52 w-full" />
                     <div className="p-6 space-y-4">
                       <Skeleton className="h-6 w-3/4" />
                       <Skeleton className="h-4 w-full" />
-                      <div className="grid grid-cols-2 gap-3">
+                      <Skeleton className="h-4 w-2/3" />
+                      <div className="grid grid-cols-2 gap-3 pt-4">
                         <Skeleton className="h-4 w-full" />
                         <Skeleton className="h-4 w-full" />
                       </div>
@@ -267,35 +312,36 @@ const Courses = () => {
                     <motion.article
                       key={course.id}
                       layout
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      transition={{ duration: 0.4, delay: index * 0.05 }}
                       className="group"
                     >
                       <Link
                         to={`/courses/${course.slug}`}
-                        className="flex flex-col h-full bg-card rounded-2xl overflow-hidden border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                        className="flex flex-col h-full bg-card rounded-2xl overflow-hidden border border-border hover:border-primary/30 hover:shadow-2xl transition-all duration-500"
                       >
                         {/* Image */}
-                        <div className="relative aspect-video bg-gradient-to-br from-primary via-primary/80 to-primary/60">
+                        <div className="relative aspect-[16/10] bg-gradient-to-br from-primary via-primary/80 to-primary/60 overflow-hidden">
                           {course.thumbnail_url ? (
                             <img
                               src={course.thumbnail_url}
                               alt={course.title}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <span className="text-5xl font-display font-bold text-white/30">
-                                {course.title.charAt(0)}
-                              </span>
+                              <BookOpen className="w-16 h-16 text-white/30" />
                             </div>
                           )}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                          
+                          {/* Badges */}
                           <div className="absolute top-4 left-4 flex gap-2">
                             <Badge
                               className={cn(
+                                "backdrop-blur-sm",
                                 course.course_type === "cohort"
                                   ? "bg-primary text-primary-foreground"
                                   : "bg-gold/90 text-foreground"
@@ -304,45 +350,58 @@ const Courses = () => {
                               {course.course_type === "cohort" ? "Cohort" : "Self-Paced"}
                             </Badge>
                           </div>
-                          <div className="absolute top-4 right-4">
-                            <span className="px-3 py-1 rounded-full bg-card/90 backdrop-blur-sm text-sm font-semibold text-foreground">
+                          
+                          {/* Price */}
+                          <div className="absolute bottom-4 right-4">
+                            <span className="px-4 py-1.5 rounded-full bg-card/90 backdrop-blur-md text-lg font-bold text-foreground shadow-lg">
                               {course.price ? `$${course.price}` : "Free"}
                             </span>
+                          </div>
+
+                          {/* Certificate badge */}
+                          <div className="absolute top-4 right-4">
+                            <div className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                              <Award className="w-5 h-5 text-white" />
+                            </div>
                           </div>
                         </div>
 
                         {/* Content */}
                         <div className="flex flex-col flex-1 p-6">
-                          <h3 className="font-display text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                          <h3 className="font-display text-xl font-semibold text-foreground mb-3 group-hover:text-primary transition-colors line-clamp-2">
                             {course.title}
                           </h3>
-                          <p className="text-sm text-muted-foreground mb-4 line-clamp-2 flex-1">
+                          <p className="text-muted-foreground mb-5 line-clamp-2 flex-1 text-sm leading-relaxed">
                             {course.short_description || course.description}
                           </p>
 
                           {/* Meta */}
-                          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
-                            <div className="flex items-center gap-1.5">
+                          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-5">
+                            <div className="flex items-center gap-2">
                               <Clock className="w-4 h-4" />
                               <span>{course.duration_weeks ? `${course.duration_weeks} weeks` : "Flexible"}</span>
                             </div>
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-2">
                               <Calendar className="w-4 h-4" />
                               <span>{course.course_type === "cohort" ? "Next cohort" : "Start anytime"}</span>
                             </div>
                           </div>
 
                           {/* Footer */}
-                          <div className="flex items-center justify-between pt-4 border-t border-border">
-                            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                          <div className="flex items-center justify-between pt-5 border-t border-border">
+                            <div className="flex items-center gap-2 text-sm">
+                              <Users className="w-4 h-4 text-muted-foreground" />
                               <span className="font-medium text-foreground">
                                 {course.level || "All levels"}
                               </span>
                             </div>
-                            <span className="text-sm font-medium text-primary group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
-                              View
+                            <motion.span 
+                              className="text-sm font-semibold text-primary inline-flex items-center gap-1"
+                              whileHover={{ x: 4 }}
+                            >
+                              View Course
                               <ArrowRight className="w-4 h-4" />
-                            </span>
+                            </motion.span>
                           </div>
                         </div>
                       </Link>
@@ -352,20 +411,23 @@ const Courses = () => {
               </div>
             ) : (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-16"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center py-20"
               >
-                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                  <Search className="w-8 h-8 text-muted-foreground" />
+                <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-6">
+                  <Search className="w-10 h-10 text-muted-foreground" />
                 </div>
-                <h3 className="font-display text-xl font-semibold text-foreground mb-2">
+                <h3 className="font-display text-2xl font-semibold text-foreground mb-3">
                   No courses found
                 </h3>
-                <p className="text-muted-foreground mb-6">
-                  Try adjusting your search or filters
+                <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+                  We couldn't find any courses matching your criteria. 
+                  Try adjusting your filters or search terms.
                 </p>
-                <Button onClick={clearFilters}>Clear all filters</Button>
+                <Button onClick={clearFilters} size="lg">
+                  Clear all filters
+                </Button>
               </motion.div>
             )}
           </div>
