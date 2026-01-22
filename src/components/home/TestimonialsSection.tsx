@@ -161,17 +161,29 @@ export function TestimonialsSection() {
               <ChevronLeft className="w-5 h-5" />
             </Button>
             
+            {/* Progress dots with animated fill */}
             <div className="flex items-center gap-3">
               {testimonials.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrent(index)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    index === current
-                      ? "w-8 bg-primary-foreground"
-                      : "w-2 bg-primary-foreground/30 hover:bg-primary-foreground/50"
-                  }`}
-                />
+                  className="relative h-2 rounded-full overflow-hidden transition-all duration-300"
+                  style={{ width: index === current ? '2rem' : '0.5rem' }}
+                >
+                  <div className="absolute inset-0 bg-primary-foreground/30" />
+                  {index === current && (
+                    <motion.div
+                      key={`progress-${current}`}
+                      className="absolute inset-0 bg-primary-foreground origin-left"
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: isPaused ? undefined : 1 }}
+                      transition={{ 
+                        duration: AUTO_ROTATE_INTERVAL / 1000, 
+                        ease: "linear" 
+                      }}
+                    />
+                  )}
+                </button>
               ))}
             </div>
 
