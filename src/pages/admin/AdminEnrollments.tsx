@@ -161,6 +161,10 @@ export default function AdminEnrollments() {
       id: enrollment.id,
       status: "confirmed",
       approved_by: user?.id ?? null,
+      userEmail: enrollment.profile?.email || enrollment.user_email,
+      userName: enrollment.profile?.display_name || "Learner",
+      courseName: enrollment.course?.title,
+      cohortName: enrollment.cohort?.title,
     });
     if (viewingEnrollment?.id === enrollment.id) {
       setViewingEnrollment(null);
@@ -173,6 +177,10 @@ export default function AdminEnrollments() {
       id: rejectingEnrollment.id,
       status: "rejected",
       rejection_reason: rejectionReason || null,
+      userEmail: rejectingEnrollment.profile?.email || rejectingEnrollment.user_email,
+      userName: rejectingEnrollment.profile?.display_name || "Learner",
+      courseName: rejectingEnrollment.course?.title,
+      cohortName: rejectingEnrollment.cohort?.title,
     });
     setRejectingEnrollment(null);
     setRejectionReason("");
