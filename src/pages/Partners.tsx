@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Shield, BadgeCheck, Award, Users, Globe, Handshake, ExternalLink, Heart, UserPlus, Gift } from "lucide-react";
+import { Link } from "react-router-dom";
 import { PageTransition } from "@/components/PageTransition";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -360,21 +361,21 @@ export default function Partners() {
                   title: "Sponsor a Learner",
                   description: "Help fund a student's education and change their life. Your sponsorship covers tuition, materials, and certification fees.",
                   cta: "Become a Sponsor",
-                  href: "/contact?subject=sponsorship"
+                  href: "/sponsor"
                 },
                 {
                   icon: UserPlus,
                   title: "Collaborate with Us",
                   description: "Partner with Cytobiz for curriculum development, research projects, or corporate training programs.",
                   cta: "Start a Partnership",
-                  href: "/contact?subject=partnership"
+                  href: "/collaborate"
                 },
                 {
                   icon: Gift,
                   title: "Refer and Earn",
                   description: "Earn rewards by referring students to our programs. Get commission for every successful enrollment.",
                   cta: "Join Referral Program",
-                  href: "/contact?subject=referral"
+                  href: "/referral"
                 }
               ].map((item, index) => (
                 <motion.div
@@ -394,7 +395,7 @@ export default function Partners() {
                     </CardHeader>
                     <CardContent>
                       <Button asChild className="w-full">
-                        <a href={item.href}>{item.cta}</a>
+                        <Link to={item.href}>{item.cta}</Link>
                       </Button>
                     </CardContent>
                   </Card>
