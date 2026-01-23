@@ -11,6 +11,7 @@ import { WhyChooseSection } from "@/components/home/WhyChooseSection";
 import { CertificationSection } from "@/components/home/CertificationSection";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { FinalCTASection } from "@/components/home/FinalCTASection";
+import { PartnersSection } from "@/components/home/PartnersSection";
 
 const Index = () => {
   return (
@@ -20,34 +21,37 @@ const Index = () => {
         {/* 1. Hero - Authority + Impact Statement */}
         <HeroSection />
         
-        {/* 2. What We Do - Mission Statement */}
+        {/* 2. Partners - Trust Signals */}
+        <PartnersSection />
+        
+        {/* 3. What We Do - Mission Statement */}
         <WhatWeDoSection />
         
-        {/* 3. Course Types - Cohort vs Self-Paced */}
+        {/* 4. Course Types - Cohort vs Self-Paced */}
         <LearningModelsSection />
         
-        {/* 4. Learning Areas - Explore by Specialty */}
+        {/* 5. Learning Areas - Explore by Specialty */}
         <LearningAreasSection />
         
-        {/* 5. Featured Courses - Entry Points */}
+        {/* 6. Featured Courses - Entry Points */}
         <FeaturedCoursesSection />
         
-        {/* 6. How Learning Works - Process Steps */}
+        {/* 7. How Learning Works - Process Steps */}
         <HowItWorksSection />
         
-        {/* 7. Who Can Apply - Target Audience */}
+        {/* 8. Who Can Apply - Target Audience */}
         <WhoCanApplySection />
         
-        {/* 8. Why Choose - Value Propositions */}
+        {/* 9. Why Choose - Value Propositions */}
         <WhyChooseSection />
         
-        {/* 9. Certification - Credential Value */}
+        {/* 10. Certification - Credential Value */}
         <CertificationSection />
         
-        {/* 10. Testimonials - Social Proof */}
+        {/* 11. Testimonials - Social Proof */}
         <TestimonialsSection />
         
-        {/* 11. Final CTA - Conversion */}
+        {/* 12. Final CTA - Conversion */}
         <FinalCTASection />
       </main>
       <Footer />
