@@ -16,6 +16,8 @@ import {
   ChevronDown,
   ArrowLeft,
   Loader2,
+  Star,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,7 +47,10 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { SEOHead } from "@/components/SEOHead";
 import { useAuth } from "@/hooks/useAuth";
-import { useCourseWithDetails } from "@/hooks/useCourses";
+import { useCourseWithDetails, useEnrolledCourses } from "@/hooks/useCourses";
+import { useCourseAverageRating } from "@/hooks/useCourseReviews";
+import { CourseReviewForm } from "@/components/courses/CourseReviewForm";
+import { CourseReviewsList } from "@/components/courses/CourseReviewsList";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
@@ -58,6 +63,10 @@ export default function CourseDetail() {
   const { user } = useAuth();
 
   const { data: course, isLoading, error } = useCourseWithDetails(slug || "");
+  const { data: ratingData } = useCourseAverageRating(course?.id || "");
+  const { data: enrolledCourses } = useEnrolledCourses(user?.id);
+  
+  const isEnrolled = enrolledCourses?.some((e: any) => e.course_id === course?.id) || false;
 
   const getLessonIcon = (type: string) => {
     switch (type) {
@@ -223,8 +232,26 @@ export default function CourseDetail() {
                 {course.short_description || course.description}
               </p>
 
-              {/* Meta Info */}
+              {/* Rating & Meta Info */}
               <div className="flex flex-wrap gap-6 mb-8 text-primary-foreground/80">
+                {ratingData && ratingData.count > 0 && (
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-4 h-4 ${
+                            i < Math.round(ratingData.average)
+                              ? "text-gold fill-gold"
+                              : "text-white/30"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <span className="font-medium">{ratingData.average}</span>
+                    <span className="text-primary-foreground/60">({ratingData.count} reviews)</span>
+                  </div>
+                )}
                 {course.duration_weeks && (
                   <div className="flex items-center gap-2">
                     <Clock className="w-5 h-5" />
@@ -567,6 +594,26 @@ export default function CourseDetail() {
                   </Accordion>
                 </section>
               )}
+
+              {/* Reviews Section */}
+              <section id="reviews">
+                <div className="flex items-center gap-3 mb-6">
+                  <MessageSquare className="w-6 h-6 text-primary" />
+                  <h2 className="text-2xl font-bold text-foreground">
+                    Student Reviews
+                  </h2>
+                </div>
+                
+                {/* Review Form - Show only for enrolled users */}
+                {isEnrolled && (
+                  <div className="mb-8">
+                    <CourseReviewForm courseId={course.id} isEnrolled={isEnrolled} />
+                  </div>
+                )}
+                
+                {/* Reviews List */}
+                <CourseReviewsList courseId={course.id} />
+              </section>
             </div>
 
             {/* Right Sidebar - Visible only on desktop, shows cohort info for cohort courses */}

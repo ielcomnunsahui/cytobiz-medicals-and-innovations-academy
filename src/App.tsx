@@ -23,6 +23,7 @@ import NotFound from "./pages/NotFound";
 import Enroll from "./pages/Enroll";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
+import FAQ from "./pages/FAQ";
 
 // Protected Pages
 import Dashboard from "./pages/Dashboard";
@@ -42,6 +43,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminEnrollmentReview from "./pages/admin/AdminEnrollmentReview";
 import AdminSuccessStories from "./pages/admin/AdminSuccessStories";
 import AdminDiscountCodes from "./pages/admin/AdminDiscountCodes";
+import AdminReviews from "./pages/admin/AdminReviews";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +65,7 @@ function AnimatedRoutes() {
         <Route path="/enroll/:slug" element={<Enroll />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
+        <Route path="/faq" element={<FAQ />} />
 
         {/* Protected Learner Routes */}
         <Route element={<ProtectedRoute />}>
@@ -85,6 +88,7 @@ function AnimatedRoutes() {
           <Route path="/admin/enrollment-review" element={<AdminEnrollmentReview />} />
           <Route path="/admin/success-stories" element={<AdminSuccessStories />} />
           <Route path="/admin/discount-codes" element={<AdminDiscountCodes />} />
+          <Route path="/admin/reviews" element={<AdminReviews />} />
         </Route>
 
         {/* Catch-all */}

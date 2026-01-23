@@ -15,6 +15,7 @@ import {
   Filter,
   GraduationCap,
   TrendingUp,
+  Star,
 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -31,6 +32,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useCourses } from "@/hooks/useCourses";
+import { TestimonialsCarousel } from "@/components/courses/TestimonialsCarousel";
 
 const categories = [
   { value: "all", label: "All Categories" },
@@ -473,6 +475,9 @@ const Courses = () => {
             )}
           </div>
         </section>
+
+        {/* Testimonials Carousel */}
+        <TestimonialsCarousel />
 
         {/* CTA Section */}
         <section className="section-padding">
