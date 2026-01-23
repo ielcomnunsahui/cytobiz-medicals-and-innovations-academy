@@ -51,6 +51,7 @@ import { useCourseAverageRating } from "@/hooks/useCourseReviews";
 import { CourseReviewForm } from "@/components/courses/CourseReviewForm";
 import { CourseReviewsList } from "@/components/courses/CourseReviewsList";
 import { SocialShareButtons } from "@/components/courses/SocialShareButtons";
+import { CertificatePreview } from "@/components/courses/CertificatePreview";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
@@ -369,6 +370,31 @@ export default function CourseDetail() {
                       </div>
                     )}
                   </div>
+
+                  {/* Accreditation Badges */}
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Accredited By</p>
+                    <div className="flex gap-3">
+                      <Link
+                        to="/partners"
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors group"
+                      >
+                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                          <Award className="w-3 h-3 text-primary" />
+                        </div>
+                        <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground">WAHBS</span>
+                      </Link>
+                      <Link
+                        to="/partners"
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors group"
+                      >
+                        <div className="w-6 h-6 rounded-full bg-gold/10 flex items-center justify-center">
+                          <Award className="w-3 h-3 text-gold" />
+                        </div>
+                        <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground">SDCC</span>
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -468,7 +494,7 @@ export default function CourseDetail() {
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: index * 0.1 }}
-                        className="flex gap-3 p-4 rounded-xl bg-muted/50"
+                        className="flex gap-3 p-4 rounded-xl bg-muted/50 border border-border hover:border-primary/30 transition-colors"
                       >
                         <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
                         <span className="text-foreground">{outcome}</span>
@@ -477,6 +503,12 @@ export default function CourseDetail() {
                   </div>
                 </section>
               )}
+
+              {/* Certificate Preview */}
+              <CertificatePreview 
+                courseType={course.course_type} 
+                courseTitle={course.title} 
+              />
 
               {/* Curriculum */}
               {course.modules && course.modules.length > 0 && (

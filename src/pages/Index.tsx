@@ -12,7 +12,8 @@ import { CertificationSection } from "@/components/home/CertificationSection";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { FinalCTASection } from "@/components/home/FinalCTASection";
 import { PartnersSection } from "@/components/home/PartnersSection";
-
+import { ProgramComparisonSection } from "@/components/home/ProgramComparisonSection";
+import { GraduateEmployersSection } from "@/components/home/GraduateEmployersSection";
 const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
@@ -36,22 +37,28 @@ const Index = () => {
         {/* 6. Featured Courses - Entry Points */}
         <FeaturedCoursesSection />
         
-        {/* 7. How Learning Works - Process Steps */}
+        {/* 7. Program Comparison - Side by Side */}
+        <ProgramComparisonSection />
+        
+        {/* 8. How Learning Works - Process Steps */}
         <HowItWorksSection />
         
-        {/* 8. Who Can Apply - Target Audience */}
+        {/* 9. Who Can Apply - Target Audience */}
         <WhoCanApplySection />
         
-        {/* 9. Why Choose - Value Propositions */}
+        {/* 10. Why Choose - Value Propositions */}
         <WhyChooseSection />
         
-        {/* 10. Certification - Credential Value */}
+        {/* 11. Certification - Credential Value */}
         <CertificationSection />
         
-        {/* 11. Testimonials - Social Proof */}
+        {/* 12. Testimonials - Social Proof */}
         <TestimonialsSection />
         
-        {/* 12. Final CTA - Conversion */}
+        {/* 13. Where Our Learners Work - Career Outcomes */}
+        <GraduateEmployersSection />
+        
+        {/* 14. Final CTA - Conversion */}
         <FinalCTASection />
       </main>
       <Footer />
