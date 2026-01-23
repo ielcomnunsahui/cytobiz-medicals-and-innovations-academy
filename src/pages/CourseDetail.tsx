@@ -10,7 +10,6 @@ import {
   FileText,
   CheckCircle,
   ArrowRight,
-  Share2,
   Heart,
   BookOpen,
   ChevronDown,
@@ -51,6 +50,7 @@ import { useCourseWithDetails, useEnrolledCourses } from "@/hooks/useCourses";
 import { useCourseAverageRating } from "@/hooks/useCourseReviews";
 import { CourseReviewForm } from "@/components/courses/CourseReviewForm";
 import { CourseReviewsList } from "@/components/courses/CourseReviewsList";
+import { SocialShareButtons } from "@/components/courses/SocialShareButtons";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
@@ -341,10 +341,10 @@ export default function CourseDetail() {
                       />
                       Save
                     </Button>
-                    <Button variant="outline" className="flex-1">
-                      <Share2 className="w-4 h-4 mr-2" />
-                      Share
-                    </Button>
+                    <SocialShareButtons
+                      title={course.title}
+                      description={course.short_description || course.description}
+                    />
                   </div>
 
                   <div className="mt-6 space-y-3 text-sm">

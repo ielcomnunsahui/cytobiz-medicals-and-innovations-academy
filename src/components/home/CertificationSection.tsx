@@ -1,6 +1,19 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { Award, CheckCircle, Download, Share2 } from "lucide-react";
+import { Award, CheckCircle, Download, Share2, Shield, BadgeCheck } from "lucide-react";
+
+const accreditations = [
+  {
+    type: "Certified by",
+    name: "West Africa Health Business Society",
+    icon: Shield,
+  },
+  {
+    type: "Accredited by",
+    name: "Skill Development Council Canada",
+    icon: BadgeCheck,
+  },
+];
 
 export function CertificationSection() {
   const ref = useRef<HTMLDivElement>(null);
@@ -110,7 +123,7 @@ export function CertificationSection() {
             </motion.p>
 
             {/* Benefits */}
-            <div className="space-y-4">
+            <div className="space-y-4 mb-8">
               {[
                 { icon: CheckCircle, text: "Verified digital certificate" },
                 { icon: Download, text: "Download and print anytime" },
@@ -130,6 +143,37 @@ export function CertificationSection() {
                 </motion.div>
               ))}
             </div>
+
+            {/* Accreditations */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.6 }}
+              className="pt-6 border-t border-border"
+            >
+              <p className="text-sm text-muted-foreground uppercase tracking-widest mb-4">
+                Accreditations & Certifications
+              </p>
+              <div className="grid sm:grid-cols-2 gap-4">
+                {accreditations.map((acc, index) => (
+                  <motion.div
+                    key={acc.name}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                    transition={{ delay: 0.7 + index * 0.1 }}
+                    className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <acc.icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">{acc.type}</p>
+                      <p className="text-sm font-medium text-foreground">{acc.name}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>
