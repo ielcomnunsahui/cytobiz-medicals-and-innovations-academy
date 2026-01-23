@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/select";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { SEOHead } from "@/components/SEOHead";
 import { useAuth } from "@/hooks/useAuth";
 import { useCourseWithDetails } from "@/hooks/useCourses";
 import { cn } from "@/lib/utils";
@@ -145,6 +146,22 @@ export default function CourseDetail() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEOHead
+        title={course.title}
+        description={course.short_description || course.description || `Enroll in ${course.title} - Expert-led course at Cytobiz Medical Academy`}
+        url={`/courses/${slug}`}
+        type="course"
+        image={course.thumbnail_url || undefined}
+        keywords={[
+          course.category || "",
+          course.level || "",
+          course.course_type,
+          "medical course",
+          "healthcare education",
+        ].filter(Boolean)}
+        publishedTime={course.created_at}
+        modifiedTime={course.updated_at}
+      />
       <Navbar />
 
       {/* Hero Section */}

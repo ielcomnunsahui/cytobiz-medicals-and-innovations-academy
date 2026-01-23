@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
+import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -36,6 +37,7 @@ import AdminEnrollments from "./pages/admin/AdminEnrollments";
 import AdminCertificates from "./pages/admin/AdminCertificates";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminEnrollmentReview from "./pages/admin/AdminEnrollmentReview";
+import AdminSuccessStories from "./pages/admin/AdminSuccessStories";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +76,7 @@ function AnimatedRoutes() {
           <Route path="/admin/certificates" element={<AdminCertificates />} />
           <Route path="/admin/settings" element={<AdminSettings />} />
           <Route path="/admin/enrollment-review" element={<AdminEnrollmentReview />} />
+          <Route path="/admin/success-stories" element={<AdminSuccessStories />} />
         </Route>
 
         {/* Catch-all */}
@@ -84,20 +87,22 @@ function AnimatedRoutes() {
 }
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <ScrollToTop />
-            <AnimatedRoutes />
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+  <HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <ScrollToTop />
+              <AnimatedRoutes />
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </HelmetProvider>
 );
 
 export default App;

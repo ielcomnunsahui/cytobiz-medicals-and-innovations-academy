@@ -1151,6 +1151,63 @@ export type Database = {
           },
         ]
       }
+      success_stories: {
+        Row: {
+          company: string | null
+          created_at: string
+          display_order: number | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          linkedin_url: string | null
+          name: string
+          outcome: string | null
+          project_description: string | null
+          project_name: string | null
+          rating: number | null
+          testimonial: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          linkedin_url?: string | null
+          name: string
+          outcome?: string | null
+          project_description?: string | null
+          project_name?: string | null
+          rating?: number | null
+          testimonial: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          linkedin_url?: string | null
+          name?: string
+          outcome?: string | null
+          project_description?: string | null
+          project_name?: string | null
+          rating?: number | null
+          testimonial?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

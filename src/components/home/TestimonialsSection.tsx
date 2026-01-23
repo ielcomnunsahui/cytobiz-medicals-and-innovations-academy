@@ -1,42 +1,37 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Quote, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, Quote, Star, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-const testimonials = [
-  {
-    id: 1,
-    quote: "The Digital Health Innovation program fundamentally changed how I approach healthcare technology. The hands-on projects and expert mentorship were invaluable for my career growth.",
-    author: "Dr. Sarah Chen",
-    role: "Chief Medical Officer",
-    company: "HealthTech Innovations",
-    outcome: "Promoted within 6 months",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop",
-    rating: 5,
-  },
-  {
-    id: 2,
-    quote: "Cytobiz Academy provided the perfect blend of theoretical knowledge and practical skills. I'm now leading digital transformation at my hospital with confidence.",
-    author: "Dr. Michael Okonkwo",
-    role: "Director of Innovation",
-    company: "Regional Medical Center",
-    outcome: "Led $2M transformation initiative",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop",
-    rating: 5,
-  },
-  {
-    id: 3,
-    quote: "The cohort-based learning model created meaningful connections with peers worldwide. The network I built here continues to drive my career and research forward.",
-    author: "Dr. Elena Rodriguez",
-    role: "Public Health Researcher",
-    company: "Global Health Institute",
-    outcome: "Published 3 research papers",
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop",
-    rating: 5,
-  },
-];
+import { Skeleton } from "@/components/ui/skeleton";
+import { useSuccessStories } from "@/hooks/useSuccessStories";
 
 const AUTO_ROTATE_INTERVAL = 5000; // 5 seconds
+
+// Fallback testimonials when database is empty
+const fallbackTestimonials = [
+  {
+    id: "fallback-1",
+    name: "Dr. Sarah Chen",
+    testimonial: "The Digital Health Innovation program fundamentally changed how I approach healthcare technology. The hands-on projects and expert mentorship were invaluable for my career growth.",
+    title: "Chief Medical Officer",
+    company: "HealthTech Innovations",
+    outcome: "Promoted within 6 months",
+    image_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop",
+    rating: 5,
+    linkedin_url: null,
+  },
+  {
+    id: "fallback-2",
+    name: "Dr. Michael Okonkwo",
+    testimonial: "Cytobiz Academy provided the perfect blend of theoretical knowledge and practical skills. I'm now leading digital transformation at my hospital with confidence.",
+    title: "Director of Innovation",
+    company: "Regional Medical Center",
+    outcome: "Led $2M transformation initiative",
+    image_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop",
+    rating: 5,
+    linkedin_url: null,
+  },
+];
 
 export function TestimonialsSection() {
   const ref = useRef<HTMLDivElement>(null);
@@ -44,19 +39,53 @@ export function TestimonialsSection() {
   const [current, setCurrent] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-  const next = useCallback(() => setCurrent((prev) => (prev + 1) % testimonials.length), []);
-  const prev = useCallback(() => setCurrent((prev) => (prev - 1 + testimonials.length) % testimonials.length), []);
+  const { data: successStories, isLoading } = useSuccessStories();
+
+  // Use database data or fallback
+  const testimonials = successStories && successStories.length > 0 
+    ? successStories 
+    : fallbackTestimonials;
+
+  const next = useCallback(() => setCurrent((prev) => (prev + 1) % testimonials.length), [testimonials.length]);
+  const prev = useCallback(() => setCurrent((prev) => (prev - 1 + testimonials.length) % testimonials.length), [testimonials.length]);
+
+  // Reset current index if testimonials change
+  useEffect(() => {
+    if (current >= testimonials.length) {
+      setCurrent(0);
+    }
+  }, [testimonials.length, current]);
 
   // Auto-rotate effect
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || testimonials.length === 0) return;
     
     const interval = setInterval(() => {
       next();
     }, AUTO_ROTATE_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [isPaused, next]);
+  }, [isPaused, next, testimonials.length]);
+
+  if (isLoading) {
+    return (
+      <section className="py-24 bg-hero-gradient text-primary-foreground relative overflow-hidden">
+        <div className="container-wide">
+          <div className="text-center mb-14">
+            <Skeleton className="h-4 w-32 mx-auto mb-4 bg-white/20" />
+            <Skeleton className="h-12 w-64 mx-auto mb-6 bg-white/20" />
+            <Skeleton className="h-6 w-80 mx-auto bg-white/20" />
+          </div>
+          <div className="max-w-4xl mx-auto">
+            <Skeleton className="h-80 rounded-3xl bg-white/10" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const currentTestimonial = testimonials[current];
+  if (!currentTestimonial) return null;
 
   return (
     <section ref={ref} className="py-24 bg-hero-gradient text-primary-foreground relative overflow-hidden">
@@ -109,43 +138,57 @@ export function TestimonialsSection() {
               
               {/* Stars */}
               <div className="flex gap-1 mb-6">
-                {Array.from({ length: testimonials[current].rating }).map((_, i) => (
+                {Array.from({ length: currentTestimonial.rating || 5 }).map((_, i) => (
                   <Star key={i} className="w-5 h-5 fill-gold text-gold" />
                 ))}
               </div>
               
               <blockquote className="text-xl md:text-2xl font-medium mb-8 leading-relaxed">
-                "{testimonials[current].quote}"
+                "{currentTestimonial.testimonial}"
               </blockquote>
 
               {/* Outcome Badge */}
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-success/20 text-success mb-8"
-              >
-                <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                <span className="text-sm font-semibold">{testimonials[current].outcome}</span>
-              </motion.div>
+              {currentTestimonial.outcome && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-success/20 text-success mb-8"
+                >
+                  <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                  <span className="text-sm font-semibold">{currentTestimonial.outcome}</span>
+                </motion.div>
+              )}
 
               {/* Author */}
               <div className="flex items-center gap-5">
                 <motion.img
-                  key={testimonials[current].image}
+                  key={currentTestimonial.image_url}
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  src={testimonials[current].image}
-                  alt={testimonials[current].author}
+                  src={currentTestimonial.image_url || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop"}
+                  alt={currentTestimonial.name}
                   className="w-16 h-16 rounded-full object-cover border-2 border-primary-foreground/30"
                 />
-                <div>
-                  <p className="font-semibold text-lg">{testimonials[current].author}</p>
+                <div className="flex-1">
+                  <p className="font-semibold text-lg">{currentTestimonial.name}</p>
                   <p className="text-sm text-primary-foreground/60">
-                    {testimonials[current].role}, {testimonials[current].company}
+                    {currentTestimonial.title}
+                    {currentTestimonial.company && `, ${currentTestimonial.company}`}
                   </p>
                 </div>
+                {currentTestimonial.linkedin_url && (
+                  <a
+                    href={currentTestimonial.linkedin_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                    aria-label={`View ${currentTestimonial.name}'s LinkedIn profile`}
+                  >
+                    <Linkedin className="w-5 h-5" />
+                  </a>
+                )}
               </div>
             </motion.div>
           </AnimatePresence>
