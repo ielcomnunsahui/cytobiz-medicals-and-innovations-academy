@@ -1,0 +1,72 @@
+-- Insert additional success stories with compelling testimonials
+INSERT INTO public.success_stories (name, testimonial, title, company, outcome, project_name, project_description, rating, is_featured, is_active, display_order, linkedin_url) VALUES
+(
+  'Dr. Amina Okonkwo',
+  'Cytobiz Academy transformed my understanding of healthcare innovation. The curriculum bridged the gap between clinical knowledge and entrepreneurial thinking. I launched MediTrack, a patient monitoring app that now serves over 10,000 users across West Africa. The mentorship and peer support were invaluable.',
+  'CEO & Co-founder',
+  'MediTrack Health',
+  'Launched MediTrack App',
+  'MediTrack',
+  'AI-powered patient monitoring and telemedicine platform',
+  5,
+  true,
+  true,
+  1,
+  'https://linkedin.com/in/amina-okonkwo'
+),
+(
+  'Emmanuel Adebayo',
+  'As a pharmacist, I wanted to understand how technology could improve medication adherence. Cytobiz gave me the tools and confidence to build PharmaConnect, which helps patients track their medications and connects them with pharmacists. The practical approach to learning made all the difference.',
+  'Founder',
+  'PharmaConnect',
+  'Built PharmaConnect Platform',
+  'PharmaConnect',
+  'Medication adherence and pharmacy connection platform',
+  5,
+  true,
+  true,
+  2,
+  'https://linkedin.com/in/emmanuel-adebayo'
+),
+(
+  'Dr. Fatima Ibrahim',
+  'The public health track at Cytobiz Academy equipped me with data analysis skills that transformed my research career. I now lead a team implementing AI-driven disease surveillance systems. The hands-on projects and expert facilitators made complex concepts accessible and immediately applicable.',
+  'Research Lead',
+  'Africa CDC',
+  'Leading AI Disease Surveillance',
+  'HealthWatch AI',
+  'AI-driven epidemic surveillance and early warning system',
+  5,
+  false,
+  true,
+  3,
+  'https://linkedin.com/in/fatima-ibrahim'
+),
+(
+  'Chijioke Nnamdi',
+  'Coming from a non-medical background, I was unsure if I could contribute to healthcare innovation. Cytobiz Academy welcomed diverse perspectives and showed me how technology skills could solve real health problems. My startup NutriCare now provides personalized nutrition advice to diabetic patients.',
+  'CTO',
+  'NutriCare Health',
+  'Founded NutriCare',
+  'NutriCare',
+  'Personalized nutrition platform for chronic disease management',
+  5,
+  true,
+  true,
+  4,
+  'https://linkedin.com/in/chijioke-nnamdi'
+),
+(
+  'Dr. Sarah Mensah',
+  'Cytobiz didnt just teach me about healthcare innovation – it connected me with a network of passionate changemakers. The cohort-based learning created lasting professional relationships. Together with my cohort mates, we launched HealthBridge to bring telehealth to rural communities in Ghana.',
+  'Medical Director',
+  'HealthBridge Ghana',
+  'Co-founded HealthBridge',
+  'HealthBridge',
+  'Rural telehealth and community health worker support platform',
+  5,
+  false,
+  true,
+  5,
+  'https://linkedin.com/in/sarah-mensah'
+);

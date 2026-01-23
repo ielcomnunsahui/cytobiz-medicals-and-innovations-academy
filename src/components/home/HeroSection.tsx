@@ -3,6 +3,7 @@ import { ArrowRight, Users, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useRef } from "react";
+import heroBackground from "@/assets/hero-background.jpeg";
 
 export function HeroSection() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -18,7 +19,13 @@ export function HeroSection() {
   return (
     <section
       ref={containerRef}
-      className="relative min-h-screen flex items-center overflow-hidden bg-hero-gradient"
+      className="relative min-h-screen flex items-center overflow-hidden"
+      style={{
+        backgroundImage: `linear-gradient(to bottom, rgba(6, 78, 59, 0.85), rgba(6, 78, 59, 0.92)), url(${heroBackground})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+      }}
     >
       {/* Animated Gradient Mesh */}
       <div className="absolute inset-0 overflow-hidden">
