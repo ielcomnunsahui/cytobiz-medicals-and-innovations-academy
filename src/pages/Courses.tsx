@@ -12,6 +12,9 @@ import {
   BookOpen,
   Sparkles,
   SlidersHorizontal,
+  Filter,
+  GraduationCap,
+  TrendingUp,
 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -44,6 +47,12 @@ const types = [
   { value: "all", label: "All Types" },
   { value: "cohort", label: "Cohort Programs" },
   { value: "self_paced", label: "Self-Paced" },
+];
+
+const quickFilters = [
+  { label: "Popular", icon: TrendingUp },
+  { label: "New", icon: Sparkles },
+  { label: "Certificate", icon: Award },
 ];
 
 const Courses = () => {
@@ -88,22 +97,25 @@ const Courses = () => {
       
       <main className="flex-1 pt-20">
         {/* Hero Section */}
-        <section className="bg-hero-gradient py-20 md:py-28 relative overflow-hidden">
-          {/* Background decoration */}
-          <div className="absolute inset-0 overflow-hidden">
+        <section className="relative min-h-[50vh] flex items-center overflow-hidden">
+          {/* Animated Background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/5 to-background dark:from-background dark:via-primary/10 dark:to-background">
             <motion.div 
-              className="absolute top-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-primary/20 blur-[100px]"
-              animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
-              transition={{ duration: 8, repeat: Infinity }}
-            />
-            <motion.div 
-              className="absolute bottom-0 left-1/4 w-[300px] h-[300px] rounded-full bg-accent/15 blur-[80px]"
-              animate={{ scale: [1.1, 1, 1.1], opacity: [0.4, 0.2, 0.4] }}
+              className="absolute top-1/4 right-1/4 w-[600px] h-[600px] rounded-full bg-primary/20 dark:bg-primary/30 blur-[120px]"
+              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
               transition={{ duration: 10, repeat: Infinity }}
             />
+            <motion.div 
+              className="absolute bottom-0 left-1/4 w-[500px] h-[500px] rounded-full bg-accent/15 dark:bg-accent/25 blur-[100px]"
+              animate={{ scale: [1.1, 1, 1.1], opacity: [0.4, 0.2, 0.4] }}
+              transition={{ duration: 12, repeat: Infinity }}
+            />
+            
+            {/* Grid pattern */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
           </div>
 
-          <div className="container-wide relative">
+          <div className="container-wide relative z-10 py-16">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -114,30 +126,51 @@ const Courses = () => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.2 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 mb-6 backdrop-blur-sm"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 dark:bg-primary/20 border border-primary/20 dark:border-primary/30 mb-8"
               >
-                <Sparkles className="w-4 h-4 text-gold" />
-                <span className="text-sm font-medium text-primary-foreground/80">
-                  Explore Our Programs
+                <GraduationCap className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-primary">
+                  {isLoading ? "Loading..." : `${courses?.length || 0} Courses Available`}
                 </span>
               </motion.div>
 
-              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground mb-6 leading-tight">
-                Build Your Healthcare
-                <br />
-                <span className="text-primary-foreground/70">Career</span>
+              <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-[1.1]">
+                Build Your
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-accent block">
+                  Healthcare Career
+                </span>
               </h1>
-              <p className="text-lg md:text-xl text-primary-foreground/60 max-w-2xl">
+              
+              <p className="text-xl text-muted-foreground max-w-2xl mb-10">
                 Discover expert-led courses in medical education, public health, 
-                healthcare innovation, and digital health. From cohort programs 
-                to self-paced learning.
+                healthcare innovation, and digital health.
               </p>
+
+              {/* Quick Filters */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="flex flex-wrap gap-3"
+              >
+                {quickFilters.map((filter, index) => (
+                  <motion.button
+                    key={filter.label}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card dark:bg-card/80 border border-border hover:border-primary/50 text-sm font-medium text-foreground transition-all"
+                  >
+                    <filter.icon className="w-4 h-4 text-primary" />
+                    {filter.label}
+                  </motion.button>
+                ))}
+              </motion.div>
             </motion.div>
           </div>
         </section>
 
         {/* Search & Filters Bar */}
-        <section className="sticky top-16 md:top-20 z-30 bg-card/95 backdrop-blur-xl border-b border-border py-5 shadow-sm">
+        <section className="sticky top-16 md:top-20 z-30 bg-background/95 dark:bg-background/95 backdrop-blur-xl border-b border-border py-5 shadow-sm">
           <div className="container-wide">
             <div className="flex flex-col md:flex-row gap-4">
               {/* Search Input */}
@@ -153,7 +186,7 @@ const Courses = () => {
                   placeholder="Search courses by title or topic..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 h-12 bg-background border-2 border-border focus:border-primary transition-colors"
+                  className="pl-12 h-12 bg-card dark:bg-card/80 border-2 border-border focus:border-primary transition-colors"
                 />
               </motion.div>
 
@@ -165,7 +198,7 @@ const Courses = () => {
                 transition={{ delay: 0.4 }}
               >
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="w-52 h-12 bg-background border-2">
+                  <SelectTrigger className="w-52 h-12 bg-card dark:bg-card/80 border-2">
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -178,7 +211,7 @@ const Courses = () => {
                 </Select>
 
                 <Select value={selectedType} onValueChange={setSelectedType}>
-                  <SelectTrigger className="w-44 h-12 bg-background border-2">
+                  <SelectTrigger className="w-44 h-12 bg-card dark:bg-card/80 border-2">
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -207,9 +240,9 @@ const Courses = () => {
               <Button
                 variant="outline"
                 onClick={() => setShowFilters(!showFilters)}
-                className="md:hidden h-12 border-2"
+                className="md:hidden h-12 border-2 bg-card dark:bg-card/80"
               >
-                <SlidersHorizontal className="w-4 h-4 mr-2" />
+                <Filter className="w-4 h-4 mr-2" />
                 Filters
                 {activeFiltersCount > 0 && (
                   <Badge variant="secondary" className="ml-2 bg-primary text-primary-foreground">
@@ -231,7 +264,7 @@ const Courses = () => {
                 >
                   <div className="pt-4 flex flex-col gap-3">
                     <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger className="bg-background h-12 border-2">
+                      <SelectTrigger className="bg-card dark:bg-card/80 h-12 border-2">
                         <SelectValue placeholder="Category" />
                       </SelectTrigger>
                       <SelectContent>
@@ -244,7 +277,7 @@ const Courses = () => {
                     </Select>
 
                     <Select value={selectedType} onValueChange={setSelectedType}>
-                      <SelectTrigger className="bg-background h-12 border-2">
+                      <SelectTrigger className="bg-card dark:bg-card/80 h-12 border-2">
                         <SelectValue placeholder="Type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -297,7 +330,7 @@ const Courses = () => {
             {isLoading ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {Array.from({ length: 6 }).map((_, index) => (
-                  <div key={index} className="bg-card rounded-2xl overflow-hidden border border-border">
+                  <div key={index} className="bg-card dark:bg-card/80 rounded-2xl overflow-hidden border border-border">
                     <Skeleton className="h-52 w-full" />
                     <div className="p-6 space-y-4">
                       <Skeleton className="h-6 w-3/4" />
@@ -318,18 +351,19 @@ const Courses = () => {
                     <motion.article
                       key={course.id}
                       layout
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ duration: 0.4, delay: index * 0.05 }}
+                      whileHover={{ y: -8, transition: { duration: 0.3 } }}
                       className="group"
                     >
                       <Link
                         to={`/courses/${course.slug}`}
-                        className="flex flex-col h-full bg-card rounded-2xl overflow-hidden border border-border hover:border-primary/30 hover:shadow-2xl transition-all duration-500"
+                        className="flex flex-col h-full bg-card dark:bg-card/80 rounded-2xl overflow-hidden border border-border hover:border-primary/50 hover:shadow-2xl transition-all duration-500"
                       >
                         {/* Image */}
-                        <div className="relative aspect-[16/10] bg-gradient-to-br from-primary via-primary/80 to-primary/60 overflow-hidden">
+                        <div className="relative aspect-[16/10] bg-gradient-to-br from-primary via-primary/80 to-accent overflow-hidden">
                           {course.thumbnail_url ? (
                             <img
                               src={course.thumbnail_url}
@@ -347,10 +381,10 @@ const Courses = () => {
                           <div className="absolute top-4 left-4 flex gap-2">
                             <Badge
                               className={cn(
-                                "backdrop-blur-sm",
+                                "backdrop-blur-sm shadow-lg",
                                 course.course_type === "cohort"
                                   ? "bg-primary text-primary-foreground"
-                                  : "bg-gold/90 text-foreground"
+                                  : "bg-gold text-foreground"
                               )}
                             >
                               {course.course_type === "cohort" ? "Cohort" : "Self-Paced"}
@@ -359,16 +393,19 @@ const Courses = () => {
                           
                           {/* Price */}
                           <div className="absolute bottom-4 right-4">
-                            <span className="px-4 py-1.5 rounded-full bg-card/90 backdrop-blur-md text-lg font-bold text-foreground shadow-lg">
-                              {course.price ? `$${course.price}` : "Free"}
+                            <span className="px-4 py-2 rounded-full bg-card/95 dark:bg-card/90 backdrop-blur-md text-lg font-bold text-foreground shadow-lg">
+                              {course.price ? `₦${course.price.toLocaleString()}` : "Free"}
                             </span>
                           </div>
 
                           {/* Certificate badge */}
                           <div className="absolute top-4 right-4">
-                            <div className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                            <motion.div 
+                              whileHover={{ scale: 1.1, rotate: 10 }}
+                              className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center"
+                            >
                               <Award className="w-5 h-5 text-white" />
-                            </div>
+                            </motion.div>
                           </div>
                         </div>
 
@@ -402,8 +439,7 @@ const Courses = () => {
                               </span>
                             </div>
                             <motion.span 
-                              className="text-sm font-semibold text-primary inline-flex items-center gap-1"
-                              whileHover={{ x: 4 }}
+                              className="text-sm font-semibold text-primary inline-flex items-center gap-1 group-hover:gap-2 transition-all"
                             >
                               View Course
                               <ArrowRight className="w-4 h-4" />
@@ -417,22 +453,68 @@ const Courses = () => {
               </div>
             ) : (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-20"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center py-16"
               >
-                <BookOpen className="w-16 h-16 mx-auto text-muted-foreground mb-6" />
-                <h3 className="text-xl font-semibold text-foreground mb-2">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-muted/50 dark:bg-muted/30 flex items-center justify-center">
+                  <BookOpen className="w-10 h-10 text-muted-foreground" />
+                </div>
+                <h3 className="text-2xl font-semibold text-foreground mb-3">
                   No courses found
                 </h3>
                 <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                   We couldn't find any courses matching your filters. Try adjusting your search or clearing filters.
                 </p>
-                <Button variant="outline" onClick={clearFilters}>
+                <Button onClick={clearFilters} variant="outline">
                   Clear all filters
                 </Button>
               </motion.div>
             )}
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="section-padding">
+          <div className="container-wide">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="relative rounded-3xl overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary to-accent" />
+              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySHI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
+              
+              <div className="relative px-8 py-16 md:py-20 text-center">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 mb-6"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span className="text-sm font-medium">Start Your Learning Journey</span>
+                </motion.div>
+                
+                <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
+                  Can't find what you're looking for?
+                </h2>
+                <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
+                  Let us know what topics interest you and we'll help you find the perfect course.
+                </p>
+                <Button
+                  size="lg"
+                  asChild
+                  className="bg-white text-primary hover:bg-white/90 shadow-xl"
+                >
+                  <Link to="/contact">
+                    Get in Touch
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Link>
+                </Button>
+              </div>
+            </motion.div>
           </div>
         </section>
       </main>

@@ -27,6 +27,7 @@ import Privacy from "./pages/Privacy";
 // Protected Pages
 import Dashboard from "./pages/Dashboard";
 import Learn from "./pages/Learn";
+import Progress from "./pages/Progress";
 import MyEnrollments from "./pages/MyEnrollments";
 
 // Admin Pages
@@ -68,6 +69,7 @@ function AnimatedRoutes() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/learn/:courseId" element={<Learn />} />
           <Route path="/my-enrollments" element={<MyEnrollments />} />
+          <Route path="/progress" element={<Progress />} />
         </Route>
 
         {/* Admin Routes */}
