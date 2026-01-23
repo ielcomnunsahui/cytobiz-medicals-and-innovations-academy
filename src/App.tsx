@@ -32,6 +32,8 @@ import MyEnrollments from "./pages/MyEnrollments";
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminCourses from "./pages/admin/AdminCourses";
+import AdminCohorts from "./pages/admin/AdminCohorts";
+import AdminFacilitators from "./pages/admin/AdminFacilitators";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminEnrollments from "./pages/admin/AdminEnrollments";
 import AdminCertificates from "./pages/admin/AdminCertificates";
@@ -72,6 +74,8 @@ function AnimatedRoutes() {
         <Route element={<ProtectedRoute requireAdmin />}>
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/courses" element={<AdminCourses />} />
+          <Route path="/admin/cohorts" element={<AdminCohorts />} />
+          <Route path="/admin/facilitators" element={<AdminFacilitators />} />
           <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="/admin/enrollments" element={<AdminEnrollments />} />
           <Route path="/admin/certificates" element={<AdminCertificates />} />

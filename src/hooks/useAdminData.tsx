@@ -263,11 +263,19 @@ export function useUpdateEnrollmentStatus() {
       status,
       approved_by,
       rejection_reason,
+      userEmail,
+      userName,
+      courseName,
+      cohortName,
     }: {
       id: string;
       status: "pending" | "confirmed" | "rejected";
       approved_by?: string | null;
       rejection_reason?: string | null;
+      userEmail?: string;
+      userName?: string;
+      courseName?: string;
+      cohortName?: string;
     }) => {
       const now = new Date().toISOString();
       const patch: any = { status };
@@ -293,6 +301,27 @@ export function useUpdateEnrollmentStatus() {
         .select("*")
         .single();
       if (error) throw error;
+
+      // Send email notification if we have the user's email
+      if (userEmail && userName && courseName && (status === "confirmed" || status === "rejected")) {
+        try {
+          await supabase.functions.invoke("send-enrollment-email", {
+            body: {
+              type: status === "confirmed" ? "approved" : "rejected",
+              enrollmentId: id,
+              userEmail,
+              userName,
+              courseName,
+              cohortName,
+              rejectionReason: rejection_reason,
+            },
+          });
+        } catch (emailError) {
+          console.error("Failed to send email notification:", emailError);
+          // Don't throw - the enrollment was updated successfully
+        }
+      }
+
       return data;
     },
     onSuccess: () => {

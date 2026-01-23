@@ -335,12 +335,29 @@ export default function Enroll() {
 
       return enrollment;
     },
-    onSuccess: (enrollment) => {
+    onSuccess: async (enrollment) => {
       setSubmittedEnrollmentId(enrollment.id);
       setStep("done");
       clearDraft();
       toast.success("Application submitted successfully!");
       queryClient.invalidateQueries({ queryKey: ["enrollments"] });
+
+      // Send submission confirmation email
+      try {
+        await supabase.functions.invoke("send-enrollment-email", {
+          body: {
+            type: "submitted",
+            enrollmentId: enrollment.id,
+            userEmail: formData.email || user?.email,
+            userName: formData.full_name || "Learner",
+            courseName: course?.title,
+            cohortName: cohorts?.find((c: Cohort) => c.id === selectedCohortId)?.title,
+          },
+        });
+      } catch (emailError) {
+        console.error("Failed to send confirmation email:", emailError);
+        // Don't show error to user, enrollment was successful
+      }
     },
     onError: (error: any) => {
       toast.error(error?.message || "Failed to submit enrollment");

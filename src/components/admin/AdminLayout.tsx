@@ -36,6 +36,8 @@ import logoIcon from "@/assets/logo-icon.png";
 const adminNavItems = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Courses", href: "/admin/courses", icon: BookOpen },
+  { name: "Cohorts", href: "/admin/cohorts", icon: Users },
+  { name: "Facilitators", href: "/admin/facilitators", icon: GraduationCap },
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Enrollments", href: "/admin/enrollments", icon: GraduationCap },
   { name: "Enrollment Review", href: "/admin/enrollment-review", icon: ClipboardCheck, showPendingBadge: true },
