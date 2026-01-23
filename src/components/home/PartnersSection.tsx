@@ -2,12 +2,10 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 
 const partners = [
-  { name: "Google Developers Group", logo: "GDG" },
-  { name: "Gemini", logo: "Gemini" },
-  { name: "Cardiovision", logo: "CV" },
-  { name: "Google Developers Group", logo: "GDG" },
-  { name: "Gemini", logo: "Gemini" },
-  { name: "Cardiovision", logo: "CV" },
+  { name: "Google Developer Student Clubs", logo: "/partners/gdsc-logo.jpeg" },
+  { name: "Gemini", logo: "/partners/gemini-logo.jpeg" },
+  { name: "Cardiovision", logo: "/partners/cardiovision-logo.jpeg" },
+  { name: "Ilorin Innovation Hub", logo: "/partners/ilorin-innovation-hub-logo.jpeg" },
 ];
 
 export function PartnersSection() {
@@ -36,27 +34,29 @@ export function PartnersSection() {
         <motion.div
           className="flex gap-16 items-center"
           animate={{
-            x: [0, -1200],
+            x: [0, -1600],
           }}
           transition={{
             x: {
               repeat: Infinity,
               repeatType: "loop",
-              duration: 25,
+              duration: 30,
               ease: "linear",
             },
           }}
         >
           {/* Duplicate logos for seamless loop */}
-          {[...partners, ...partners, ...partners].map((partner, index) => (
+          {[...partners, ...partners, ...partners, ...partners].map((partner, index) => (
             <div
               key={`${partner.name}-${index}`}
-              className="flex-shrink-0 flex items-center gap-3 group"
+              className="flex-shrink-0 flex items-center gap-4 group"
             >
-              <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                <span className="font-bold text-muted-foreground group-hover:text-primary transition-colors">
-                  {partner.logo}
-                </span>
+              <div className="h-14 w-auto flex items-center justify-center bg-white rounded-lg p-2 group-hover:shadow-md transition-shadow">
+                <img
+                  src={partner.logo}
+                  alt={partner.name}
+                  className="h-10 w-auto object-contain max-w-[160px]"
+                />
               </div>
               <span className="text-muted-foreground font-medium whitespace-nowrap group-hover:text-foreground transition-colors">
                 {partner.name}
