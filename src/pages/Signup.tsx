@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { PageTransition } from "@/components/PageTransition";
-import logoFull from "@/assets/logo-full.png";
+import logoIcon from "@/assets/logo-icon.png";
 
 const passwordRequirements = [
   { label: "At least 8 characters", test: (p: string) => p.length >= 8 },
@@ -178,8 +178,9 @@ export default function Signup() {
             className="w-full max-w-md"
           >
             <motion.div variants={fadeInUp}>
-              <Link to="/" className="inline-block mb-8">
-                <img src={logoFull} alt="Cytobiz Academy" className="h-10 sm:h-12 dark:brightness-110" />
+              <Link to="/" className="inline-flex items-center gap-3 mb-8">
+                <img src={logoIcon} alt="Cytobiz Academy" className="h-10 sm:h-12" />
+                <span className="text-xl sm:text-2xl font-bold text-foreground">Cytobiz Academy</span>
               </Link>
             </motion.div>
 
