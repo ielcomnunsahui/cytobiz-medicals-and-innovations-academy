@@ -9,6 +9,7 @@ import {
   Quote,
   Users,
 } from "lucide-react";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -368,16 +369,14 @@ export default function AdminSuccessStories() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="image_url">Profile Image URL</Label>
-                <Input
-                  id="image_url"
-                  name="image_url"
-                  value={formData.image_url || ""}
-                  onChange={handleChange}
-                  placeholder="/testimonials/photo.jpg or https://..."
-                />
-              </div>
+              <ImageUpload
+                value={formData.image_url || ""}
+                onChange={(url) =>
+                  setFormData((prev) => ({ ...prev, image_url: url }))
+                }
+                label="Profile Image"
+                placeholder="/testimonials/photo.jpg or https://..."
+              />
               <div className="space-y-2">
                 <Label htmlFor="linkedin_url">LinkedIn URL</Label>
                 <Input
