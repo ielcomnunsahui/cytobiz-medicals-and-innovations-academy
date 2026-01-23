@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Shield, BadgeCheck, Award, Users, Globe, Handshake, ExternalLink } from "lucide-react";
+import { Shield, BadgeCheck, Award, Users, Globe, Handshake, ExternalLink, Heart, UserPlus, Gift } from "lucide-react";
 import { PageTransition } from "@/components/PageTransition";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -322,6 +322,80 @@ export default function Partners() {
                           </li>
                         ))}
                       </ul>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Partner with Us Section */}
+        <section className="py-20 md:py-28">
+          <div className="container-wide">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="text-center mb-16"
+            >
+              <Badge variant="outline" className="mb-4">
+                <Handshake className="w-3 h-3 mr-1" />
+                Get Involved
+              </Badge>
+              <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4">
+                Partner with Us
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Join our mission to transform healthcare education in Africa. 
+                There are multiple ways to collaborate and make an impact.
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              {[
+                {
+                  icon: Heart,
+                  title: "Sponsor a Learner",
+                  description: "Help fund a student's education and change their life. Your sponsorship covers tuition, materials, and certification fees.",
+                  cta: "Become a Sponsor",
+                  href: "/contact?subject=sponsorship"
+                },
+                {
+                  icon: UserPlus,
+                  title: "Collaborate with Us",
+                  description: "Partner with Cytobiz for curriculum development, research projects, or corporate training programs.",
+                  cta: "Start a Partnership",
+                  href: "/contact?subject=partnership"
+                },
+                {
+                  icon: Gift,
+                  title: "Refer and Earn",
+                  description: "Earn rewards by referring students to our programs. Get commission for every successful enrollment.",
+                  cta: "Join Referral Program",
+                  href: "/contact?subject=referral"
+                }
+              ].map((item, index) => (
+                <motion.div
+                  key={item.title}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <Card className="h-full text-center hover:shadow-lg transition-all hover:border-primary/30 group">
+                    <CardHeader>
+                      <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
+                        <item.icon className="w-8 h-8 text-primary" />
+                      </div>
+                      <CardTitle className="text-xl">{item.title}</CardTitle>
+                      <CardDescription className="text-base">{item.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button asChild className="w-full">
+                        <a href={item.href}>{item.cta}</a>
+                      </Button>
                     </CardContent>
                   </Card>
                 </motion.div>
