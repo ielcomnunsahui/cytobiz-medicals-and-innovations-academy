@@ -31,7 +31,7 @@ const certifications = [
   {
     id: "sdcc",
     type: "Accredited by",
-    name: "Skill Development Council Canada",
+    name: "Skill Development Council Canada (SDCC)",
     logo: BadgeCheck,
     description: "Our programs meet the international standards set by the Skill Development Council Canada, ensuring our graduates receive globally recognized credentials that enhance their career prospects worldwide.",
     scope: [
@@ -40,18 +40,20 @@ const certifications = [
       "Skills Assessment Framework",
       "Professional Development"
     ],
-    status: "Accredited Training Provider",
+    status: "Accredited Learning Partner",
     issueDate: "2025",
-    validUntil: "2028",
-    certificateNumber: "SDCC-2025-0892"
+    validUntil: "December 2026",
+    certificateNumber: "Learning Partner Code - 1244",
+    certificateImage: "/certificates/sdcc-certificate.jpeg"
   }
 ];
 
 const partners = [
   {
-    name: "Google Developers Group",
-    shortName: "GDG",
-    description: "We collaborate with Google Developers Group to provide cutting-edge technology training and access to Google's vast ecosystem of development tools and resources.",
+    name: "Google Developer Student Clubs",
+    shortName: "GDSC",
+    logo: "/partners/gdsc-logo.jpeg",
+    description: "We collaborate with Google Developer Student Clubs to provide cutting-edge technology training and access to Google's vast ecosystem of development tools and resources.",
     benefits: [
       "Access to Google Cloud Platform resources",
       "Technical workshops and hackathons",
@@ -63,6 +65,7 @@ const partners = [
   {
     name: "Gemini",
     shortName: "Gemini",
+    logo: "/partners/gemini-logo.jpeg",
     description: "Our partnership with Gemini brings advanced AI and machine learning capabilities to our healthcare innovation curriculum.",
     benefits: [
       "AI-powered learning tools",
@@ -75,6 +78,7 @@ const partners = [
   {
     name: "Cardiovision",
     shortName: "CV",
+    logo: "/partners/cardiovision-logo.jpeg",
     description: "Cardiovision partners with us to provide specialized cardiovascular health technology training and research opportunities.",
     benefits: [
       "Cardiovascular technology training",
@@ -83,6 +87,19 @@ const partners = [
       "Healthcare technology certifications"
     ],
     color: "bg-rose-500"
+  },
+  {
+    name: "Ilorin Innovation Hub",
+    shortName: "IIH",
+    logo: "/partners/ilorin-innovation-hub-logo.jpeg",
+    description: "Ilorin Innovation Hub supports our mission to foster healthcare entrepreneurship and innovation in Nigeria's north-central region.",
+    benefits: [
+      "Co-working space access",
+      "Startup incubation support",
+      "Local industry connections",
+      "Innovation bootcamps"
+    ],
+    color: "bg-green-500"
   }
 ];
 
@@ -274,7 +291,7 @@ export default function Partners() {
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {partners.map((partner, index) => (
                 <motion.div
                   key={partner.name}
@@ -285,8 +302,12 @@ export default function Partners() {
                 >
                   <Card className="h-full hover:shadow-lg transition-shadow">
                     <CardHeader>
-                      <div className={`w-16 h-16 rounded-2xl ${partner.color} flex items-center justify-center mb-4`}>
-                        <span className="text-2xl font-bold text-white">{partner.shortName}</span>
+                      <div className="w-20 h-20 rounded-2xl bg-white flex items-center justify-center mb-4 p-2 shadow-sm border border-border overflow-hidden">
+                        <img 
+                          src={partner.logo} 
+                          alt={partner.name}
+                          className="w-full h-full object-contain"
+                        />
                       </div>
                       <CardTitle className="text-xl">{partner.name}</CardTitle>
                       <CardDescription>{partner.description}</CardDescription>
