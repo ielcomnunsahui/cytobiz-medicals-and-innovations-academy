@@ -159,8 +159,14 @@ export function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/my-enrollments" className="flex items-center gap-2">
+                      <Link to="/progress" className="flex items-center gap-2">
                         <BookOpen className="w-4 h-4" />
+                        My Progress
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/my-enrollments" className="flex items-center gap-2">
+                        <Settings className="w-4 h-4" />
                         My Enrollments
                       </Link>
                     </DropdownMenuItem>
