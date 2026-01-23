@@ -1,8 +1,13 @@
+# Robots.txt for Cytobiz Medical Academy
+# https://cytobizacademy.com
+
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Twitterbot
 Allow: /
@@ -10,5 +15,37 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 1
+
+User-agent: DuckDuckBot
+Allow: /
+
 User-agent: *
 Allow: /
+Crawl-delay: 2
+
+# Sitemap location
+Sitemap: https://cytobizacademy.com/sitemap.xml
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /my-enrollments/
+Disallow: /learn/
+
+# Allow all public pages
+Allow: /courses/
+Allow: /about
+Allow: /contact
+Allow: /login
+Allow: /signup
+Allow: /terms
+Allow: /privacy

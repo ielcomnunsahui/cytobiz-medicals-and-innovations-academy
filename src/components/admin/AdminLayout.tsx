@@ -14,6 +14,7 @@ import {
   ChevronDown,
   Bell,
   ClipboardCheck,
+  Quote,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,6 +38,7 @@ const adminNavItems = [
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Enrollments", href: "/admin/enrollments", icon: GraduationCap },
   { name: "Enrollment Review", href: "/admin/enrollment-review", icon: ClipboardCheck, showPendingBadge: true },
+  { name: "Success Stories", href: "/admin/success-stories", icon: Quote },
   { name: "Certificates", href: "/admin/certificates", icon: Award },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
