@@ -16,6 +16,7 @@ import {
   GraduationCap,
   TrendingUp,
   Star,
+  Heart,
 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -33,6 +34,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useCourses } from "@/hooks/useCourses";
 import { TestimonialsCarousel } from "@/components/courses/TestimonialsCarousel";
+import { useWishlist } from "@/hooks/useWishlist";
 
 const categories = [
   { value: "all", label: "All Categories" },
@@ -71,6 +73,7 @@ const Courses = () => {
 
   // Fetch courses from Supabase
   const { data: courses, isLoading } = useCourses({ status: "published" });
+  const { isInWishlist, toggleWishlist } = useWishlist();
 
   const filteredCourses = (courses || []).filter((course) => {
     const matchesSearch = course.title
@@ -358,8 +361,28 @@ const Courses = () => {
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ duration: 0.4, delay: index * 0.05 }}
                       whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                      className="group"
+                      className="group relative"
                     >
+                      {/* Wishlist Button */}
+                      <motion.button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          toggleWishlist(course.id);
+                        }}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className={cn(
+                          "absolute top-4 right-4 z-20 w-10 h-10 rounded-full backdrop-blur-sm flex items-center justify-center transition-all shadow-lg",
+                          isInWishlist(course.id)
+                            ? "bg-destructive text-destructive-foreground"
+                            : "bg-background/20 text-white hover:bg-background/40"
+                        )}
+                        aria-label={isInWishlist(course.id) ? "Remove from wishlist" : "Add to wishlist"}
+                      >
+                        <Heart className={cn("w-5 h-5", isInWishlist(course.id) && "fill-current")} />
+                      </motion.button>
+
                       <Link
                         to={`/courses/${course.slug}`}
                         className="flex flex-col h-full bg-card dark:bg-card/80 rounded-2xl overflow-hidden border border-border hover:border-primary/50 hover:shadow-2xl transition-all duration-500"
@@ -398,16 +421,6 @@ const Courses = () => {
                             <span className="px-4 py-2 rounded-full bg-card/95 dark:bg-card/90 backdrop-blur-md text-lg font-bold text-foreground shadow-lg">
                               {course.price ? `₦${course.price.toLocaleString()}` : "Free"}
                             </span>
-                          </div>
-
-                          {/* Certificate badge */}
-                          <div className="absolute top-4 right-4">
-                            <motion.div 
-                              whileHover={{ scale: 1.1, rotate: 10 }}
-                              className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center"
-                            >
-                              <Award className="w-5 h-5 text-white" />
-                            </motion.div>
                           </div>
                         </div>
 

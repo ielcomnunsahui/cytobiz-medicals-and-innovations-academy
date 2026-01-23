@@ -18,6 +18,7 @@ import {
   TrendingUp,
   BookOpen
 } from "lucide-react";
+import teamPhoto from "@/assets/team-photo.jpeg";
 
 const values = [
   {
@@ -78,22 +79,27 @@ const About = () => {
       <main className="flex-1 pt-20">
         {/* Hero Section */}
         <section ref={heroRef} className="relative min-h-[80vh] flex items-center overflow-hidden">
-          {/* Animated Background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/5 to-background dark:from-background dark:via-primary/10 dark:to-background">
+          {/* Background Image with Overlay */}
+          <div className="absolute inset-0">
+            <img 
+              src={teamPhoto} 
+              alt="Cytobiz Medical Team" 
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/60 dark:from-background/98 dark:via-background/85 dark:to-background/70" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+            
             {/* Gradient orbs */}
             <motion.div 
-              className="absolute top-1/4 right-1/4 w-[600px] h-[600px] rounded-full bg-primary/20 dark:bg-primary/30 blur-[120px]"
+              className="absolute top-1/4 right-1/4 w-[600px] h-[600px] rounded-full bg-primary/10 dark:bg-primary/20 blur-[120px]"
               animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
               transition={{ duration: 10, repeat: Infinity }}
             />
             <motion.div 
-              className="absolute bottom-0 left-1/4 w-[500px] h-[500px] rounded-full bg-accent/15 dark:bg-accent/25 blur-[100px]"
+              className="absolute bottom-0 left-1/4 w-[500px] h-[500px] rounded-full bg-accent/10 dark:bg-accent/15 blur-[100px]"
               animate={{ scale: [1.1, 1, 1.1], opacity: [0.4, 0.2, 0.4] }}
               transition={{ duration: 12, repeat: Infinity }}
             />
-            
-            {/* Grid pattern */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
           </div>
 
           <motion.div 
