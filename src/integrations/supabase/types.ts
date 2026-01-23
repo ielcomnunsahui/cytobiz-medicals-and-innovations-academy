@@ -131,6 +131,7 @@ export type Database = {
       }
       cohorts: {
         Row: {
+          application_deadline: string | null
           course_id: string
           created_at: string
           created_by: string | null
@@ -143,6 +144,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          application_deadline?: string | null
           course_id: string
           created_at?: string
           created_by?: string | null
@@ -155,6 +157,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          application_deadline?: string | null
           course_id?: string
           created_at?: string
           created_by?: string | null
@@ -290,6 +293,68 @@ export type Database = {
         }
         Relationships: []
       }
+      discount_codes: {
+        Row: {
+          code: string
+          course_id: string | null
+          created_at: string
+          created_by: string | null
+          current_uses: number
+          description: string | null
+          discount_type: string
+          discount_value: number
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          min_purchase_amount: number | null
+          updated_at: string
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          code: string
+          course_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_uses?: number
+          description?: string | null
+          discount_type?: string
+          discount_value: number
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          min_purchase_amount?: number | null
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          code?: string
+          course_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_uses?: number
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          min_purchase_amount?: number | null
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discount_codes_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enrollments: {
         Row: {
           approved_at: string | null
@@ -297,8 +362,11 @@ export type Database = {
           cohort_id: string | null
           completed_at: string | null
           course_id: string
+          discount_amount: number | null
+          discount_code_id: string | null
           enrolled_at: string
           id: string
+          original_amount: number | null
           payment_amount: number | null
           payment_currency: string
           payment_method: Database["public"]["Enums"]["payment_method"] | null
@@ -318,8 +386,11 @@ export type Database = {
           cohort_id?: string | null
           completed_at?: string | null
           course_id: string
+          discount_amount?: number | null
+          discount_code_id?: string | null
           enrolled_at?: string
           id?: string
+          original_amount?: number | null
           payment_amount?: number | null
           payment_currency?: string
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
@@ -339,8 +410,11 @@ export type Database = {
           cohort_id?: string | null
           completed_at?: string | null
           course_id?: string
+          discount_amount?: number | null
+          discount_code_id?: string | null
           enrolled_at?: string
           id?: string
+          original_amount?: number | null
           payment_amount?: number | null
           payment_currency?: string
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
@@ -367,6 +441,13 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_discount_code_id_fkey"
+            columns: ["discount_code_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
             referencedColumns: ["id"]
           },
           {

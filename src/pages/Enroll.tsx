@@ -22,6 +22,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCourse, useCourses } from "@/hooks/useCourses";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useEnrollmentAutoSave } from "@/hooks/useEnrollmentAutoSave";
+import { useIncrementDiscountCodeUsage, DiscountCode } from "@/hooks/useDiscountCodes";
 import { toast } from "sonner";
 import { PageTransition } from "@/components/PageTransition";
 
@@ -82,6 +83,13 @@ export default function Enroll() {
   const [completedSteps, setCompletedSteps] = useState<Set<EnrollmentStep>>(new Set());
   const [submittedEnrollmentId, setSubmittedEnrollmentId] = useState<string | null>(null);
   const [showDraftLoaded, setShowDraftLoaded] = useState(false);
+  const [appliedDiscount, setAppliedDiscount] = useState<{
+    code: DiscountCode;
+    discountAmount: number;
+    finalAmount: number;
+  } | null>(null);
+
+  const incrementDiscountUsage = useIncrementDiscountCodeUsage();
 
   // Auto-save hook
   const { loadDraft, clearDraft, saveDraft } = useEnrollmentAutoSave({
@@ -137,10 +145,12 @@ export default function Enroll() {
   // Get selected cohort
   const selectedCohort = cohorts?.find((c) => c.id === selectedCohortId);
 
-  // Calculate deadline (example: cohort start date or 7 days from now)
-  const deadline = selectedCohort
+  // Calculate deadline from cohort's application_deadline or start_date
+  const deadline = selectedCohort?.application_deadline
+    ? new Date(selectedCohort.application_deadline)
+    : selectedCohort?.start_date
     ? new Date(selectedCohort.start_date)
-    : addDays(new Date(), 7);
+    : null;
 
   // Available courses for course selection step
   const availableCourses = allCourses?.filter((c) => c.status === "published") || [];
@@ -271,7 +281,12 @@ export default function Enroll() {
       if (!user) throw new Error("You must be logged in to enroll.");
       if (!course) throw new Error("Course not found.");
 
-      // Create enrollment with form data stored in a JSON field
+      // Calculate final amounts
+      const originalAmount = course.price ?? 0;
+      const discountAmount = appliedDiscount?.discountAmount ?? 0;
+      const finalAmount = appliedDiscount?.finalAmount ?? originalAmount;
+
+      // Create enrollment with discount info
       const { data: enrollment, error: enrollmentError } = await supabase
         .from("enrollments")
         .insert({
@@ -280,7 +295,10 @@ export default function Enroll() {
           cohort_id: selectedCohortId,
           status: "pending",
           payment_method: paymentMethod,
-          payment_amount: course.price ?? 0,
+          payment_amount: finalAmount,
+          original_amount: originalAmount,
+          discount_amount: discountAmount,
+          discount_code_id: appliedDiscount?.code.id ?? null,
           payment_currency: "NGN",
           receipt_url: receiptUrl,
           payment_submitted_at: receiptUrl ? new Date().toISOString() : null,
@@ -289,6 +307,15 @@ export default function Enroll() {
         .single();
 
       if (enrollmentError) throw enrollmentError;
+
+      // Increment discount code usage if applied
+      if (appliedDiscount?.code.id) {
+        try {
+          await incrementDiscountUsage.mutateAsync(appliedDiscount.code.id);
+        } catch (e) {
+          console.error("Failed to increment discount usage:", e);
+        }
+      }
 
       // Store registration data
       const { error: submissionError } = await supabase
@@ -421,6 +448,8 @@ export default function Enroll() {
             onReceiptUploaded={setReceiptUrl}
             settings={settings || {}}
             errors={errors}
+            appliedDiscount={appliedDiscount}
+            onApplyDiscount={setAppliedDiscount}
           />
         );
 

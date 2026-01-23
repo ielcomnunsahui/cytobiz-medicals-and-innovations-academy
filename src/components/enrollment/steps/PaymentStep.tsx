@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   CreditCard,
   Zap,
@@ -12,9 +13,13 @@ import {
   Check,
   Upload,
   AlertCircle,
+  Tag,
+  Loader2,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ReceiptUpload } from "@/components/enrollment/ReceiptUpload";
+import { useValidateDiscountCode, DiscountCode } from "@/hooks/useDiscountCodes";
 import type { Tables } from "@/integrations/supabase/types";
 
 type PaymentMethod = "stripe" | "paystack" | "bank_transfer";
@@ -27,6 +32,8 @@ interface PaymentStepProps {
   onReceiptUploaded: (url: string) => void;
   settings: Record<string, string | undefined>;
   errors: Record<string, string>;
+  appliedDiscount: { code: DiscountCode; discountAmount: number; finalAmount: number } | null;
+  onApplyDiscount: (discount: { code: DiscountCode; discountAmount: number; finalAmount: number } | null) => void;
 }
 
 const PAYMENT_METHODS = [
@@ -43,12 +50,20 @@ export function PaymentStep({
   onReceiptUploaded,
   settings,
   errors,
+  appliedDiscount,
+  onApplyDiscount,
 }: PaymentStepProps) {
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [discountCodeInput, setDiscountCodeInput] = useState("");
+  
+  const validateDiscountMutation = useValidateDiscountCode();
 
   const price = course.price || 0;
-  const discountedPrice = price * 0.5;
   const isFree = price === 0;
+  
+  // Calculate final price with discount
+  const finalPrice = appliedDiscount ? appliedDiscount.finalAmount : price;
+  const discountAmount = appliedDiscount ? appliedDiscount.discountAmount : 0;
 
   // Payment settings
   const stripeEnabled = settings.payment_stripe_enabled === "true";
@@ -74,6 +89,37 @@ export function PaymentStep({
     setCopiedField(field);
     toast.success("Copied to clipboard");
     setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const handleApplyDiscount = async () => {
+    if (!discountCodeInput.trim()) {
+      toast.error("Please enter a discount code");
+      return;
+    }
+
+    try {
+      const result = await validateDiscountMutation.mutateAsync({
+        code: discountCodeInput,
+        courseId: course.id,
+        amount: price,
+      });
+
+      onApplyDiscount({
+        code: result.discountCode,
+        discountAmount: result.discountAmount,
+        finalAmount: result.finalAmount,
+      });
+      
+      toast.success(`Discount applied! You save ₦${result.discountAmount.toLocaleString()}`);
+      setDiscountCodeInput("");
+    } catch (error: any) {
+      toast.error(error.message || "Invalid discount code");
+    }
+  };
+
+  const handleRemoveDiscount = () => {
+    onApplyDiscount(null);
+    toast.success("Discount removed");
   };
 
   if (isFree) {
@@ -112,18 +158,97 @@ export function PaymentStep({
         </p>
       </div>
 
-      {/* Price Display */}
+      {/* Price Display with Discount */}
       <Card className="p-4 bg-muted/30">
-        <div className="flex items-center justify-between">
-          <span className="text-muted-foreground">Total Amount</span>
-          <div className="text-right">
-            <span className="text-muted-foreground line-through text-sm mr-2">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Course Fee</span>
+            <span className={`font-medium ${discountAmount > 0 ? "text-muted-foreground line-through" : "text-foreground"}`}>
               ₦{price.toLocaleString()}
             </span>
-            <span className="text-2xl font-bold text-primary">
-              ₦{discountedPrice.toLocaleString()}
-            </span>
           </div>
+          
+          {discountAmount > 0 && (
+            <>
+              <div className="flex items-center justify-between text-green-600 dark:text-green-400">
+                <div className="flex items-center gap-2">
+                  <Tag className="w-4 h-4" />
+                  <span>Discount ({appliedDiscount?.code.code})</span>
+                </div>
+                <span>-₦{discountAmount.toLocaleString()}</span>
+              </div>
+              <div className="border-t border-border pt-3 flex items-center justify-between">
+                <span className="font-medium text-foreground">Total</span>
+                <span className="text-2xl font-bold text-primary">
+                  ₦{finalPrice.toLocaleString()}
+                </span>
+              </div>
+            </>
+          )}
+          
+          {discountAmount === 0 && (
+            <div className="flex items-center justify-between border-t border-border pt-3">
+              <span className="font-medium text-foreground">Total</span>
+              <span className="text-2xl font-bold text-primary">
+                ₦{price.toLocaleString()}
+              </span>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Discount Code Input */}
+      <Card className="p-4">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Tag className="w-4 h-4 text-primary" />
+            <h3 className="font-medium text-foreground">Have a discount code?</h3>
+          </div>
+          
+          {appliedDiscount ? (
+            <div className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-600" />
+                <span className="font-mono font-medium text-green-700 dark:text-green-300">
+                  {appliedDiscount.code.code}
+                </span>
+                <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300">
+                  {appliedDiscount.code.discount_type === "percentage"
+                    ? `${appliedDiscount.code.discount_value}% OFF`
+                    : `₦${appliedDiscount.code.discount_value.toLocaleString()} OFF`}
+                </Badge>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRemoveDiscount}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <Input
+                placeholder="Enter code"
+                value={discountCodeInput}
+                onChange={(e) => setDiscountCodeInput(e.target.value.toUpperCase())}
+                className="font-mono uppercase"
+                onKeyDown={(e) => e.key === "Enter" && handleApplyDiscount()}
+              />
+              <Button
+                onClick={handleApplyDiscount}
+                disabled={validateDiscountMutation.isPending}
+                variant="secondary"
+              >
+                {validateDiscountMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  "Apply"
+                )}
+              </Button>
+            </div>
+          )}
         </div>
       </Card>
 
@@ -292,6 +417,16 @@ export function PaymentStep({
                 </p>
               </div>
             )}
+
+            {/* Amount to pay reminder */}
+            <div className="pt-3 border-t border-border">
+              <div className="flex items-center justify-between p-3 rounded-lg bg-primary/5">
+                <span className="text-sm text-muted-foreground">Amount to transfer</span>
+                <span className="font-bold text-primary text-lg">
+                  ₦{finalPrice.toLocaleString()}
+                </span>
+              </div>
+            </div>
           </Card>
 
           {/* Receipt Upload */}

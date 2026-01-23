@@ -38,6 +38,7 @@ import AdminCertificates from "./pages/admin/AdminCertificates";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminEnrollmentReview from "./pages/admin/AdminEnrollmentReview";
 import AdminSuccessStories from "./pages/admin/AdminSuccessStories";
+import AdminDiscountCodes from "./pages/admin/AdminDiscountCodes";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,7 @@ function AnimatedRoutes() {
           <Route path="/admin/settings" element={<AdminSettings />} />
           <Route path="/admin/enrollment-review" element={<AdminEnrollmentReview />} />
           <Route path="/admin/success-stories" element={<AdminSuccessStories />} />
+          <Route path="/admin/discount-codes" element={<AdminDiscountCodes />} />
         </Route>
 
         {/* Catch-all */}
