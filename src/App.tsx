@@ -24,6 +24,7 @@ import Enroll from "./pages/Enroll";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import FAQ from "./pages/FAQ";
+import Partners from "./pages/Partners";
 
 // Protected Pages
 import Dashboard from "./pages/Dashboard";
@@ -66,6 +67,7 @@ function AnimatedRoutes() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/faq" element={<FAQ />} />
+        <Route path="/partners" element={<Partners />} />
 
         {/* Protected Learner Routes */}
         <Route element={<ProtectedRoute />}>
