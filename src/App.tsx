@@ -25,6 +25,9 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import FAQ from "./pages/FAQ";
 import Partners from "./pages/Partners";
+import Sponsor from "./pages/Sponsor";
+import Collaborate from "./pages/Collaborate";
+import Referral from "./pages/Referral";
 
 // Protected Pages
 import Dashboard from "./pages/Dashboard";
@@ -68,6 +71,9 @@ function AnimatedRoutes() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/faq" element={<FAQ />} />
         <Route path="/partners" element={<Partners />} />
+        <Route path="/sponsor" element={<Sponsor />} />
+        <Route path="/collaborate" element={<Collaborate />} />
+        <Route path="/referral" element={<Referral />} />
 
         {/* Protected Learner Routes */}
         <Route element={<ProtectedRoute />}>

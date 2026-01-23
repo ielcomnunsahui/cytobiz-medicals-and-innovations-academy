@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, LogOut, LayoutDashboard, Settings, BookOpen } from "lucide-react";
+import { Menu, X, ChevronDown, LogOut, LayoutDashboard, Settings, BookOpen, Heart, UserPlus, Gift, Handshake } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,6 +10,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,8 +28,14 @@ const navLinks = [
   { name: "Home", href: "/" },
   { name: "Courses", href: "/courses" },
   { name: "About", href: "/about" },
-  { name: "Partners", href: "/partners" },
   { name: "Contact", href: "/contact" },
+];
+
+const partnerLinks = [
+  { name: "Partners & Accreditations", href: "/partners", icon: Handshake, description: "Our partners and credentials" },
+  { name: "Sponsor a Learner", href: "/sponsor", icon: Heart, description: "Fund a student's education" },
+  { name: "Collaborate with Us", href: "/collaborate", icon: UserPlus, description: "Partnership opportunities" },
+  { name: "Refer & Earn", href: "/referral", icon: Gift, description: "Earn rewards for referrals" },
 ];
 
 export function Navbar() {
@@ -121,6 +135,50 @@ export function Navbar() {
                   {link.name}
                 </Link>
               ))}
+              
+              {/* Partners Dropdown */}
+              <NavigationMenu>
+                <NavigationMenuList>
+                  <NavigationMenuItem>
+                    <NavigationMenuTrigger 
+                      className={cn(
+                        "px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-transparent",
+                        ["/partners", "/sponsor", "/collaborate", "/referral"].includes(location.pathname)
+                          ? isScrolled
+                            ? "text-primary bg-primary/10"
+                            : "text-primary-foreground bg-white/10"
+                          : isScrolled
+                            ? "text-muted-foreground hover:text-foreground hover:bg-muted"
+                            : "text-primary-foreground/80 hover:text-primary-foreground hover:bg-white/10",
+                      )}
+                    >
+                      Partners
+                    </NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <ul className="grid w-[400px] gap-3 p-4">
+                        {partnerLinks.map((link) => (
+                          <li key={link.name}>
+                            <NavigationMenuLink asChild>
+                              <Link
+                                to={link.href}
+                                className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <link.icon className="w-4 h-4 text-primary" />
+                                  <div className="text-sm font-medium leading-none">{link.name}</div>
+                                </div>
+                                <p className="line-clamp-2 text-sm leading-snug text-muted-foreground mt-1">
+                                  {link.description}
+                                </p>
+                              </Link>
+                            </NavigationMenuLink>
+                          </li>
+                        ))}
+                      </ul>
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
+                </NavigationMenuList>
+              </NavigationMenu>
             </div>
 
             {/* Desktop CTA / User Menu */}
@@ -259,6 +317,33 @@ export function Navbar() {
                     </Link>
                   </motion.div>
                 ))}
+                
+                {/* Mobile Partner Links */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="pt-2"
+                >
+                  <div className="px-4 py-2 text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    Partners
+                  </div>
+                  {partnerLinks.map((link, index) => (
+                    <Link
+                      key={link.name}
+                      to={link.href}
+                      className={cn(
+                        "flex items-center gap-3 px-4 py-3 text-base font-medium rounded-xl transition-colors",
+                        location.pathname === link.href
+                          ? "text-primary bg-primary/10"
+                          : "text-foreground hover:bg-muted",
+                      )}
+                    >
+                      <link.icon className="w-5 h-5" />
+                      {link.name}
+                    </Link>
+                  ))}
+                </motion.div>
 
                 {user && (
                   <motion.div
