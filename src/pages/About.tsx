@@ -280,11 +280,11 @@ const About = () => {
                   />
                   
                   {/* Center image */}
-                  <div className="absolute inset-16 rounded-full overflow-hidden border-4 border-primary/30 shadow-xl">
+                  <div className="absolute inset-16 rounded-full overflow-hidden border-4 border-primary/30 shadow-xl group/photo cursor-pointer">
                     <img 
                       src={graduatesPhoto} 
                       alt="Cytobiz Academy Graduates" 
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover/photo:scale-110"
                     />
                   </div>
 
