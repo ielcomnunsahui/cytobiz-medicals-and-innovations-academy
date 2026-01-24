@@ -19,6 +19,7 @@ import {
   BookOpen
 } from "lucide-react";
 import teamPhoto from "@/assets/team-photo.jpeg";
+import graduatesPhoto from "@/assets/graduates-photo.jpeg";
 
 const values = [
   {
@@ -278,9 +279,13 @@ const About = () => {
                     className="absolute inset-8 rounded-full border-2 border-dashed border-accent/20"
                   />
                   
-                  {/* Center icon */}
-                  <div className="absolute inset-16 bg-gradient-to-br from-primary/20 to-accent/20 dark:from-primary/30 dark:to-accent/30 rounded-full flex items-center justify-center">
-                    <GraduationCap className="w-24 h-24 text-primary" />
+                  {/* Center image */}
+                  <div className="absolute inset-16 rounded-full overflow-hidden border-4 border-primary/30 shadow-xl">
+                    <img 
+                      src={graduatesPhoto} 
+                      alt="Cytobiz Academy Graduates" 
+                      className="w-full h-full object-cover"
+                    />
                   </div>
 
                   {/* Floating icons */}
