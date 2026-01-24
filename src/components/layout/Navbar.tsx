@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, LogOut, LayoutDashboard, Settings, BookOpen, Heart, UserPlus, Gift, Handshake } from "lucide-react";
+import { Menu, X, ChevronDown, LogOut, LayoutDashboard, Settings, BookOpen, Heart, UserPlus, Gift, Handshake, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -28,6 +28,7 @@ const navLinks = [
   { name: "Home", href: "/" },
   { name: "Courses", href: "/courses" },
   { name: "About", href: "/about" },
+  { name: "FAQ", href: "/faq" },
   { name: "Contact", href: "/contact" },
 ];
 
