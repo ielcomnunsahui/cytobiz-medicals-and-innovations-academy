@@ -59,19 +59,35 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
 
-  // Fetch pending enrollment count
-  const { data: pendingCount = 0 } = useQuery({
-    queryKey: ["pending-enrollments-count"],
+  // Fetch admin stats for sidebar
+  const { data: stats } = useQuery({
+    queryKey: ["admin-sidebar-stats"],
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from("enrollments")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "pending");
-      if (error) throw error;
-      return count || 0;
+      const [
+        { count: pendingEnrollments },
+        { count: totalUsers },
+        { count: activeEnrollments },
+        { data: revenueData }
+      ] = await Promise.all([
+        supabase.from("enrollments").select("*", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("profiles").select("*", { count: "exact", head: true }),
+        supabase.from("enrollments").select("*", { count: "exact", head: true }).eq("status", "confirmed"),
+        supabase.from("enrollments").select("payment_amount").eq("status", "confirmed")
+      ]);
+      
+      const totalRevenue = revenueData?.reduce((sum, e) => sum + (e.payment_amount || 0), 0) || 0;
+      
+      return {
+        pendingEnrollments: pendingEnrollments || 0,
+        totalUsers: totalUsers || 0,
+        activeEnrollments: activeEnrollments || 0,
+        totalRevenue
+      };
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 30000,
   });
+
+  const pendingCount = stats?.pendingEnrollments || 0;
 
   const handleSignOut = async () => {
     await signOut();
@@ -102,6 +118,31 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             <div>
               <span className="font-bold text-lg">Cytobiz</span>
               <span className="text-xs block text-sidebar-foreground/70">Admin Panel</span>
+            </div>
+          </div>
+
+          {/* Quick Stats Banner */}
+          <div className="px-4 py-3 border-b border-sidebar-border bg-sidebar-accent/30">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-sidebar-accent/50 rounded-lg p-2 text-center">
+                <div className="text-lg font-bold text-sidebar-foreground">{stats?.totalUsers?.toLocaleString() || 0}</div>
+                <div className="text-xs text-sidebar-foreground/60">Users</div>
+              </div>
+              <div className="bg-sidebar-accent/50 rounded-lg p-2 text-center">
+                <div className="text-lg font-bold text-sidebar-foreground">{stats?.activeEnrollments?.toLocaleString() || 0}</div>
+                <div className="text-xs text-sidebar-foreground/60">Active</div>
+              </div>
+              <div className="bg-sidebar-accent/50 rounded-lg p-2 text-center relative">
+                <div className="text-lg font-bold text-sidebar-foreground">{pendingCount}</div>
+                <div className="text-xs text-sidebar-foreground/60">Pending</div>
+                {pendingCount > 0 && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full animate-pulse" />
+                )}
+              </div>
+              <div className="bg-sidebar-accent/50 rounded-lg p-2 text-center">
+                <div className="text-sm font-bold text-sidebar-foreground">₦{((stats?.totalRevenue || 0) / 1000).toFixed(0)}k</div>
+                <div className="text-xs text-sidebar-foreground/60">Revenue</div>
+              </div>
             </div>
           </div>
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Upload, Loader2, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -20,6 +20,18 @@ export function ReceiptUpload({
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
+
+  // Get the authenticated user's ID for RLS-compliant file paths
+  useEffect(() => {
+    const getAuthUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setAuthUserId(user.id);
+      }
+    };
+    getAuthUser();
+  }, []);
 
   const handleUpload = async (file: File) => {
     if (!file) return;
@@ -37,12 +49,30 @@ export function ReceiptUpload({
       return;
     }
 
+    // Must have authenticated user for RLS
+    const currentAuthUserId = authUserId || userId;
+    if (!currentAuthUserId) {
+      // Try to get user ID one more time
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please sign in to upload a receipt");
+        return;
+      }
+      setAuthUserId(user.id);
+    }
+
+    const effectiveUserId = authUserId || userId;
+    if (!effectiveUserId) {
+      toast.error("Unable to verify user. Please refresh and try again.");
+      return;
+    }
+
     setUploading(true);
 
     try {
       const fileExt = file.name.split(".").pop();
-      // Use a temporary folder if no userId/enrollmentId provided
-      const folder = userId || "temp";
+      // IMPORTANT: Use the authenticated user's ID as the folder name to comply with RLS
+      const folder = effectiveUserId;
       const identifier = enrollmentId || `pending-${Date.now()}`;
       const fileName = `${folder}/${identifier}-${Date.now()}.${fileExt}`;
 
