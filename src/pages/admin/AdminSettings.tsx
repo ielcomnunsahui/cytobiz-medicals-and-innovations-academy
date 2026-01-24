@@ -59,7 +59,6 @@ import {
   useUpdateRegistrationForm,
 } from "@/hooks/useRegistrationForms";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
 
 export default function AdminSettings() {
   const [editingSettings, setEditingSettings] = useState<Record<string, string>>({});
@@ -118,7 +117,6 @@ export default function AdminSettings() {
   // Get grouped settings by prefix (excluding payment settings handled separately)
   const groupedSettings = settings?.reduce((acc, setting) => {
     const prefix = setting.setting_key.split("_")[0];
-    // Exclude payment/bank settings - they're handled in the Payment tab
     if (prefix === "payment" || prefix === "bank") return acc;
     if (!acc[prefix]) acc[prefix] = [];
     acc[prefix].push(setting);
@@ -256,15 +254,11 @@ export default function AdminSettings() {
           <p className="text-muted-foreground">Configure payment methods, site settings, and registration forms</p>
         </div>
 
-        <Tabs defaultValue="payments" className="space-y-6">
-          <TabsList className="grid w-full max-w-lg grid-cols-3">
-            <TabsTrigger value="payments" className="gap-2">
-              <CreditCard className="w-4 h-4" />
-              Payments
-            </TabsTrigger>
-            <TabsTrigger value="general" className="gap-2">
+        <Tabs defaultValue="settings" className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="settings" className="gap-2">
               <Settings className="w-4 h-4" />
-              General
+              Settings
             </TabsTrigger>
             <TabsTrigger value="forms" className="gap-2">
               <FileText className="w-4 h-4" />
@@ -272,26 +266,33 @@ export default function AdminSettings() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Payment Methods Tab */}
-          <TabsContent value="payments" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {/* Stripe */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0 }}
-              >
+          {/* Settings Tab (merged Payments + General) */}
+          <TabsContent value="settings" className="space-y-8">
+            {/* Payment Methods Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-foreground">Payment Methods</h2>
+                  <p className="text-sm text-muted-foreground">Enable payment gateways for enrollment</p>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                {/* Stripe */}
                 <Card className="relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/10 to-transparent rounded-bl-full" />
-                  <CardHeader className="pb-3">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-500/10 to-transparent rounded-bl-full" />
+                  <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                          <CreditCard className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                        <div className="w-9 h-9 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                          <CreditCard className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                         </div>
                         <div>
-                          <CardTitle className="text-lg">Stripe</CardTitle>
-                          <CardDescription>Credit card payments</CardDescription>
+                          <CardTitle className="text-base">Stripe</CardTitle>
+                          <CardDescription className="text-xs">Credit cards</CardDescription>
                         </div>
                       </div>
                       <Switch
@@ -300,36 +301,20 @@ export default function AdminSettings() {
                       />
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Accept credit cards, Apple Pay, and Google Pay via Stripe.
-                    </p>
-                    {paymentSettings["payment_stripe_enabled"]?.setting_value === "true" && (
-                      <Badge className="mt-3 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                        Active
-                      </Badge>
-                    )}
-                  </CardContent>
                 </Card>
-              </motion.div>
 
-              {/* Paystack */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-              >
+                {/* Paystack */}
                 <Card className="relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-transparent rounded-bl-full" />
-                  <CardHeader className="pb-3">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-500/10 to-transparent rounded-bl-full" />
+                  <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                          <Zap className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        <div className="w-9 h-9 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                          <Zap className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
-                          <CardTitle className="text-lg">Paystack</CardTitle>
-                          <CardDescription>African payments</CardDescription>
+                          <CardTitle className="text-base">Paystack</CardTitle>
+                          <CardDescription className="text-xs">African payments</CardDescription>
                         </div>
                       </div>
                       <Switch
@@ -338,36 +323,20 @@ export default function AdminSettings() {
                       />
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Accept payments from African countries via Paystack.
-                    </p>
-                    {paymentSettings["payment_paystack_enabled"]?.setting_value === "true" && (
-                      <Badge className="mt-3 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                        Active
-                      </Badge>
-                    )}
-                  </CardContent>
                 </Card>
-              </motion.div>
 
-              {/* Bank Transfer */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
+                {/* Bank Transfer */}
                 <Card className="relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-500/10 to-transparent rounded-bl-full" />
-                  <CardHeader className="pb-3">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-green-500/10 to-transparent rounded-bl-full" />
+                  <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                          <Building2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        <div className="w-9 h-9 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                          <Building2 className="w-4 h-4 text-green-600 dark:text-green-400" />
                         </div>
                         <div>
-                          <CardTitle className="text-lg">Bank Transfer</CardTitle>
-                          <CardDescription>Manual verification</CardDescription>
+                          <CardTitle className="text-base">Bank Transfer</CardTitle>
+                          <CardDescription className="text-xs">Manual verification</CardDescription>
                         </div>
                       </div>
                       <Switch
@@ -376,46 +345,24 @@ export default function AdminSettings() {
                       />
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Allow users to pay via bank transfer with receipt upload.
-                    </p>
-                    {paymentSettings["payment_bank_transfer_enabled"]?.setting_value === "true" && (
-                      <Badge className="mt-3 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                        Active
-                      </Badge>
-                    )}
-                  </CardContent>
                 </Card>
-              </motion.div>
-            </div>
+              </div>
 
-            {/* Bank Details Form */}
-            {paymentSettings["payment_bank_transfer_enabled"]?.setting_value === "true" && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
+              {/* Bank Details Form - Collapsible */}
+              {paymentSettings["payment_bank_transfer_enabled"]?.setting_value === "true" && (
                 <Card>
-                  <CardHeader>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Building2 className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <CardTitle>Bank Account Details</CardTitle>
-                        <CardDescription>
-                          These details will be shown to users who choose bank transfer
-                        </CardDescription>
-                      </div>
-                    </div>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Bank Account Details</CardTitle>
+                    <CardDescription>
+                      These details will be shown to users who choose bank transfer
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-6">
+                  <CardContent className="space-y-4">
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
                         <Label>Bank Name</Label>
                         <Input
-                          placeholder="e.g., First National Bank"
+                          placeholder="e.g., First Bank"
                           value={
                             editingSettings[paymentSettings["bank_transfer_bank_name"]?.id] ??
                             paymentSettings["bank_transfer_bank_name"]?.setting_value ?? ""
@@ -452,7 +399,7 @@ export default function AdminSettings() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Routing Number</Label>
+                        <Label>Routing/Sort Code</Label>
                         <Input
                           placeholder="e.g., 021000021"
                           value={
@@ -464,143 +411,125 @@ export default function AdminSettings() {
                           }
                         />
                       </div>
-                      <div className="space-y-2 sm:col-span-2">
-                        <Label>SWIFT Code (for international transfers)</Label>
-                        <Input
-                          placeholder="e.g., FNBAUS33"
-                          value={
-                            editingSettings[paymentSettings["bank_transfer_swift_code"]?.id] ??
-                            paymentSettings["bank_transfer_swift_code"]?.setting_value ?? ""
-                          }
-                          onChange={(e) =>
-                            handleChange(paymentSettings["bank_transfer_swift_code"]?.id, e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2 sm:col-span-2">
-                        <Label>Payment Instructions</Label>
-                        <Textarea
-                          placeholder="Instructions shown to users after they choose bank transfer..."
-                          rows={3}
-                          value={
-                            editingSettings[paymentSettings["bank_transfer_payment_instructions"]?.id] ??
-                            paymentSettings["bank_transfer_payment_instructions"]?.setting_value ?? ""
-                          }
-                          onChange={(e) =>
-                            handleChange(paymentSettings["bank_transfer_payment_instructions"]?.id, e.target.value)
-                          }
-                        />
-                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Payment Instructions</Label>
+                      <Textarea
+                        placeholder="Instructions shown to users..."
+                        rows={2}
+                        value={
+                          editingSettings[paymentSettings["bank_transfer_payment_instructions"]?.id] ??
+                          paymentSettings["bank_transfer_payment_instructions"]?.setting_value ?? ""
+                        }
+                        onChange={(e) =>
+                          handleChange(paymentSettings["bank_transfer_payment_instructions"]?.id, e.target.value)
+                        }
+                      />
                     </div>
                     <div className="flex justify-end">
-                      <Button onClick={handleSaveBankDetails} disabled={updateSetting.isPending}>
+                      <Button onClick={handleSaveBankDetails} disabled={updateSetting.isPending} size="sm">
                         {updateSetting.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                         Save Bank Details
                       </Button>
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
-            )}
-          </TabsContent>
-
-          {/* General Settings Tab */}
-          <TabsContent value="general" className="space-y-6">
-            <div className="flex justify-end">
-              <Button onClick={() => setIsCreateOpen(true)} className="bg-primary hover:bg-primary/90">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Setting
-              </Button>
+              )}
             </div>
 
-            {settingsLoading ? (
-              <div className="space-y-6">
-                {[...Array(2)].map((_, i) => (
-                  <Card key={i}>
-                    <CardHeader>
-                      <Skeleton className="h-6 w-40" />
-                      <Skeleton className="h-4 w-64" />
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {[...Array(3)].map((_, j) => (
-                        <div key={j} className="space-y-2">
-                          <Skeleton className="h-4 w-24" />
-                          <Skeleton className="h-10 w-full" />
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                ))}
+            {/* General Settings Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Globe className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-foreground">General Settings</h2>
+                    <p className="text-sm text-muted-foreground">Site configuration and statistics</p>
+                  </div>
+                </div>
+                <Button onClick={() => setIsCreateOpen(true)} variant="outline" size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Setting
+                </Button>
               </div>
-            ) : Object.keys(groupedSettings || {}).length === 0 ? (
-              <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">
-                  No general settings configured yet. Click "Add Setting" to create one.
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-6">
-                {Object.entries(groupedSettings || {}).map(([group, groupSettings]) => {
-                  const GroupIcon = getGroupIcon(group);
-                  return (
-                    <Card key={group}>
-                      <CardHeader>
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <GroupIcon className="w-5 h-5 text-primary" />
+
+              {settingsLoading ? (
+                <div className="space-y-4">
+                  {[...Array(2)].map((_, i) => (
+                    <Card key={i}>
+                      <CardContent className="pt-6 space-y-4">
+                        {[...Array(3)].map((_, j) => (
+                          <div key={j} className="space-y-2">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-10 w-full" />
                           </div>
-                          <div>
-                            <CardTitle>{getGroupTitle(group)}</CardTitle>
-                            <CardDescription>
-                              Manage {group} related settings
-                            </CardDescription>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid gap-6 sm:grid-cols-2">
-                          {groupSettings?.map((setting) => (
-                            <div key={setting.id} className="space-y-2">
-                              <Label htmlFor={setting.id}>
-                                {formatSettingLabel(setting.setting_key)}
-                              </Label>
-                              <div className="flex gap-2">
-                                <Input
-                                  id={setting.id}
-                                  type={setting.setting_type === "number" ? "number" : "text"}
-                                  value={editingSettings[setting.id] ?? setting.setting_value ?? ""}
-                                  onChange={(e) => handleChange(setting.id, e.target.value)}
-                                  className="flex-1"
-                                />
-                                <Button
-                                  size="icon"
-                                  variant="outline"
-                                  onClick={() => handleSave(setting)}
-                                  disabled={
-                                    updateSetting.isPending ||
-                                    editingSettings[setting.id] === undefined ||
-                                    editingSettings[setting.id] === setting.setting_value
-                                  }
-                                >
-                                  {updateSetting.isPending ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                  ) : (
-                                    <Save className="w-4 h-4" />
-                                  )}
-                                </Button>
-                              </div>
-                              {setting.description && (
-                                <p className="text-xs text-muted-foreground">{setting.description}</p>
-                              )}
-                            </div>
-                          ))}
-                        </div>
+                        ))}
                       </CardContent>
                     </Card>
-                  );
-                })}
-              </div>
-            )}
+                  ))}
+                </div>
+              ) : Object.keys(groupedSettings || {}).length === 0 ? (
+                <Card>
+                  <CardContent className="py-8 text-center text-muted-foreground">
+                    No general settings configured yet. Click "Add Setting" to create one.
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {Object.entries(groupedSettings || {}).map(([group, groupSettings]) => {
+                    const GroupIcon = getGroupIcon(group);
+                    return (
+                      <Card key={group}>
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center gap-2">
+                            <GroupIcon className="w-4 h-4 text-primary" />
+                            <CardTitle className="text-base">{getGroupTitle(group)}</CardTitle>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid gap-4 sm:grid-cols-2">
+                            {groupSettings?.map((setting) => (
+                              <div key={setting.id} className="space-y-2">
+                                <Label htmlFor={setting.id} className="text-sm">
+                                  {formatSettingLabel(setting.setting_key)}
+                                </Label>
+                                <div className="flex gap-2">
+                                  <Input
+                                    id={setting.id}
+                                    type={setting.setting_type === "number" ? "number" : "text"}
+                                    value={editingSettings[setting.id] ?? setting.setting_value ?? ""}
+                                    onChange={(e) => handleChange(setting.id, e.target.value)}
+                                    className="flex-1"
+                                  />
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    onClick={() => handleSave(setting)}
+                                    disabled={
+                                      updateSetting.isPending ||
+                                      editingSettings[setting.id] === undefined ||
+                                      editingSettings[setting.id] === setting.setting_value
+                                    }
+                                  >
+                                    {updateSetting.isPending ? (
+                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <Save className="w-4 h-4" />
+                                    )}
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           {/* Registration Forms Tab */}
@@ -609,7 +538,7 @@ export default function AdminSettings() {
               <p className="text-muted-foreground">
                 Create and manage registration forms for course enrollment
               </p>
-              <Button onClick={() => setIsFormModalOpen(true)} className="bg-primary hover:bg-primary/90">
+              <Button onClick={() => setIsFormModalOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
                 Create Form
               </Button>
@@ -864,7 +793,10 @@ export default function AdminSettings() {
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                onClick={handleDeleteForm}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleDeleteForm();
+                }}
                 className="bg-destructive hover:bg-destructive/90"
               >
                 {deleteForm.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
