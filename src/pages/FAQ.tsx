@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { 
@@ -10,10 +11,13 @@ import {
   MessageCircle,
   ArrowRight,
   Sparkles,
+  Search,
+  X,
 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { SEOHead } from "@/components/SEOHead";
 import {
   Accordion,
@@ -126,6 +130,30 @@ const faqCategories = [
 ];
 
 const FAQ = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter FAQ categories and questions based on search query
+  const filteredCategories = useMemo(() => {
+    if (!searchQuery.trim()) return faqCategories;
+
+    const query = searchQuery.toLowerCase();
+    return faqCategories
+      .map((category) => ({
+        ...category,
+        questions: category.questions.filter(
+          (faq) =>
+            faq.question.toLowerCase().includes(query) ||
+            faq.answer.toLowerCase().includes(query)
+        ),
+      }))
+      .filter((category) => category.questions.length > 0);
+  }, [searchQuery]);
+
+  const totalResults = filteredCategories.reduce(
+    (acc, cat) => acc + cat.questions.length,
+    0
+  );
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SEOHead
@@ -181,40 +209,92 @@ const FAQ = () => {
                 Cytobiz Medical & Innovation Academy
               </p>
 
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
                 Find answers to common questions about our courses, payments, certifications, and more.
               </p>
+
+              {/* Search Bar */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="max-w-xl mx-auto"
+              >
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Search questions..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-12 pr-12 py-6 text-lg rounded-2xl border-2 border-border bg-card/80 dark:bg-card/50 focus:border-primary transition-colors"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-muted transition-colors"
+                    >
+                      <X className="w-5 h-5 text-muted-foreground" />
+                    </button>
+                  )}
+                </div>
+                {searchQuery && (
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    Found {totalResults} {totalResults === 1 ? "result" : "results"} for "{searchQuery}"
+                  </p>
+                )}
+              </motion.div>
             </motion.div>
           </div>
         </section>
 
-        {/* Category Quick Links */}
-        <section className="py-8 border-b border-border bg-card/50 dark:bg-card/30">
-          <div className="container-wide">
-            <div className="flex flex-wrap justify-center gap-4">
-              {faqCategories.map((category, index) => (
-                <motion.a
-                  key={category.id}
-                  href={`#${category.id}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 * index }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-card dark:bg-card/80 border border-border hover:border-primary/50 shadow-sm transition-all"
-                >
-                  <category.icon className="w-5 h-5 text-primary" />
-                  <span className="font-medium text-foreground">{category.title}</span>
-                </motion.a>
-              ))}
+        {/* Category Quick Links - only show when not searching */}
+        {!searchQuery && (
+          <section className="py-8 border-b border-border bg-card/50 dark:bg-card/30">
+            <div className="container-wide">
+              <div className="flex flex-wrap justify-center gap-4">
+                {faqCategories.map((category, index) => (
+                  <motion.a
+                    key={category.id}
+                    href={`#${category.id}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 * index }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-card dark:bg-card/80 border border-border hover:border-primary/50 shadow-sm transition-all"
+                  >
+                    <category.icon className="w-5 h-5 text-primary" />
+                    <span className="font-medium text-foreground">{category.title}</span>
+                  </motion.a>
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* FAQ Sections */}
         <section className="section-padding">
           <div className="container-wide max-w-4xl">
-            {faqCategories.map((category, categoryIndex) => (
+            {filteredCategories.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-16"
+              >
+                <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-6">
+                  <Search className="w-10 h-10 text-muted-foreground" />
+                </div>
+                <h3 className="text-xl font-semibold text-foreground mb-2">No results found</h3>
+                <p className="text-muted-foreground mb-6">
+                  We couldn't find any questions matching "{searchQuery}"
+                </p>
+                <Button variant="outline" onClick={() => setSearchQuery("")}>
+                  Clear Search
+                </Button>
+              </motion.div>
+            ) : (
+            filteredCategories.map((category, categoryIndex) => (
               <motion.div
                 key={category.id}
                 id={category.id}
@@ -266,7 +346,8 @@ const FAQ = () => {
                   ))}
                 </Accordion>
               </motion.div>
-            ))}
+            ))
+            )}
           </div>
         </section>
 
