@@ -11,10 +11,13 @@ import {
   Upload,
   ImageIcon,
   X,
+  Percent,
+  CheckSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -73,7 +76,10 @@ export default function AdminCourses() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<any>(null);
   const [deletingCourse, setDeletingCourse] = useState<any>(null);
-
+  const [selectedCourses, setSelectedCourses] = useState<Set<string>>(new Set());
+  const [isBulkPriceOpen, setIsBulkPriceOpen] = useState(false);
+  const [bulkDiscountPercent, setBulkDiscountPercent] = useState(10);
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const { data: courses, isLoading } = useAdminCourses();
   const createCourse = useCreateCourse();
   const updateCourse = useUpdateCourse();
@@ -234,6 +240,75 @@ export default function AdminCourses() {
       .replace(/(^-|-$)/g, "");
   };
 
+  const handleSelectCourse = (courseId: string, checked: boolean) => {
+    const newSelected = new Set(selectedCourses);
+    if (checked) {
+      newSelected.add(courseId);
+    } else {
+      newSelected.delete(courseId);
+    }
+    setSelectedCourses(newSelected);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked && filteredCourses) {
+      setSelectedCourses(new Set(filteredCourses.map(c => c.id)));
+    } else {
+      setSelectedCourses(new Set());
+    }
+  };
+
+  const handleBulkApplyDiscount = async () => {
+    if (selectedCourses.size === 0) return;
+    
+    setIsBulkUpdating(true);
+    try {
+      const selectedCoursesList = courses?.filter(c => selectedCourses.has(c.id)) || [];
+      
+      for (const course of selectedCoursesList) {
+        const originalPrice = course.original_price || course.price || 0;
+        if (originalPrice > 0) {
+          const discountedPrice = Math.round(originalPrice * (1 - bulkDiscountPercent / 100));
+          await updateCourse.mutateAsync({
+            id: course.id,
+            original_price: originalPrice,
+            discounted_price: discountedPrice,
+          });
+        }
+      }
+      
+      toast.success(`Applied ${bulkDiscountPercent}% discount to ${selectedCourses.size} course(s)`);
+      setSelectedCourses(new Set());
+      setIsBulkPriceOpen(false);
+    } catch (error: any) {
+      toast.error(`Failed to apply discount: ${error.message}`);
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
+  const handleBulkRemoveDiscount = async () => {
+    if (selectedCourses.size === 0) return;
+    
+    setIsBulkUpdating(true);
+    try {
+      for (const courseId of selectedCourses) {
+        await updateCourse.mutateAsync({
+          id: courseId,
+          discounted_price: null,
+        });
+      }
+      
+      toast.success(`Removed discount from ${selectedCourses.size} course(s)`);
+      setSelectedCourses(new Set());
+      setIsBulkPriceOpen(false);
+    } catch (error: any) {
+      toast.error(`Failed to remove discount: ${error.message}`);
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -283,15 +358,36 @@ export default function AdminCourses() {
           </Select>
         </div>
 
+        {/* Bulk Actions Bar */}
+        {selectedCourses.size > 0 && (
+          <div className="flex items-center gap-4 p-3 bg-primary/10 rounded-lg border border-primary/20">
+            <CheckSquare className="w-5 h-5 text-primary" />
+            <span className="text-sm font-medium">{selectedCourses.size} course(s) selected</span>
+            <div className="flex-1" />
+            <Button size="sm" variant="outline" onClick={() => setSelectedCourses(new Set())}>
+              Clear Selection
+            </Button>
+            <Button size="sm" onClick={() => setIsBulkPriceOpen(true)}>
+              <Percent className="w-4 h-4 mr-2" />
+              Apply Discount
+            </Button>
+          </div>
+        )}
+
         {/* Table */}
         <div className="border border-border rounded-xl overflow-hidden bg-card">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={filteredCourses?.length ? selectedCourses.size === filteredCourses.length : false}
+                    onCheckedChange={handleSelectAll}
+                  />
+                </TableHead>
                 <TableHead>Course</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Students</TableHead>
                 <TableHead>Price</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead className="w-10"></TableHead>
@@ -301,6 +397,7 @@ export default function AdminCourses() {
               {isLoading ? (
                 [...Array(5)].map((_, i) => (
                   <TableRow key={i}>
+                    <TableCell><Skeleton className="h-4 w-4" /></TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Skeleton className="h-10 w-14 rounded" />
@@ -309,7 +406,6 @@ export default function AdminCourses() {
                     </TableCell>
                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-12" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-8" /></TableCell>
@@ -323,7 +419,13 @@ export default function AdminCourses() {
                 </TableRow>
               ) : (
                 filteredCourses?.map((course) => (
-                  <TableRow key={course.id}>
+                  <TableRow key={course.id} className={selectedCourses.has(course.id) ? "bg-primary/5" : ""}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedCourses.has(course.id)}
+                        onCheckedChange={(checked) => handleSelectCourse(course.id, !!checked)}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="w-14 h-10 rounded overflow-hidden bg-muted flex-shrink-0">
@@ -678,6 +780,64 @@ export default function AdminCourses() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Bulk Price Update Dialog */}
+        <Dialog open={isBulkPriceOpen} onOpenChange={setIsBulkPriceOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Bulk Price Update</DialogTitle>
+              <DialogDescription>
+                Apply a discount to {selectedCourses.size} selected course(s).
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Discount Percentage</Label>
+                <div className="flex items-center gap-4">
+                  <Input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={bulkDiscountPercent}
+                    onChange={(e) => setBulkDiscountPercent(Number(e.target.value))}
+                    className="w-24"
+                  />
+                  <span className="text-muted-foreground">%</span>
+                  <div className="flex gap-2">
+                    {[10, 20, 30, 50].map((pct) => (
+                      <Button
+                        key={pct}
+                        type="button"
+                        variant={bulkDiscountPercent === pct ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setBulkDiscountPercent(pct)}
+                      >
+                        {pct}%
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <DialogFooter className="flex-col sm:flex-row gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleBulkRemoveDiscount}
+                disabled={isBulkUpdating}
+              >
+                Remove Discounts
+              </Button>
+              <Button
+                onClick={handleBulkApplyDiscount}
+                disabled={isBulkUpdating}
+              >
+                {isBulkUpdating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Apply {bulkDiscountPercent}% Discount
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );

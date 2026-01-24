@@ -403,7 +403,7 @@ const Courses = () => {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                           
                           {/* Badges */}
-                          <div className="absolute top-4 left-4 flex gap-2">
+                          <div className="absolute top-4 left-4 flex gap-2 flex-wrap">
                             <Badge
                               className={cn(
                                 "backdrop-blur-sm shadow-lg",
@@ -414,13 +414,29 @@ const Courses = () => {
                             >
                               {course.course_type === "cohort" ? "Cohort" : "Self-Paced"}
                             </Badge>
+                            {course.discounted_price !== null && course.original_price && course.discounted_price < course.original_price && (
+                              <Badge className="bg-green-500 text-white shadow-lg animate-pulse">
+                                {Math.round((1 - course.discounted_price / course.original_price) * 100)}% OFF
+                              </Badge>
+                            )}
                           </div>
                           
                           {/* Price */}
                           <div className="absolute bottom-4 right-4">
-                            <span className="px-4 py-2 rounded-full bg-card/95 dark:bg-card/90 backdrop-blur-md text-lg font-bold text-foreground shadow-lg">
-                              {course.price ? `₦${course.price.toLocaleString()}` : "Free"}
-                            </span>
+                            {course.discounted_price !== null ? (
+                              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/95 dark:bg-card/90 backdrop-blur-md shadow-lg">
+                                <span className="text-sm text-muted-foreground line-through">
+                                  ₦{(course.original_price || course.price || 0).toLocaleString()}
+                                </span>
+                                <span className="text-lg font-bold text-primary">
+                                  ₦{course.discounted_price.toLocaleString()}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="px-4 py-2 rounded-full bg-card/95 dark:bg-card/90 backdrop-blur-md text-lg font-bold text-foreground shadow-lg">
+                                {course.original_price || course.price ? `₦${(course.original_price || course.price || 0).toLocaleString()}` : "Free"}
+                              </span>
+                            )}
                           </div>
                         </div>
 

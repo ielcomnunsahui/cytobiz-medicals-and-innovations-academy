@@ -30,7 +30,6 @@ const COHORT_STEPS: StepConfig[] = [
 const SELF_PACED_STEPS: StepConfig[] = [
   { key: "personal", label: "Personal Info", shortLabel: "Personal" },
   { key: "background", label: "Background", shortLabel: "Background" },
-  { key: "motivation", label: "Motivation", shortLabel: "Why" },
   { key: "review", label: "Review", shortLabel: "Review" },
   { key: "payment", label: "Payment", shortLabel: "Payment" },
 ];
