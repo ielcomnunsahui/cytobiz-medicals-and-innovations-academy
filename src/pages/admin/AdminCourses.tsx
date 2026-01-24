@@ -89,6 +89,8 @@ export default function AdminCourses() {
     status: "draft" as "draft" | "published" | "archived",
     level: "beginner",
     price: 0,
+    original_price: null as number | null,
+    discounted_price: null as number | null,
     duration_weeks: 4,
     effort_hours_per_week: 4,
     category: "",
@@ -125,6 +127,8 @@ export default function AdminCourses() {
       status: "draft",
       level: "beginner",
       price: 0,
+      original_price: null,
+      discounted_price: null,
       duration_weeks: 4,
       effort_hours_per_week: 4,
       category: "",
@@ -143,6 +147,8 @@ export default function AdminCourses() {
       status: course.status,
       level: course.level || "beginner",
       price: course.price || 0,
+      original_price: course.original_price ?? null,
+      discounted_price: course.discounted_price ?? null,
       duration_weeks: course.duration_weeks || 4,
       effort_hours_per_week: course.effort_hours_per_week || 4,
       category: course.category || "",
@@ -343,7 +349,24 @@ export default function AdminCourses() {
                     </TableCell>
                     <TableCell>{getStatusBadge(course.status)}</TableCell>
                     <TableCell>{course.enrollmentCount}</TableCell>
-                    <TableCell>${course.price || 0}</TableCell>
+                    <TableCell>
+                      {course.discounted_price !== null ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground line-through text-sm">
+                            ₦{(course.original_price || 0).toLocaleString()}
+                          </span>
+                          <span className="font-medium text-primary">
+                            ₦{course.discounted_price.toLocaleString()}
+                          </span>
+                        </div>
+                      ) : course.original_price ? (
+                        <span>₦{course.original_price.toLocaleString()}</span>
+                      ) : course.price ? (
+                        <span>₦{course.price.toLocaleString()}</span>
+                      ) : (
+                        <span className="text-muted-foreground">Free</span>
+                      )}
+                    </TableCell>
                     <TableCell>{format(new Date(course.created_at), "MMM d, yyyy")}</TableCell>
                     <TableCell>
                       <DropdownMenu>
@@ -534,6 +557,40 @@ export default function AdminCourses() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="original_price">Original Price (₦)</Label>
+                  <Input
+                    id="original_price"
+                    type="number"
+                    min="0"
+                    placeholder="e.g., 50000"
+                    value={formData.original_price ?? ""}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      original_price: e.target.value ? Number(e.target.value) : null,
+                      price: e.target.value ? Number(e.target.value) : formData.price
+                    })}
+                  />
+                  <p className="text-xs text-muted-foreground">Slashed/standard price</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="discounted_price">Discounted Price (₦)</Label>
+                  <Input
+                    id="discounted_price"
+                    type="number"
+                    min="0"
+                    placeholder="e.g., 25000"
+                    value={formData.discounted_price ?? ""}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      discounted_price: e.target.value ? Number(e.target.value) : null 
+                    })}
+                  />
+                  <p className="text-xs text-muted-foreground">Leave empty for no discount</p>
+                </div>
+              </div>
+
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="level">Level</Label>
@@ -552,16 +609,6 @@ export default function AdminCourses() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="price">Price ($)</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    min="0"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                  />
-                </div>
-                <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
                   <Input
                     id="category"
@@ -569,9 +616,6 @@ export default function AdminCourses() {
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="duration_weeks">Duration (weeks)</Label>
                   <Input
@@ -582,16 +626,17 @@ export default function AdminCourses() {
                     onChange={(e) => setFormData({ ...formData, duration_weeks: Number(e.target.value) })}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="effort_hours_per_week">Effort (hours/week)</Label>
-                  <Input
-                    id="effort_hours_per_week"
-                    type="number"
-                    min="1"
-                    value={formData.effort_hours_per_week}
-                    onChange={(e) => setFormData({ ...formData, effort_hours_per_week: Number(e.target.value) })}
-                  />
-                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="effort_hours_per_week">Effort (hours/week)</Label>
+                <Input
+                  id="effort_hours_per_week"
+                  type="number"
+                  min="1"
+                  value={formData.effort_hours_per_week}
+                  onChange={(e) => setFormData({ ...formData, effort_hours_per_week: Number(e.target.value) })}
+                />
               </div>
 
               <DialogFooter>

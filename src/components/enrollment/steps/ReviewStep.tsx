@@ -63,8 +63,9 @@ export function ReviewStep({
   cohort,
   onEditStep,
 }: ReviewStepProps) {
-  const price = course.price || 0;
-  const discountedPrice = price * 0.5;
+  const originalPrice = course.original_price ?? course.price ?? 0;
+  const discountedPrice = course.discounted_price;
+  const hasDiscount = discountedPrice !== null && discountedPrice !== undefined;
 
   return (
     <div className="space-y-6">
@@ -121,13 +122,17 @@ export function ReviewStep({
           )}
           <div className="flex justify-between py-1">
             <span className="text-muted-foreground">Price</span>
-            {price > 0 ? (
-              <div className="text-right">
-                <span className="text-muted-foreground line-through text-xs mr-2">
-                  ₦{price.toLocaleString()}
-                </span>
-                <span className="font-bold text-primary">₦{discountedPrice.toLocaleString()}</span>
-              </div>
+            {originalPrice > 0 ? (
+              hasDiscount ? (
+                <div className="text-right">
+                  <span className="text-muted-foreground line-through text-xs mr-2">
+                    ₦{originalPrice.toLocaleString()}
+                  </span>
+                  <span className="font-bold text-primary">₦{discountedPrice.toLocaleString()}</span>
+                </div>
+              ) : (
+                <span className="font-bold text-primary">₦{originalPrice.toLocaleString()}</span>
+              )
             ) : (
               <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
                 FREE

@@ -280,7 +280,7 @@ export default function CourseDetail() {
                   className="w-full bg-white text-foreground hover:bg-white/90 h-14"
                   onClick={() => setEnrollOpen(true)}
                 >
-                  Enroll Now - {course.price ? `$${course.price}` : "Free"}
+                  Enroll Now - {course.discounted_price !== null ? `₦${course.discounted_price.toLocaleString()}` : course.original_price ? `₦${course.original_price.toLocaleString()}` : course.price ? `₦${course.price.toLocaleString()}` : "Free"}
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </div>
@@ -314,11 +314,26 @@ export default function CourseDetail() {
 
                 <div className="p-6">
                   <div className="flex items-baseline gap-2 mb-6">
-                    <span className="text-4xl font-bold text-card-foreground">
-                      {course.price ? `$${course.price}` : "Free"}
-                    </span>
-                    {course.price && <span className="text-muted-foreground">one-time payment</span>}
+                    {course.discounted_price !== null ? (
+                      <>
+                        <span className="text-2xl text-muted-foreground line-through">
+                          ₦{(course.original_price || course.price || 0).toLocaleString()}
+                        </span>
+                        <span className="text-4xl font-bold text-primary">
+                          ₦{course.discounted_price.toLocaleString()}
+                        </span>
+                      </>
+                    ) : course.original_price || course.price ? (
+                      <span className="text-4xl font-bold text-card-foreground">
+                        ₦{(course.original_price || course.price || 0).toLocaleString()}
+                      </span>
+                    ) : (
+                      <span className="text-4xl font-bold text-card-foreground">Free</span>
+                    )}
                   </div>
+                  {(course.discounted_price !== null || course.original_price || course.price) && (
+                    <span className="text-muted-foreground">one-time payment</span>
+                  )}
 
                   <Button
                     size="lg"
@@ -688,7 +703,7 @@ export default function CourseDetail() {
           className="w-full bg-primary hover:bg-primary/90 h-12"
           onClick={() => setEnrollOpen(true)}
         >
-          Enroll Now - {course.price ? `$${course.price}` : "Free"}
+          Enroll Now - {course.discounted_price !== null ? `₦${course.discounted_price.toLocaleString()}` : course.original_price ? `₦${course.original_price.toLocaleString()}` : course.price ? `₦${course.price.toLocaleString()}` : "Free"}
         </Button>
       </div>
 
