@@ -115,9 +115,20 @@ export function FeaturedCoursesSection() {
 
                     {/* Price */}
                     <div className="absolute bottom-4 right-4">
-                      <span className="text-2xl font-bold text-white drop-shadow-lg">
-                        {course.price ? `$${course.price}` : "Free"}
-                      </span>
+                      {course.discounted_price !== null ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg text-white/70 line-through">
+                            ₦{(course.original_price || course.price || 0).toLocaleString()}
+                          </span>
+                          <span className="text-2xl font-bold text-white drop-shadow-lg">
+                            ₦{course.discounted_price.toLocaleString()}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-2xl font-bold text-white drop-shadow-lg">
+                          {course.original_price || course.price ? `₦${(course.original_price || course.price || 0).toLocaleString()}` : "Free"}
+                        </span>
+                      )}
                     </div>
                   </div>
 

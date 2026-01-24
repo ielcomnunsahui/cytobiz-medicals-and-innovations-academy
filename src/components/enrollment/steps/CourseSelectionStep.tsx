@@ -25,10 +25,10 @@ export function CourseSelectionStep({
   const selectedCourseId = formData.selected_course_id || currentCourse.id;
   const selectedCourse = availableCourses.find(c => c.id === selectedCourseId) || currentCourse;
 
-  // Pricing display logic - show standard and discounted price
-  const standardPrice = selectedCourse.price || 0;
-  const discountedPrice = standardPrice * 0.5; // 50% discount example
-  const hasDiscount = standardPrice > 0;
+  // Pricing display logic - use database fields
+  const originalPrice = selectedCourse.original_price ?? selectedCourse.price ?? 0;
+  const discountedPrice = selectedCourse.discounted_price;
+  const hasDiscount = discountedPrice !== null && discountedPrice !== undefined;
 
   return (
     <div className="space-y-6">
@@ -51,7 +51,7 @@ export function CourseSelectionStep({
         >
           {availableCourses.map((course) => {
             const isSelected = course.id === selectedCourseId;
-            const price = course.price || 0;
+            const displayPrice = course.discounted_price ?? course.original_price ?? course.price ?? 0;
             
             return (
               <label
@@ -66,9 +66,9 @@ export function CourseSelectionStep({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-medium text-foreground">{course.title}</span>
-                    {price > 0 && (
+                    {displayPrice > 0 && (
                       <Badge variant="secondary" className="text-xs">
-                        ₦{price.toLocaleString()}
+                        ₦{displayPrice.toLocaleString()}
                       </Badge>
                     )}
                   </div>
@@ -103,25 +103,33 @@ export function CourseSelectionStep({
             <span className="font-medium text-foreground">{selectedCourse.title}</span>
           </div>
           
-          {standardPrice > 0 ? (
+          {originalPrice > 0 ? (
             <>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Standard Price</span>
-                <span className="text-muted-foreground line-through">
-                  ₦{standardPrice.toLocaleString()}
-                </span>
-              </div>
-              
-              {hasDiscount && (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">Discounted Price</span>
-                    <Badge className="bg-green-500 hover:bg-green-600 text-white text-xs">
-                      50% OFF
-                    </Badge>
+              {hasDiscount ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Original Price</span>
+                    <span className="text-muted-foreground line-through">
+                      ₦{originalPrice.toLocaleString()}
+                    </span>
                   </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">Discounted Price</span>
+                      <Badge className="bg-green-500 hover:bg-green-600 text-white text-xs">
+                        {Math.round((1 - discountedPrice / originalPrice) * 100)}% OFF
+                      </Badge>
+                    </div>
+                    <span className="text-xl font-bold text-primary">
+                      ₦{discountedPrice.toLocaleString()}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Course Fee</span>
                   <span className="text-xl font-bold text-primary">
-                    ₦{discountedPrice.toLocaleString()}
+                    ₦{originalPrice.toLocaleString()}
                   </span>
                 </div>
               )}
@@ -136,7 +144,7 @@ export function CourseSelectionStep({
           )}
         </div>
 
-        {standardPrice > 0 && (
+        {originalPrice > 0 && (
           <p className="text-xs text-muted-foreground mt-4 pt-4 border-t border-border">
             * Pricing is configured by admin and may vary per course. Discounts apply during promotional periods.
           </p>
