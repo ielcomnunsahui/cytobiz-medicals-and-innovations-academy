@@ -24,6 +24,26 @@ import {
 
 const faqCategories = [
   {
+    id: "general",
+    title: "About the Academy",
+    icon: HelpCircle,
+    color: "from-primary to-accent",
+    questions: [
+      {
+        question: "What is Cytobiz Medical & Innovation Academy?",
+        answer: "Cytobiz Medical & Innovation Academy is a specialized learning hub focused on medical & health education, public health, healthcare innovation, and digital health, delivering practical, outcome-driven training for students and professionals."
+      },
+      {
+        question: "Who can enroll in your courses?",
+        answer: "Our programs are open to: Medical/Health students, Healthcare professionals, Public health practitioners, Researchers, Innovators and early-career professionals, and individuals seeking to transition into medical, healthcare, or public health–related careers. Some courses may have specific eligibility requirements, which will be stated clearly on the course page."
+      },
+      {
+        question: "Are your courses online?",
+        answer: "Yes. All our courses are delivered fully online, with practical, hands-on learning components integrated into the sessions."
+      },
+    ],
+  },
+  {
     id: "courses",
     title: "Courses & Learning",
     icon: BookOpen,
@@ -31,123 +51,75 @@ const faqCategories = [
     questions: [
       {
         question: "What types of courses do you offer?",
-        answer: "We offer cohort-based programs and self-paced courses covering Digital Health, Public Health, Clinical Leadership, Healthcare Innovation, Research Methods, and Data Science. Cohort programs include live sessions, group projects, and facilitator mentorship, while self-paced courses let you learn at your own schedule."
+        answer: "We offer two main types of courses: Cohort-Based Courses – live, scheduled programs with facilitators, peer learning, capstone projects, and graduation. Self-Paced Courses – on-demand courses with recorded content and flexible learning schedules."
       },
       {
-        question: "How long do courses typically take to complete?",
-        answer: "Course duration varies by program. Cohort-based programs typically run 8-12 weeks with 4-6 hours of commitment per week. Self-paced courses can be completed at your own pace, though we recommend 2-4 weeks for optimal learning."
+        question: "What is a Capstone Project?",
+        answer: "A Capstone Project is a practical, applied project required in most cohort-based programs. It allows learners to apply their knowledge to real healthcare or public health challenges."
       },
       {
-        question: "Are the courses suitable for beginners?",
-        answer: "Yes! We offer courses for all skill levels—from beginner to advanced. Each course clearly indicates the required experience level and prerequisites in its description. Beginner courses assume no prior knowledge in the specific topic."
+        question: "Are facilitators experienced professionals?",
+        answer: "Yes. Our facilitators are experienced practitioners, researchers, and innovators with practical expertise in their respective fields."
       },
       {
-        question: "What is the difference between cohort and self-paced courses?",
-        answer: "Cohort courses run on fixed schedules with live sessions, peer collaboration, and direct facilitator interaction. Self-paced courses allow you to start anytime and progress through materials independently. Cohort programs typically offer richer networking opportunities."
+        question: "Can I access course recordings?",
+        answer: "For courses with live sessions, recordings are made available where applicable. Access details are shared during onboarding."
       },
       {
-        question: "Can I access course materials after completion?",
-        answer: "Absolutely! You receive lifetime access to all course materials, including videos, readings, and resources. This allows you to revisit content whenever you need a refresher."
-      },
-      {
-        question: "Do you offer group or corporate enrollments?",
-        answer: "Yes, we offer special rates and customized programs for organizations enrolling multiple learners. Contact us for corporate partnership options and volume discounts."
+        question: "What happens if I miss a live session?",
+        answer: "If recordings are available, you can catch up. However, consistent participation is encouraged, especially for cohort-based programs."
       },
     ],
   },
   {
     id: "payments",
-    title: "Payments & Pricing",
+    title: "Registration & Payments",
     icon: CreditCard,
     color: "from-green-500 to-emerald-500",
     questions: [
       {
-        question: "What payment methods do you accept?",
-        answer: "We accept various payment methods including bank transfers, credit/debit cards via Paystack, and mobile payment options. All payments are processed securely with industry-standard encryption."
+        question: "How do I register for a course?",
+        answer: "You can register directly on our website by: Selecting your preferred course, completing the registration form, and making payment (if applicable). Once registered, you will receive confirmation and onboarding details."
       },
       {
-        question: "Are there any discounts available?",
-        answer: "Yes! We offer promotional discount codes, early-bird pricing for upcoming cohorts, and special rates for students and healthcare workers. Check our website or subscribe to our newsletter for current offers."
-      },
-      {
-        question: "What is your refund policy?",
-        answer: "We offer a 7-day money-back guarantee from enrollment date for most courses. If you're unsatisfied with the course content, contact our support team within 7 days for a full refund. Cohort programs may have different refund policies—check course details for specifics."
-      },
-      {
-        question: "Can I pay in installments?",
-        answer: "For select premium programs, we offer payment plans that allow you to spread the cost over 2-3 installments. Contact our support team to discuss payment options for your chosen course."
-      },
-      {
-        question: "Are course prices in USD or local currency?",
-        answer: "We display prices in Nigerian Naira (NGN). International students may see approximate USD equivalents. Payment is processed in NGN, and your bank will handle any currency conversion."
-      },
-      {
-        question: "Do I receive an invoice for my payment?",
-        answer: "Yes, you'll receive a detailed invoice via email upon successful enrollment. You can also access your payment history and download invoices from your dashboard."
+        question: "What payment methods are accepted?",
+        answer: "We accept multiple payment options, including: Debit/credit cards, Bank transfers, and USSD (where available). Payment options will be shown during registration."
       },
     ],
   },
   {
     id: "certifications",
-    title: "Certifications & Credentials",
+    title: "Certifications & Recognition",
     icon: Award,
     color: "from-gold to-amber-500",
     questions: [
       {
-        question: "Do I receive a certificate upon completion?",
-        answer: "Yes! Upon successfully completing all course requirements, you'll receive a digital certificate that you can share on LinkedIn, add to your CV, and download for printing. Certificates include a unique verification code."
+        question: "Do I receive a certificate after completion?",
+        answer: "Yes. Participants who meet the course requirements receive a Certificate of Completion from Cytobiz Medical & Innovation Academy."
       },
       {
-        question: "Are your certificates recognized by employers?",
-        answer: "Our certificates are valued by healthcare organizations, NGOs, and employers across Africa and globally. While not academic degrees, they demonstrate practical skills and knowledge in specialized healthcare domains."
-      },
-      {
-        question: "What are the requirements for earning a certificate?",
-        answer: "Certificate requirements vary by course but typically include completing all modules, passing quizzes or assessments with a minimum score, and for cohort programs, participating in live sessions and submitting projects."
-      },
-      {
-        question: "How can employers verify my certificate?",
-        answer: "Each certificate includes a unique verification code. Employers can verify authenticity through our online verification portal by entering this code. The verification page displays your name, course completed, and completion date."
-      },
-      {
-        question: "Can I add the certificate to my LinkedIn profile?",
-        answer: "Absolutely! We provide one-click LinkedIn integration. You can add your certificate directly to your LinkedIn profile's credentials section, including the verification URL and issue date."
-      },
-      {
-        question: "Do certificates expire?",
-        answer: "No, our certificates don't expire. However, for rapidly evolving fields like Digital Health, we recommend updating your skills periodically through our advanced courses to stay current with industry developments."
+        question: "Are your certificates recognized?",
+        answer: "Our Academy is recognized by the West Africa Health Business Society (WAHBS) and accredited by the Skill Development Council, Canada, which strengthens the credibility of our programs and certifications."
       },
     ],
   },
   {
-    id: "support",
-    title: "Account & Support",
+    id: "community",
+    title: "Community & Opportunities",
     icon: Users,
     color: "from-purple-500 to-pink-500",
     questions: [
       {
-        question: "How do I create an account?",
-        answer: "Click 'Sign Up' on our website, enter your email and create a password. You'll receive a verification email—click the link to activate your account. You can then browse courses and enroll in programs."
+        question: "Do you offer internships or volunteer opportunities?",
+        answer: "Yes. We periodically offer internship and volunteer opportunities across various departments. Announcements are made through our official channels."
       },
       {
-        question: "I forgot my password. How do I reset it?",
-        answer: "Click 'Forgot Password' on the login page, enter your registered email, and you'll receive a password reset link. The link expires after 24 hours for security. Contact support if you need further assistance."
+        question: "Will I be added to a community or alumni network?",
+        answer: "Yes. Upon course completion, participants gain access to our alumni and professional community, enabling networking and continued learning."
       },
       {
-        question: "How can I contact customer support?",
-        answer: "You can reach us via email at support@cytobiz.com, through the Contact form on our website, or via WhatsApp during business hours. We typically respond within 24 hours on business days."
-      },
-      {
-        question: "What if I need technical help during a course?",
-        answer: "For technical issues, email our support team with details about the problem. Include screenshots if possible. For cohort programs, you can also reach out to your assigned facilitator for assistance."
-      },
-      {
-        question: "Can I change my enrolled cohort after registration?",
-        answer: "Cohort changes may be possible depending on availability and timing. Contact support at least 7 days before your cohort starts to request a transfer. Administrative fees may apply for last-minute changes."
-      },
-      {
-        question: "Is my personal data secure?",
-        answer: "Yes, we take data privacy seriously. We use industry-standard encryption, never share your data with third parties without consent, and comply with data protection regulations. See our Privacy Policy for full details."
+        question: "How can I contact Cytobiz Medical & Innovation Academy?",
+        answer: "You can reach us via: Email at info.cytobizacademy@gmail.com, our website contact form, or through our official social media channels."
       },
     ],
   },
@@ -157,10 +129,10 @@ const FAQ = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SEOHead
-        title="Frequently Asked Questions"
-        description="Find answers to common questions about Cytobiz courses, payments, certifications, and support. Get the information you need to start your learning journey."
+        title="Frequently Asked Questions | Cytobiz Medical & Innovation Academy"
+        description="Find answers to common questions about Cytobiz Medical & Innovation Academy courses, payments, certifications, and support. Get the information you need to start your learning journey."
         url="/faq"
-        keywords={["FAQ", "help", "support", "questions", "courses", "certifications", "payments"]}
+        keywords={["FAQ", "help", "support", "questions", "courses", "certifications", "payments", "Cytobiz Academy", "medical education"]}
       />
       <Navbar />
 
@@ -204,6 +176,10 @@ const FAQ = () => {
                   Questions
                 </span>
               </h1>
+
+              <p className="text-lg text-muted-foreground font-medium mb-2">
+                Cytobiz Medical & Innovation Academy
+              </p>
 
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                 Find answers to common questions about our courses, payments, certifications, and more.
