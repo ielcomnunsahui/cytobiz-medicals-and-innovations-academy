@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, addDays } from "date-fns";
 import {
@@ -65,6 +65,8 @@ function EnrollmentSkeleton() {
 
 export default function Enroll() {
   const { slug = "" } = useParams();
+  const [searchParams] = useSearchParams();
+  const cohortFromUrl = searchParams.get("cohort");
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
@@ -73,9 +75,9 @@ export default function Enroll() {
   const { data: allCourses } = useCourses();
   const { data: settings } = useSiteSettings();
 
-  // State
+  // State - initialize with cohort from URL if present
   const [step, setStep] = useState<EnrollmentStep>("personal");
-  const [selectedCohortId, setSelectedCohortId] = useState<string | null>(null);
+  const [selectedCohortId, setSelectedCohortId] = useState<string | null>(cohortFromUrl);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -121,26 +123,33 @@ export default function Enroll() {
   useEffect(() => {
     if (!course) return;
 
-    // Set initial step
-    const initialStep = course.course_type === "cohort" ? "cohort" : "personal";
-    setStep(initialStep);
+    // If cohort was passed via URL and course is cohort-based, skip cohort selection step
+    if (course.course_type === "cohort" && cohortFromUrl) {
+      setSelectedCohortId(cohortFromUrl);
+      setStep("personal"); // Skip directly to personal info
+    } else {
+      // Set initial step based on course type
+      const initialStep = course.course_type === "cohort" ? "cohort" : "personal";
+      setStep(initialStep);
+    }
 
     // Pre-fill email from user profile
     if (user?.email && !formData.email) {
       setFormData((prev) => ({ ...prev, email: user.email }));
     }
 
-    // Load draft if exists
+    // Load draft if exists (but don't override URL cohort)
     const draft = loadDraft();
     if (draft && draft.formData && Object.keys(draft.formData).length > 0) {
       setFormData((prev) => ({ ...prev, ...draft.formData }));
-      if (draft.cohortId) {
+      // Only use draft cohort if no URL cohort was provided
+      if (draft.cohortId && !cohortFromUrl) {
         setSelectedCohortId(draft.cohortId);
       }
       setShowDraftLoaded(true);
       setTimeout(() => setShowDraftLoaded(false), 3000);
     }
-  }, [course, user]);
+  }, [course, user, cohortFromUrl]);
 
   // Get selected cohort
   const selectedCohort = cohorts?.find((c) => c.id === selectedCohortId);
@@ -255,21 +264,21 @@ export default function Enroll() {
     // Mark current step as completed
     setCompletedSteps((prev) => new Set([...prev, step]));
 
-    const nextStep = getNextStep(step, course?.course_type as "cohort" | "self_paced" | null);
+    const nextStep = getNextStep(step, course?.course_type as "cohort" | "self_paced" | null, !!cohortFromUrl);
     if (nextStep === "done") {
       // Handle submit
       submitMutation.mutate();
     } else {
       setStep(nextStep);
     }
-  }, [step, course, validateStep]);
+  }, [step, course, validateStep, cohortFromUrl]);
 
   const handleBack = useCallback(() => {
-    const prevStep = getPrevStep(step, course?.course_type as "cohort" | "self_paced" | null);
+    const prevStep = getPrevStep(step, course?.course_type as "cohort" | "self_paced" | null, !!cohortFromUrl);
     if (prevStep) {
       setStep(prevStep);
     }
-  }, [step, course]);
+  }, [step, course, cohortFromUrl]);
 
   const handleEditStep = useCallback((targetStep: string) => {
     setStep(targetStep as EnrollmentStep);
@@ -365,7 +374,7 @@ export default function Enroll() {
   });
 
   const isLoading = authLoading || courseLoading;
-  const currentSteps = getSteps(course?.course_type as "cohort" | "self_paced" | null);
+  const currentSteps = getSteps(course?.course_type as "cohort" | "self_paced" | null, !!cohortFromUrl);
   const isLastStep = step === currentSteps[currentSteps.length - 1]?.key;
 
   // Render content based on current step
@@ -373,8 +382,8 @@ export default function Enroll() {
     if (step === "done") {
       return (
         <div className="py-12 text-center">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-            <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
+          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-success/20 dark:bg-success/30 flex items-center justify-center">
+            <CheckCircle2 className="w-8 h-8 text-success" />
           </div>
           <h2 className="text-2xl font-bold text-foreground mb-2">
             Application Submitted!
@@ -559,6 +568,7 @@ export default function Enroll() {
                       currentStep={step}
                       courseType={course.course_type as "cohort" | "self_paced" | null}
                       completedSteps={completedSteps}
+                      cohortPreselected={!!cohortFromUrl}
                     />
                   </>
                 )}
@@ -586,7 +596,7 @@ export default function Enroll() {
                     <Button
                       variant="outline"
                       onClick={handleBack}
-                      disabled={!getPrevStep(step, course.course_type as "cohort" | "self_paced" | null)}
+                      disabled={!getPrevStep(step, course.course_type as "cohort" | "self_paced" | null, !!cohortFromUrl)}
                       className="gap-2"
                     >
                       <ArrowLeft className="w-4 h-4" />

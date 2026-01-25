@@ -27,6 +27,16 @@ const COHORT_STEPS: StepConfig[] = [
   { key: "payment", label: "Payment", shortLabel: "Payment" },
 ];
 
+// When cohort is pre-selected from URL, skip the cohort step
+const COHORT_PRESELECTED_STEPS: StepConfig[] = [
+  { key: "personal", label: "Personal Info", shortLabel: "Personal" },
+  { key: "background", label: "Background", shortLabel: "Background" },
+  { key: "course_selection", label: "Course & Pricing", shortLabel: "Course" },
+  { key: "motivation", label: "Motivation", shortLabel: "Why" },
+  { key: "review", label: "Review", shortLabel: "Review" },
+  { key: "payment", label: "Payment", shortLabel: "Payment" },
+];
+
 const SELF_PACED_STEPS: StepConfig[] = [
   { key: "personal", label: "Personal Info", shortLabel: "Personal" },
   { key: "background", label: "Background", shortLabel: "Background" },
@@ -38,14 +48,18 @@ interface EnrollmentProgressProps {
   currentStep: EnrollmentStep;
   courseType: "cohort" | "self_paced" | null;
   completedSteps: Set<EnrollmentStep>;
+  cohortPreselected?: boolean;
 }
 
-export function getSteps(courseType: "cohort" | "self_paced" | null): StepConfig[] {
-  return courseType === "cohort" ? COHORT_STEPS : SELF_PACED_STEPS;
+export function getSteps(courseType: "cohort" | "self_paced" | null, cohortPreselected?: boolean): StepConfig[] {
+  if (courseType === "cohort") {
+    return cohortPreselected ? COHORT_PRESELECTED_STEPS : COHORT_STEPS;
+  }
+  return SELF_PACED_STEPS;
 }
 
-export function getNextStep(currentStep: EnrollmentStep, courseType: "cohort" | "self_paced" | null): EnrollmentStep {
-  const steps = getSteps(courseType);
+export function getNextStep(currentStep: EnrollmentStep, courseType: "cohort" | "self_paced" | null, cohortPreselected?: boolean): EnrollmentStep {
+  const steps = getSteps(courseType, cohortPreselected);
   const currentIndex = steps.findIndex(s => s.key === currentStep);
   if (currentIndex < steps.length - 1) {
     return steps[currentIndex + 1].key;
@@ -53,8 +67,8 @@ export function getNextStep(currentStep: EnrollmentStep, courseType: "cohort" | 
   return "done";
 }
 
-export function getPrevStep(currentStep: EnrollmentStep, courseType: "cohort" | "self_paced" | null): EnrollmentStep | null {
-  const steps = getSteps(courseType);
+export function getPrevStep(currentStep: EnrollmentStep, courseType: "cohort" | "self_paced" | null, cohortPreselected?: boolean): EnrollmentStep | null {
+  const steps = getSteps(courseType, cohortPreselected);
   const currentIndex = steps.findIndex(s => s.key === currentStep);
   if (currentIndex > 0) {
     return steps[currentIndex - 1].key;
@@ -62,8 +76,8 @@ export function getPrevStep(currentStep: EnrollmentStep, courseType: "cohort" | 
   return null;
 }
 
-export function EnrollmentProgress({ currentStep, courseType, completedSteps }: EnrollmentProgressProps) {
-  const steps = getSteps(courseType);
+export function EnrollmentProgress({ currentStep, courseType, completedSteps, cohortPreselected }: EnrollmentProgressProps) {
+  const steps = getSteps(courseType, cohortPreselected);
   const currentIndex = steps.findIndex(s => s.key === currentStep);
 
   return (

@@ -175,11 +175,11 @@ export default function CourseDetail() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative pt-24 pb-16 bg-hero-gradient overflow-hidden">
+      <section className="relative pt-24 pb-16 bg-gradient-to-br from-[hsl(252,50%,8%)] via-[hsl(252,60%,15%)] to-[hsl(252,80%,25%)] dark:from-[hsl(252,50%,6%)] dark:via-[hsl(252,60%,12%)] dark:to-[hsl(252,80%,20%)] overflow-hidden">
         {/* Background elements */}
         <div className="absolute inset-0 overflow-hidden">
           <motion.div
-            className="absolute top-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-primary/20 blur-[120px]"
+            className="absolute top-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-primary/20 dark:bg-primary/15 blur-[120px]"
             animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
             transition={{ duration: 8, repeat: Infinity }}
           />
@@ -192,11 +192,11 @@ export default function CourseDetail() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="text-primary-foreground"
+              className="text-white"
             >
               <Link
                 to="/courses"
-                className="inline-flex items-center gap-2 text-primary-foreground/70 hover:text-primary-foreground mb-6 transition-colors"
+                className="inline-flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to courses
@@ -204,7 +204,7 @@ export default function CourseDetail() {
 
               <div className="flex flex-wrap gap-2 mb-4">
                 {course.category && (
-                  <Badge className="bg-white/20 text-primary-foreground border-0">
+                  <Badge className="bg-white/20 text-white border-0">
                     {course.category}
                   </Badge>
                 )}
@@ -219,7 +219,7 @@ export default function CourseDetail() {
                   {course.course_type === "cohort" ? "Cohort Program" : "Self-Paced"}
                 </Badge>
                 {course.level && (
-                  <Badge variant="outline" className="border-white/30 text-primary-foreground capitalize">
+                  <Badge variant="outline" className="border-white/30 text-white capitalize">
                     {course.level}
                   </Badge>
                 )}
@@ -229,12 +229,12 @@ export default function CourseDetail() {
                 {course.title}
               </h1>
 
-              <p className="text-lg text-primary-foreground/80 mb-6">
+              <p className="text-lg text-white/80 mb-6">
                 {course.short_description || course.description}
               </p>
 
               {/* Rating & Meta Info */}
-              <div className="flex flex-wrap gap-6 mb-8 text-primary-foreground/80">
+              <div className="flex flex-wrap gap-6 mb-8 text-white/80">
                 {ratingData && ratingData.count > 0 && (
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1">
@@ -250,7 +250,7 @@ export default function CourseDetail() {
                       ))}
                     </div>
                     <span className="font-medium">{ratingData.average}</span>
-                    <span className="text-primary-foreground/60">({ratingData.count} reviews)</span>
+                    <span className="text-white/60">({ratingData.count} reviews)</span>
                   </div>
                 )}
                 {course.duration_weeks && (
