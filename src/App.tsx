@@ -48,7 +48,7 @@ import AdminEnrollmentReview from "./pages/admin/AdminEnrollmentReview";
 import AdminSuccessStories from "./pages/admin/AdminSuccessStories";
 import AdminDiscountCodes from "./pages/admin/AdminDiscountCodes";
 import AdminReviews from "./pages/admin/AdminReviews";
-
+import AdminLessons from "./pages/admin/AdminLessons";
 const queryClient = new QueryClient();
 
 function AnimatedRoutes() {
@@ -97,6 +97,7 @@ function AnimatedRoutes() {
           <Route path="/admin/success-stories" element={<AdminSuccessStories />} />
           <Route path="/admin/discount-codes" element={<AdminDiscountCodes />} />
           <Route path="/admin/reviews" element={<AdminReviews />} />
+          <Route path="/admin/courses/:courseId/lessons" element={<AdminLessons />} />
         </Route>
 
         {/* Catch-all */}

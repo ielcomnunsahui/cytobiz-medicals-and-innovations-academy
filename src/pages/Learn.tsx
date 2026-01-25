@@ -13,8 +13,17 @@ import {
   Users,
   Menu,
   X,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+// Helper function to extract YouTube embed URL
+function getYouTubeEmbedUrl(url: string): string {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  const videoId = match && match[2].length === 11 ? match[2] : null;
+  return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+}
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -324,14 +333,60 @@ export default function LearnPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Video Player Placeholder */}
+              {/* YouTube Video Player */}
               {currentLesson.video_url && (
-                <div className="aspect-video bg-black rounded-2xl mb-8 flex items-center justify-center">
-                  <div className="text-center text-white">
-                    <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <p className="text-sm opacity-70">Video: {currentLesson.video_url}</p>
-                  </div>
+                <div className="aspect-video bg-black rounded-2xl mb-8 overflow-hidden">
+                  {currentLesson.video_url.includes("youtube.com") || currentLesson.video_url.includes("youtu.be") ? (
+                    <iframe
+                      src={getYouTubeEmbedUrl(currentLesson.video_url)}
+                      title={currentLesson.title}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="text-center text-white">
+                        <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                        <p className="text-sm opacity-70">Video: {currentLesson.video_url}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
+              )}
+
+              {/* External URL Link */}
+              {(currentLesson as any).external_url && (
+                <a
+                  href={(currentLesson as any).external_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-4 mb-8 bg-muted rounded-xl hover:bg-muted/80 transition-colors"
+                >
+                  <ExternalLink className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="font-medium">External Resource</p>
+                    <p className="text-sm text-muted-foreground truncate max-w-md">
+                      {(currentLesson as any).external_url}
+                    </p>
+                  </div>
+                </a>
+              )}
+
+              {/* Document Link */}
+              {(currentLesson as any).document_url && (
+                <a
+                  href={(currentLesson as any).document_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-4 mb-8 bg-muted rounded-xl hover:bg-muted/80 transition-colors"
+                >
+                  <FileText className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="font-medium">Download Document</p>
+                    <p className="text-sm text-muted-foreground">Click to open PDF or document</p>
+                  </div>
+                </a>
               )}
 
               {/* Lesson Title */}
