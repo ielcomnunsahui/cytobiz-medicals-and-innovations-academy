@@ -92,6 +92,22 @@ function PaymentMethodIcon({ method }: { method: string | null }) {
 }
 
 function ReceiptThumbnail({ url, onClick }: { url: string; onClick: () => void }) {
+  const isPdf = url?.toLowerCase().endsWith(".pdf");
+  
+  if (isPdf) {
+    return (
+      <button
+        onClick={onClick}
+        className="relative group w-12 h-12 rounded-lg overflow-hidden border border-border hover:border-primary transition-colors bg-muted flex items-center justify-center"
+      >
+        <FileText className="w-5 h-5 text-muted-foreground" />
+        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <Eye className="w-4 h-4 text-white" />
+        </div>
+      </button>
+    );
+  }
+  
   return (
     <button
       onClick={onClick}
@@ -101,6 +117,7 @@ function ReceiptThumbnail({ url, onClick }: { url: string; onClick: () => void }
         src={url}
         alt="Receipt"
         className="w-full h-full object-cover"
+        loading="lazy"
         onError={(e) => {
           (e.target as HTMLImageElement).src = "/placeholder.svg";
         }}
@@ -426,18 +443,32 @@ export default function AdminEnrollments() {
             </DialogHeader>
             {viewingReceipt && (
               <div className="relative rounded-lg overflow-hidden bg-muted">
-                <img
-                  src={viewingReceipt}
-                  alt="Payment Receipt"
-                  className="w-full h-auto max-h-[60vh] object-contain"
-                />
+                {viewingReceipt.toLowerCase().endsWith(".pdf") ? (
+                  <div className="p-8 text-center">
+                    <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground mb-4">PDF Receipt</p>
+                    <Button asChild>
+                      <a href={viewingReceipt} target="_blank" rel="noreferrer">
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        View PDF
+                      </a>
+                    </Button>
+                  </div>
+                ) : (
+                  <img
+                    src={viewingReceipt}
+                    alt="Payment Receipt"
+                    className="w-full h-auto max-h-[60vh] object-contain"
+                    loading="lazy"
+                  />
+                )}
               </div>
             )}
             <DialogFooter>
               <Button variant="outline" onClick={() => setViewingReceipt(null)}>
                 Close
               </Button>
-              {viewingReceipt && (
+              {viewingReceipt && !viewingReceipt.toLowerCase().endsWith(".pdf") && (
                 <Button asChild>
                   <a href={viewingReceipt} target="_blank" rel="noreferrer">
                     <ExternalLink className="w-4 h-4 mr-2" />

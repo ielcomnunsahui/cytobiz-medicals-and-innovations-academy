@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Upload, Loader2, CheckCircle } from "lucide-react";
+import { Upload, Loader2, CheckCircle, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -8,7 +8,7 @@ interface ReceiptUploadProps {
   userId?: string;
   enrollmentId?: string;
   existingUrl?: string | null;
-  onUploadComplete: (url: string) => void;
+  onUploadComplete: (url: string, optimizedUrl?: string) => void;
 }
 
 export function ReceiptUpload({
@@ -18,6 +18,7 @@ export function ReceiptUpload({
   onUploadComplete,
 }: ReceiptUploadProps) {
   const [uploading, setUploading] = useState(false);
+  const [optimizing, setOptimizing] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [authUserId, setAuthUserId] = useState<string | null>(null);
@@ -32,6 +33,40 @@ export function ReceiptUpload({
     };
     getAuthUser();
   }, []);
+
+  const optimizeReceipt = async (receiptUrl: string, token: string) => {
+    try {
+      setOptimizing(true);
+      
+      const response = await fetch(
+        `https://ovkkvqavropsrxupjtsm.supabase.co/functions/v1/optimize-receipt`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            receiptUrl,
+            enrollmentId,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.optimizedUrl && data.optimizedUrl !== receiptUrl) {
+          console.log("Receipt optimized:", data.optimizedUrl);
+          return data.optimizedUrl;
+        }
+      }
+    } catch (error) {
+      console.error("Optimization failed (continuing with original):", error);
+    } finally {
+      setOptimizing(false);
+    }
+    return null;
+  };
 
   const handleUpload = async (file: File) => {
     if (!file) return;
@@ -99,9 +134,24 @@ export function ReceiptUpload({
       setPreviewUrl(publicUrl);
       onUploadComplete(publicUrl);
       toast.success("Receipt uploaded successfully");
-    } catch (error: any) {
+
+      // Trigger background optimization for images (not PDFs)
+      if (file.type !== "application/pdf") {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          const optimizedUrl = await optimizeReceipt(publicUrl, session.access_token);
+          if (optimizedUrl) {
+            onUploadComplete(publicUrl, optimizedUrl);
+            toast.success("Receipt optimized for faster review", {
+              icon: <Sparkles className="w-4 h-4" />,
+            });
+          }
+        }
+      }
+    } catch (error: unknown) {
       console.error("Upload error:", error);
-      toast.error(error.message || "Failed to upload receipt");
+      const errorMessage = error instanceof Error ? error.message : "Failed to upload receipt";
+      toast.error(errorMessage);
     } finally {
       setUploading(false);
     }
@@ -140,14 +190,18 @@ export function ReceiptUpload({
       <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/40 flex items-center justify-center">
-            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+            {optimizing ? (
+              <Sparkles className="w-5 h-5 text-green-600 dark:text-green-400 animate-pulse" />
+            ) : (
+              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+            )}
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium text-green-800 dark:text-green-200">
-              Receipt uploaded
+              {optimizing ? "Optimizing receipt..." : "Receipt uploaded"}
             </p>
             <p className="text-xs text-green-600 dark:text-green-400">
-              Awaiting admin review
+              {optimizing ? "Enhancing for faster review" : "Awaiting admin review"}
             </p>
           </div>
           <a
