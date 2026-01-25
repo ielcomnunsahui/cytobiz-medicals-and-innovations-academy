@@ -1,7 +1,20 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, LogOut, LayoutDashboard, Settings, BookOpen, Heart, UserPlus, Gift, Handshake, HelpCircle } from "lucide-react";
+import {
+  Menu,
+  X,
+  ChevronDown,
+  LogOut,
+  LayoutDashboard,
+  Settings,
+  BookOpen,
+  Heart,
+  UserPlus,
+  Gift,
+  Handshake,
+  HelpCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -33,7 +46,12 @@ const navLinks = [
 ];
 
 const partnerLinks = [
-  { name: "Partners & Accreditations", href: "/partners", icon: Handshake, description: "Our partners and credentials" },
+  {
+    name: "Partners & Accreditations",
+    href: "/partners",
+    icon: Handshake,
+    description: "Our partners and credentials",
+  },
   { name: "Sponsor a Learner", href: "/sponsor", icon: Heart, description: "Fund a student's education" },
   { name: "Collaborate with Us", href: "/collaborate", icon: UserPlus, description: "Partnership opportunities" },
   { name: "Refer & Earn", href: "/referral", icon: Gift, description: "Earn rewards for referrals" },
@@ -108,7 +126,7 @@ export function Navbar() {
                 <span
                   className={cn(
                     "text-xs font-medium leading-tight transition-colors hidden sm:block",
-                    isScrolled ? "text-muted-foreground" : "text-primary-foreground/70",
+                    isScrolled ? "text-primary" : "text-primary-foreground/70",
                   )}
                 >
                   Medical Academy
@@ -136,12 +154,12 @@ export function Navbar() {
                   {link.name}
                 </Link>
               ))}
-              
+
               {/* Partners Dropdown */}
               <NavigationMenu>
                 <NavigationMenuList>
                   <NavigationMenuItem>
-                    <NavigationMenuTrigger 
+                    <NavigationMenuTrigger
                       className={cn(
                         "px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-transparent",
                         ["/partners", "/sponsor", "/collaborate", "/referral"].includes(location.pathname)
@@ -318,7 +336,7 @@ export function Navbar() {
                     </Link>
                   </motion.div>
                 ))}
-                
+
                 {/* Mobile Partner Links */}
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
