@@ -106,7 +106,9 @@ export function Navbar() {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-          isScrolled ? "bg-card/95 backdrop-blur-lg border-b border-border shadow-sm" : "bg-transparent",
+          isScrolled 
+            ? "bg-background/95 dark:bg-card/95 backdrop-blur-lg border-b border-border shadow-sm dark:shadow-lg dark:shadow-black/20" 
+            : "bg-transparent",
         )}
       >
         <div className="container-wide">
@@ -118,7 +120,7 @@ export function Navbar() {
                 <span
                   className={cn(
                     "font-display font-bold text-lg leading-tight transition-colors",
-                    isScrolled ? "text-primary" : "text-primary-foreground",
+                    isScrolled ? "text-foreground dark:text-primary" : "text-white",
                   )}
                 >
                   CYTOBIZ
@@ -126,7 +128,7 @@ export function Navbar() {
                 <span
                   className={cn(
                     "text-xs font-medium leading-tight transition-colors hidden sm:block",
-                    isScrolled ? "text-primary" : "text-primary-foreground/70",
+                    isScrolled ? "text-muted-foreground dark:text-primary/70" : "text-white/70",
                   )}
                 >
                   Medical Academy
@@ -144,11 +146,11 @@ export function Navbar() {
                     "px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200",
                     location.pathname === link.href
                       ? isScrolled
-                        ? "text-primary bg-primary/10"
-                        : "text-primary-foreground bg-white/10"
+                        ? "text-primary bg-primary/10 dark:text-primary dark:bg-primary/15"
+                        : "text-white bg-white/15"
                       : isScrolled
-                        ? "text-muted-foreground hover:text-foreground hover:bg-muted"
-                        : "text-primary-foreground/80 hover:text-primary-foreground hover:bg-white/10",
+                        ? "text-foreground/70 hover:text-foreground hover:bg-muted dark:text-foreground/80 dark:hover:text-foreground dark:hover:bg-muted"
+                        : "text-white/80 hover:text-white hover:bg-white/10",
                   )}
                 >
                   {link.name}
@@ -164,11 +166,11 @@ export function Navbar() {
                         "px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-transparent",
                         ["/partners", "/sponsor", "/collaborate", "/referral"].includes(location.pathname)
                           ? isScrolled
-                            ? "text-primary bg-primary/10"
-                            : "text-primary-foreground bg-white/10"
+                            ? "text-primary bg-primary/10 dark:text-primary dark:bg-primary/15"
+                            : "text-white bg-white/15"
                           : isScrolled
-                            ? "text-muted-foreground hover:text-foreground hover:bg-muted"
-                            : "text-primary-foreground/80 hover:text-primary-foreground hover:bg-white/10",
+                            ? "text-foreground/70 hover:text-foreground hover:bg-muted dark:text-foreground/80 dark:hover:text-foreground dark:hover:bg-muted"
+                            : "text-white/80 hover:text-white hover:bg-white/10",
                       )}
                     >
                       Partners
@@ -212,7 +214,7 @@ export function Navbar() {
                       variant="ghost"
                       className={cn(
                         "flex items-center gap-2 px-2",
-                        isScrolled ? "text-foreground hover:bg-muted" : "text-primary-foreground hover:bg-white/10",
+                        isScrolled ? "text-foreground hover:bg-muted dark:text-foreground dark:hover:bg-muted" : "text-white hover:bg-white/10",
                       )}
                     >
                       <Avatar className="h-8 w-8">
@@ -270,7 +272,7 @@ export function Navbar() {
                     asChild
                     className={cn(
                       "transition-colors",
-                      isScrolled ? "text-foreground hover:bg-muted" : "text-primary-foreground hover:bg-white/10",
+                      isScrolled ? "text-foreground hover:bg-muted dark:text-foreground dark:hover:bg-muted" : "text-white hover:bg-white/10",
                     )}
                   >
                     <Link to="/login">Sign In</Link>
@@ -290,7 +292,7 @@ export function Navbar() {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className={cn(
                 "md:hidden p-2 rounded-lg transition-colors",
-                isScrolled ? "text-foreground hover:bg-muted" : "text-primary-foreground hover:bg-white/10",
+                isScrolled ? "text-foreground hover:bg-muted dark:text-foreground dark:hover:bg-muted" : "text-white hover:bg-white/10",
               )}
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
