@@ -1,1 +1,4 @@
 project_id = "ovkkvqavropsrxupjtsm"
+
+[functions.optimize-receipt]
+verify_jwt = false
