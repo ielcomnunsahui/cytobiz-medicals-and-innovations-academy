@@ -13,6 +13,8 @@ import {
   FileText,
   CreditCard,
   Building2,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -71,6 +74,8 @@ import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 function StatusBadge({ status }: { status: string }) {
   if (status === "confirmed") return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100">Confirmed</Badge>;
@@ -138,8 +143,10 @@ export default function AdminEnrollments() {
   const [rejectingEnrollment, setRejectingEnrollment] = useState<any>(null);
   const [viewingReceipt, setViewingReceipt] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBatchApproving, setIsBatchApproving] = useState(false);
 
-  const { data: enrollments, isLoading } = useAdminEnrollments();
+  const { data: enrollments, isLoading, refetch } = useAdminEnrollments();
   const deleteEnrollment = useDeleteEnrollment();
   const updateStatus = useUpdateEnrollmentStatus();
   const { user } = useAuth();
@@ -201,6 +208,58 @@ export default function AdminEnrollments() {
     });
     setRejectingEnrollment(null);
     setRejectionReason("");
+  };
+
+  // Batch approval handler
+  const handleBatchApprove = async () => {
+    if (selectedIds.size === 0) return;
+    setIsBatchApproving(true);
+    
+    try {
+      const selectedEnrollments = enrollments?.filter((e: any) => selectedIds.has(e.id) && e.status === "pending");
+      
+      for (const enrollment of selectedEnrollments || []) {
+        await supabase
+          .from("enrollments")
+          .update({
+            status: "confirmed",
+            approved_at: new Date().toISOString(),
+            approved_by: user?.id,
+          })
+          .eq("id", enrollment.id);
+      }
+      
+      toast.success(`Successfully approved ${selectedEnrollments?.length} enrollment(s)`);
+      setSelectedIds(new Set());
+      refetch();
+    } catch (error) {
+      toast.error("Failed to approve some enrollments");
+    } finally {
+      setIsBatchApproving(false);
+    }
+  };
+
+  // Get pending enrollments for batch selection
+  const pendingEnrollments = filteredEnrollments?.filter((e: any) => e.status === "pending") || [];
+  const allPendingSelected = pendingEnrollments.length > 0 && pendingEnrollments.every((e: any) => selectedIds.has(e.id));
+  const somePendingSelected = pendingEnrollments.some((e: any) => selectedIds.has(e.id));
+
+  const toggleSelectAll = () => {
+    if (allPendingSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(pendingEnrollments.map((e: any) => e.id)));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
   };
 
   return (
@@ -267,11 +326,56 @@ export default function AdminEnrollments() {
           </Select>
         </div>
 
+        {/* Batch Actions Bar */}
+        {selectedIds.size > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-4 p-4 bg-primary/10 border border-primary/20 rounded-xl"
+          >
+            <CheckSquare className="w-5 h-5 text-primary" />
+            <span className="font-medium">{selectedIds.size} enrollment(s) selected</span>
+            <div className="flex-1" />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedIds(new Set())}
+            >
+              Clear Selection
+            </Button>
+            <Button
+              size="sm"
+              className="bg-green-600 hover:bg-green-700"
+              onClick={handleBatchApprove}
+              disabled={isBatchApproving}
+            >
+              {isBatchApproving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Approving...
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4 mr-2" />
+                  Approve Selected
+                </>
+              )}
+            </Button>
+          </motion.div>
+        )}
+
         {/* Table */}
         <div className="border border-border rounded-xl overflow-hidden bg-card">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={allPendingSelected}
+                    onCheckedChange={toggleSelectAll}
+                    aria-label="Select all pending"
+                  />
+                </TableHead>
                 <TableHead>User</TableHead>
                 <TableHead>Course</TableHead>
                 <TableHead>Status</TableHead>
@@ -304,7 +408,7 @@ export default function AdminEnrollments() {
                   ))
                 ) : filteredEnrollments?.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                       No enrollments found
                     </TableCell>
                   </TableRow>
@@ -317,6 +421,17 @@ export default function AdminEnrollments() {
                       exit={{ opacity: 0, y: -10 }}
                       className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
                     >
+                      <TableCell>
+                        {enrollment.status === "pending" ? (
+                          <Checkbox
+                            checked={selectedIds.has(enrollment.id)}
+                            onCheckedChange={() => toggleSelect(enrollment.id)}
+                            aria-label={`Select ${enrollment.profile?.display_name}`}
+                          />
+                        ) : (
+                          <div className="w-4 h-4" />
+                        )}
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="w-8 h-8">

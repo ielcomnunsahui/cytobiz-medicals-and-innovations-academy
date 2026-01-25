@@ -488,6 +488,12 @@ export default function AdminCourses() {
                             <Edit className="w-4 h-4 mr-2" />
                             Edit
                           </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link to={`/admin/courses/${course.id}/lessons`}>
+                              <Eye className="w-4 h-4 mr-2" />
+                              Manage Lessons
+                            </Link>
+                          </DropdownMenuItem>
                           <DropdownMenuItem 
                             className="text-red-600"
                             onClick={() => setDeletingCourse(course)}

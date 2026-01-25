@@ -826,9 +826,12 @@ export type Database = {
         Row: {
           content: string | null
           created_at: string
+          document_url: string | null
           duration_minutes: number | null
+          external_url: string | null
           id: string
           is_free_preview: boolean | null
+          lesson_type: string | null
           module_id: string
           order_index: number
           title: string
@@ -838,9 +841,12 @@ export type Database = {
         Insert: {
           content?: string | null
           created_at?: string
+          document_url?: string | null
           duration_minutes?: number | null
+          external_url?: string | null
           id?: string
           is_free_preview?: boolean | null
+          lesson_type?: string | null
           module_id: string
           order_index?: number
           title: string
@@ -850,9 +856,12 @@ export type Database = {
         Update: {
           content?: string | null
           created_at?: string
+          document_url?: string | null
           duration_minutes?: number | null
+          external_url?: string | null
           id?: string
           is_free_preview?: boolean | null
+          lesson_type?: string | null
           module_id?: string
           order_index?: number
           title?: string
