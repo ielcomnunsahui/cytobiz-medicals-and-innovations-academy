@@ -15,6 +15,7 @@ import {
   ExternalLink,
   File,
   Loader2,
+  ClipboardCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -346,10 +347,16 @@ export default function AdminLessons() {
             <h1 className="text-2xl font-bold text-foreground">Manage Lessons</h1>
             <p className="text-muted-foreground">{course.title}</p>
           </div>
-          <Button onClick={() => setCreatingModule(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Module
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => navigate(`/admin/courses/${courseId}/assessments`)}>
+              <ClipboardCheck className="w-4 h-4 mr-2" />
+              Manage Assessments
+            </Button>
+            <Button onClick={() => setCreatingModule(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Module
+            </Button>
+          </div>
         </div>
 
         {/* Modules List */}

@@ -14,8 +14,21 @@ import {
   Menu,
   X,
   ExternalLink,
+  ClipboardCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ModuleAssessment } from "@/components/learn/ModuleAssessment";
+import {
+  useModuleAssessmentStatus,
+  useAssessmentAttempts,
+  type Assessment,
+} from "@/hooks/useAssessments";
 
 // Helper function to extract YouTube embed URL
 function getYouTubeEmbedUrl(url: string): string {
@@ -24,12 +37,29 @@ function getYouTubeEmbedUrl(url: string): string {
   const videoId = match && match[2].length === 11 ? match[2] : null;
   return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
 }
-import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/useAuth";
-import { useCourseWithDetails } from "@/hooks/useCourses";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+interface ModuleWithLessons {
+  id: string;
+  title: string;
+  description: string | null;
+  order_index: number;
+  lessons: Lesson[];
+  assessment?: Assessment | null;
+}
+
+interface Lesson {
+  id: string;
+  module_id: string;
+  title: string;
+  content: string | null;
+  video_url: string | null;
+  external_url: string | null;
+  document_url: string | null;
+  lesson_type: string | null;
+  duration_minutes: number | null;
+  order_index: number;
+  is_free_preview: boolean | null;
+}
 
 export default function LearnPage() {
   const { courseId } = useParams();
@@ -38,6 +68,7 @@ export default function LearnPage() {
   const queryClient = useQueryClient();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentLessonId, setCurrentLessonId] = useState<string | null>(null);
+  const [showAssessment, setShowAssessment] = useState<string | null>(null); // module id
 
   // Check if user is enrolled
   const { data: enrollment, isLoading: enrollmentLoading } = useQuery({
@@ -57,7 +88,7 @@ export default function LearnPage() {
     enabled: !!user?.id && !!courseId,
   });
 
-  // Fetch course with modules and lessons
+  // Fetch course with modules, lessons, and assessments
   const { data: course, isLoading: courseLoading } = useQuery({
     queryKey: ["learn-course", courseId],
     queryFn: async () => {
@@ -65,7 +96,7 @@ export default function LearnPage() {
       
       const { data: courseData, error: courseError } = await supabase
         .from("courses")
-        .select("*")
+        .select("*, modules_locked_until_assessment")
         .eq("id", courseId)
         .single();
       
@@ -81,12 +112,22 @@ export default function LearnPage() {
         .order("order_index");
       
       if (modulesError) throw modulesError;
+
+      // Get assessments for all modules
+      const moduleIds = modules?.map(m => m.id) || [];
+      const { data: assessments, error: assessmentsError } = await supabase
+        .from("assessments")
+        .select("*")
+        .in("module_id", moduleIds);
+      
+      if (assessmentsError) throw assessmentsError;
       
       return {
         ...courseData,
         modules: modules?.map(m => ({
           ...m,
-          lessons: m.lessons?.sort((a: { order_index: number }, b: { order_index: number }) => a.order_index - b.order_index) || []
+          lessons: m.lessons?.sort((a: Lesson, b: Lesson) => a.order_index - b.order_index) || [],
+          assessment: assessments?.find(a => a.module_id === m.id) || null,
         })) || [],
       };
     },
@@ -115,6 +156,19 @@ export default function LearnPage() {
     enabled: !!user?.id && !!courseId,
   });
 
+  // Get module assessment status
+  const moduleIds = course?.modules?.map((m: ModuleWithLessons) => m.id) || [];
+  const { data: assessmentStatus } = useModuleAssessmentStatus(user?.id, moduleIds);
+
+  // Get assessment attempts for current assessment
+  const currentAssessmentModule = course?.modules?.find(
+    (m: ModuleWithLessons) => m.id === showAssessment
+  );
+  const { data: currentAttempts } = useAssessmentAttempts(
+    user?.id,
+    currentAssessmentModule?.assessment?.id
+  );
+
   // Mark lesson complete mutation
   const markCompleteMutation = useMutation({
     mutationFn: async (lessonId: string) => {
@@ -136,17 +190,43 @@ export default function LearnPage() {
     },
   });
 
+  // Check if module is locked
+  const isModuleLocked = (moduleIndex: number): boolean => {
+    if (!course?.modules_locked_until_assessment) return false;
+    if (moduleIndex === 0) return false;
+    
+    // Check if previous module has a required assessment that hasn't been passed
+    const prevModule = course.modules[moduleIndex - 1] as ModuleWithLessons;
+    if (prevModule?.assessment?.is_required) {
+      const status = assessmentStatus?.[prevModule.id];
+      if (!status?.passed) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // Check if all lessons in a module are completed
+  const isModuleComplete = (module: ModuleWithLessons): boolean => {
+    return module.lessons.every((lesson) => lessonProgress?.[lesson.id]);
+  };
+
   // Get all lessons flat
-  const allLessons = course?.modules?.flatMap((m) => m.lessons) || [];
+  const allLessons = course?.modules?.flatMap((m: ModuleWithLessons) => m.lessons) || [];
   
   // Set initial lesson
   useEffect(() => {
-    if (allLessons.length > 0 && !currentLessonId) {
-      // Find first incomplete lesson or first lesson
-      const firstIncomplete = allLessons.find((l) => !lessonProgress?.[l.id]);
+    if (allLessons.length > 0 && !currentLessonId && !showAssessment) {
+      // Find first incomplete lesson that's not in a locked module
+      const firstIncomplete = allLessons.find((l, index) => {
+        const moduleIndex = course?.modules?.findIndex(
+          (m: ModuleWithLessons) => m.lessons.some((lesson) => lesson.id === l.id)
+        );
+        return !lessonProgress?.[l.id] && !isModuleLocked(moduleIndex || 0);
+      });
       setCurrentLessonId(firstIncomplete?.id || allLessons[0]?.id);
     }
-  }, [allLessons, lessonProgress, currentLessonId]);
+  }, [allLessons, lessonProgress, currentLessonId, showAssessment, course?.modules]);
 
   const currentLesson = allLessons.find((l) => l.id === currentLessonId);
   const currentLessonIndex = allLessons.findIndex((l) => l.id === currentLessonId);
@@ -192,7 +272,7 @@ export default function LearnPage() {
     );
   }
 
-  const getLessonIcon = (lesson: { video_url?: string | null; content?: string | null }) => {
+  const getLessonIcon = (lesson: Lesson) => {
     if (lesson.video_url) return Video;
     return FileText;
   };
@@ -232,54 +312,122 @@ export default function LearnPage() {
 
         {/* Modules List */}
         <div className="flex-1 overflow-y-auto p-4">
-          {course.modules?.map((module, moduleIndex) => (
-            <div key={module.id} className="mb-6">
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                Module {moduleIndex + 1}: {module.title}
-              </h3>
-              <div className="space-y-1">
-                {module.lessons?.map((lesson) => {
-                  const isCompleted = lessonProgress?.[lesson.id];
-                  const isCurrent = lesson.id === currentLessonId;
-                  const LessonIcon = getLessonIcon(lesson);
-                  
-                  return (
+          {course.modules?.map((module: ModuleWithLessons, moduleIndex: number) => {
+            const locked = isModuleLocked(moduleIndex);
+            const moduleComplete = isModuleComplete(module);
+            const hasAssessment = !!module.assessment;
+            const assessmentPassed = assessmentStatus?.[module.id]?.passed;
+            
+            return (
+              <div key={module.id} className="mb-6">
+                <div className="flex items-center gap-2 mb-2">
+                  {locked ? (
+                    <Lock className="w-4 h-4 text-muted-foreground" />
+                  ) : moduleComplete ? (
+                    <CheckCircle className="w-4 h-4 text-success" />
+                  ) : null}
+                  <h3 className={cn(
+                    "text-xs font-semibold uppercase tracking-wider",
+                    locked ? "text-muted-foreground/50" : "text-muted-foreground"
+                  )}>
+                    Module {moduleIndex + 1}: {module.title}
+                  </h3>
+                </div>
+
+                <div className="space-y-1">
+                  {module.lessons?.map((lesson) => {
+                    const isCompleted = lessonProgress?.[lesson.id];
+                    const isCurrent = lesson.id === currentLessonId && !showAssessment;
+                    const LessonIcon = getLessonIcon(lesson);
+                    
+                    return (
+                      <button
+                        key={lesson.id}
+                        onClick={() => {
+                          if (!locked) {
+                            setCurrentLessonId(lesson.id);
+                            setShowAssessment(null);
+                          }
+                        }}
+                        disabled={locked}
+                        className={cn(
+                          "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors",
+                          locked
+                            ? "opacity-50 cursor-not-allowed"
+                            : isCurrent
+                              ? "bg-primary/10 text-primary"
+                              : isCompleted
+                                ? "text-muted-foreground hover:bg-muted"
+                                : "text-foreground hover:bg-muted"
+                        )}
+                      >
+                        <div className={cn(
+                          "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0",
+                          isCompleted ? "bg-success text-success-foreground" : isCurrent ? "bg-primary text-primary-foreground" : "bg-muted"
+                        )}>
+                          {locked ? (
+                            <Lock className="w-3 h-3" />
+                          ) : isCompleted ? (
+                            <CheckCircle className="w-4 h-4" />
+                          ) : (
+                            <LessonIcon className="w-3 h-3" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={cn("text-sm font-medium truncate", isCompleted && "line-through opacity-60")}>
+                            {lesson.title}
+                          </p>
+                          {lesson.duration_minutes && (
+                            <p className="text-xs text-muted-foreground">{lesson.duration_minutes} min</p>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+
+                  {/* Assessment Button */}
+                  {hasAssessment && (
                     <button
-                      key={lesson.id}
-                      onClick={() => setCurrentLessonId(lesson.id)}
+                      onClick={() => {
+                        if (!locked) {
+                          setShowAssessment(module.id);
+                          setCurrentLessonId(null);
+                        }
+                      }}
+                      disabled={locked}
                       className={cn(
-                        "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors",
-                        isCurrent
-                          ? "bg-primary/10 text-primary"
-                          : isCompleted
-                            ? "text-muted-foreground hover:bg-muted"
-                            : "text-foreground hover:bg-muted"
+                        "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors border-2 border-dashed",
+                        locked
+                          ? "opacity-50 cursor-not-allowed border-border"
+                          : showAssessment === module.id
+                            ? "border-primary bg-primary/10 text-primary"
+                            : assessmentPassed
+                              ? "border-success/50 text-success hover:bg-success/5"
+                              : "border-amber-500/50 text-amber-600 hover:bg-amber-500/5"
                       )}
                     >
                       <div className={cn(
                         "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0",
-                        isCompleted ? "bg-success text-white" : isCurrent ? "bg-primary text-white" : "bg-muted"
+                        assessmentPassed ? "bg-success text-success-foreground" : "bg-amber-500/20"
                       )}>
-                        {isCompleted ? (
-                          <CheckCircle className="w-4 h-4" />
+                        {assessmentPassed ? (
+                          <Award className="w-4 h-4" />
                         ) : (
-                          <LessonIcon className="w-3 h-3" />
+                          <ClipboardCheck className="w-4 h-4" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={cn("text-sm font-medium truncate", isCompleted && "line-through opacity-60")}>
-                          {lesson.title}
+                        <p className="text-sm font-medium">Module Assessment</p>
+                        <p className="text-xs opacity-70">
+                          {assessmentPassed ? "Passed" : module.assessment?.is_required ? "Required" : "Optional"}
                         </p>
-                        {lesson.duration_minutes && (
-                          <p className="text-xs text-muted-foreground">{lesson.duration_minutes} min</p>
-                        )}
                       </div>
                     </button>
-                  );
-                })}
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </aside>
 
@@ -299,34 +447,62 @@ export default function LearnPage() {
                 <Menu className="w-5 h-5" />
               </button>
               <span className="text-sm text-muted-foreground hidden sm:block">
-                {currentLesson?.title}
+                {showAssessment ? "Module Assessment" : currentLesson?.title}
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={!prevLesson}
-                onClick={() => prevLesson && setCurrentLessonId(prevLesson.id)}
-              >
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                Previous
-              </Button>
-              <Button
-                size="sm"
-                disabled={!nextLesson}
-                onClick={() => nextLesson && setCurrentLessonId(nextLesson.id)}
-              >
-                Next
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            </div>
+            {!showAssessment && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!prevLesson}
+                  onClick={() => prevLesson && setCurrentLessonId(prevLesson.id)}
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Previous
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={!nextLesson}
+                  onClick={() => nextLesson && setCurrentLessonId(nextLesson.id)}
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            )}
           </div>
         </header>
 
-        {/* Lesson Content */}
+        {/* Main Content Area */}
         <div className="max-w-4xl mx-auto px-4 py-8">
-          {currentLesson ? (
+          {/* Assessment View */}
+          {showAssessment && currentAssessmentModule?.assessment && user && (
+            <ModuleAssessment
+              assessment={currentAssessmentModule.assessment}
+              userId={user.id}
+              previousAttempts={currentAttempts || []}
+              onComplete={(passed) => {
+                queryClient.invalidateQueries({ queryKey: ["module-assessment-status"] });
+                if (passed) {
+                  // Navigate to next module's first lesson after passing
+                  const currentModuleIndex = course.modules.findIndex(
+                    (m: ModuleWithLessons) => m.id === showAssessment
+                  );
+                  const nextModule = course.modules[currentModuleIndex + 1] as ModuleWithLessons | undefined;
+                  if (nextModule?.lessons?.[0]) {
+                    setTimeout(() => {
+                      setShowAssessment(null);
+                      setCurrentLessonId(nextModule.lessons[0].id);
+                    }, 2000);
+                  }
+                }
+              }}
+            />
+          )}
+
+          {/* Lesson View */}
+          {!showAssessment && currentLesson && (
             <motion.div
               key={currentLesson.id}
               initial={{ opacity: 0, y: 20 }}
@@ -356,9 +532,9 @@ export default function LearnPage() {
               )}
 
               {/* External URL Link */}
-              {(currentLesson as any).external_url && (
+              {currentLesson.external_url && (
                 <a
-                  href={(currentLesson as any).external_url}
+                  href={currentLesson.external_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 p-4 mb-8 bg-muted rounded-xl hover:bg-muted/80 transition-colors"
@@ -367,16 +543,16 @@ export default function LearnPage() {
                   <div>
                     <p className="font-medium">External Resource</p>
                     <p className="text-sm text-muted-foreground truncate max-w-md">
-                      {(currentLesson as any).external_url}
+                      {currentLesson.external_url}
                     </p>
                   </div>
                 </a>
               )}
 
               {/* Document Link */}
-              {(currentLesson as any).document_url && (
+              {currentLesson.document_url && (
                 <a
-                  href={(currentLesson as any).document_url}
+                  href={currentLesson.document_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 p-4 mb-8 bg-muted rounded-xl hover:bg-muted/80 transition-colors"
@@ -437,7 +613,10 @@ export default function LearnPage() {
                 )}
               </div>
             </motion.div>
-          ) : (
+          )}
+
+          {/* No Content Selected */}
+          {!showAssessment && !currentLesson && (
             <div className="text-center py-16">
               <FileText className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
               <h2 className="text-xl font-semibold mb-2">No lesson selected</h2>

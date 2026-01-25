@@ -17,6 +17,7 @@ import {
   Quote,
   Tag,
   Star,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -45,6 +46,7 @@ const adminNavItems = [
   { name: "Discount Codes", href: "/admin/discount-codes", icon: Tag },
   { name: "Reviews", href: "/admin/reviews", icon: Star },
   { name: "Success Stories", href: "/admin/success-stories", icon: Quote },
+  { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { name: "Certificates", href: "/admin/certificates", icon: Award },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
