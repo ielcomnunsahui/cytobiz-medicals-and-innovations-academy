@@ -49,6 +49,8 @@ import AdminSuccessStories from "./pages/admin/AdminSuccessStories";
 import AdminDiscountCodes from "./pages/admin/AdminDiscountCodes";
 import AdminReviews from "./pages/admin/AdminReviews";
 import AdminLessons from "./pages/admin/AdminLessons";
+import AdminAssessments from "./pages/admin/AdminAssessments";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
 const queryClient = new QueryClient();
 
 function AnimatedRoutes() {
@@ -98,6 +100,8 @@ function AnimatedRoutes() {
           <Route path="/admin/discount-codes" element={<AdminDiscountCodes />} />
           <Route path="/admin/reviews" element={<AdminReviews />} />
           <Route path="/admin/courses/:courseId/lessons" element={<AdminLessons />} />
+          <Route path="/admin/courses/:courseId/assessments" element={<AdminAssessments />} />
+          <Route path="/admin/analytics" element={<AdminAnalytics />} />
         </Route>
 
         {/* Catch-all */}

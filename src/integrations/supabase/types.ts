@@ -14,6 +14,141 @@ export type Database = {
   }
   public: {
     Tables: {
+      assessment_attempts: {
+        Row: {
+          answers: Json
+          assessment_id: string
+          completed_at: string | null
+          id: string
+          max_score: number
+          passed: boolean
+          percentage: number
+          score: number
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          assessment_id: string
+          completed_at?: string | null
+          id?: string
+          max_score?: number
+          passed?: boolean
+          percentage?: number
+          score?: number
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          assessment_id?: string
+          completed_at?: string | null
+          id?: string
+          max_score?: number
+          passed?: boolean
+          percentage?: number
+          score?: number
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_attempts_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_questions: {
+        Row: {
+          assessment_id: string
+          correct_answer: string
+          created_at: string
+          id: string
+          options: Json
+          order_index: number
+          points: number
+          question_text: string
+          question_type: string
+        }
+        Insert: {
+          assessment_id: string
+          correct_answer: string
+          created_at?: string
+          id?: string
+          options?: Json
+          order_index?: number
+          points?: number
+          question_text: string
+          question_type?: string
+        }
+        Update: {
+          assessment_id?: string
+          correct_answer?: string
+          created_at?: string
+          id?: string
+          options?: Json
+          order_index?: number
+          points?: number
+          question_text?: string
+          question_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_questions_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessments: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_required: boolean
+          module_id: string
+          pass_percentage: number
+          time_limit_minutes: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_required?: boolean
+          module_id: string
+          pass_percentage?: number
+          time_limit_minutes?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_required?: boolean
+          module_id?: string
+          pass_percentage?: number
+          time_limit_minutes?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessments_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assignments: {
         Row: {
           created_at: string
@@ -281,6 +416,7 @@ export type Database = {
           id: string
           learning_outcomes: string[] | null
           level: string | null
+          modules_locked_until_assessment: boolean | null
           original_price: number | null
           prerequisites: string[] | null
           price: number | null
@@ -304,6 +440,7 @@ export type Database = {
           id?: string
           learning_outcomes?: string[] | null
           level?: string | null
+          modules_locked_until_assessment?: boolean | null
           original_price?: number | null
           prerequisites?: string[] | null
           price?: number | null
@@ -327,6 +464,7 @@ export type Database = {
           id?: string
           learning_outcomes?: string[] | null
           level?: string | null
+          modules_locked_until_assessment?: boolean | null
           original_price?: number | null
           prerequisites?: string[] | null
           price?: number | null
@@ -794,6 +932,7 @@ export type Database = {
           created_at: string
           id: string
           lesson_id: string
+          time_spent_seconds: number | null
           user_id: string
         }
         Insert: {
@@ -802,6 +941,7 @@ export type Database = {
           created_at?: string
           id?: string
           lesson_id: string
+          time_spent_seconds?: number | null
           user_id: string
         }
         Update: {
@@ -810,6 +950,7 @@ export type Database = {
           created_at?: string
           id?: string
           lesson_id?: string
+          time_spent_seconds?: number | null
           user_id?: string
         }
         Relationships: [
@@ -1400,6 +1541,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_passed_module_assessment: {
+        Args: { _module_id: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

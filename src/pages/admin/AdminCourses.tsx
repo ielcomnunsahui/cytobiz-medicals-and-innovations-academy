@@ -13,6 +13,9 @@ import {
   X,
   Percent,
   CheckSquare,
+  ClipboardCheck,
+  BookOpen,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -490,8 +493,14 @@ export default function AdminCourses() {
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
                             <Link to={`/admin/courses/${course.id}/lessons`}>
-                              <Eye className="w-4 h-4 mr-2" />
+                              <BookOpen className="w-4 h-4 mr-2" />
                               Manage Lessons
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link to={`/admin/courses/${course.id}/assessments`}>
+                              <ClipboardCheck className="w-4 h-4 mr-2" />
+                              Manage Assessments
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem 
