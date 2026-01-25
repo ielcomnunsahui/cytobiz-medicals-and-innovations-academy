@@ -315,9 +315,9 @@ export function Navbar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-background/95 backdrop-blur-lg pt-20"
+              className="absolute inset-0 bg-background/95 backdrop-blur-lg pt-20 overflow-y-auto"
             >
-              <nav className="container-wide py-8 flex flex-col gap-2">
+              <nav className="container-wide py-6 pb-24 flex flex-col gap-2">
                 {navLinks.map((link, index) => (
                   <motion.div
                     key={link.name}
