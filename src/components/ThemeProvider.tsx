@@ -10,6 +10,8 @@ interface ThemeProviderContextProps {
 
 const ThemeProviderContext = createContext<ThemeProviderContextProps | undefined>(undefined);
 
+const MOBILE_BREAKPOINT = 768;
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== "undefined") {
@@ -19,6 +21,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   });
 
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth < MOBILE_BREAKPOINT;
+    }
+    return false;
+  });
+
+  // Track mobile state
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -29,20 +46,28 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setResolvedTheme(newTheme);
     };
 
+    // Force light mode on mobile
+    if (isMobile) {
+      applyTheme("light");
+      return;
+    }
+
     if (theme === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
       applyTheme(systemTheme);
 
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
       const handleChange = (e: MediaQueryListEvent) => {
-        applyTheme(e.matches ? "dark" : "light");
+        if (!isMobile) {
+          applyTheme(e.matches ? "dark" : "light");
+        }
       };
       mediaQuery.addEventListener("change", handleChange);
       return () => mediaQuery.removeEventListener("change", handleChange);
     } else {
       applyTheme(theme);
     }
-  }, [theme]);
+  }, [theme, isMobile]);
 
   const value = {
     theme,
