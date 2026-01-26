@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -10,6 +10,9 @@ import {
   ExternalLink,
   CreditCard,
   Upload,
+  Award,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +26,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { AccessStatusBadges } from "@/components/learner/AccessStatusBadges";
+import { useCourseAccessStatus } from "@/hooks/useCourseAccess";
+import { EnrollmentAccessCard } from "@/components/learner/EnrollmentAccessCard";
 
 function StatusBadge({ status }: { status: string }) {
   if (status === "confirmed") {
@@ -266,44 +272,7 @@ export default function MyEnrollments() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.1 }}
                         >
-                          <Card>
-                            <CardContent className="p-6">
-                              <div className="flex flex-col sm:flex-row gap-4">
-                                <div className="w-24 h-24 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shrink-0">
-                                  {enrollment.course?.thumbnail_url ? (
-                                    <img
-                                      src={enrollment.course.thumbnail_url}
-                                      alt={enrollment.course.title}
-                                      className="w-full h-full object-cover rounded-lg"
-                                    />
-                                  ) : (
-                                    <BookOpen className="w-8 h-8 text-primary/50" />
-                                  )}
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
-                                    <h3 className="font-semibold text-foreground">
-                                      {enrollment.course?.title}
-                                    </h3>
-                                    <StatusBadge status={enrollment.status} />
-                                  </div>
-                                  
-                                  <div className="text-sm text-muted-foreground mb-3">
-                                    Approved on {enrollment.approved_at ? format(new Date(enrollment.approved_at), "MMM d, yyyy") : "N/A"}
-                                    {enrollment.cohort?.title && (
-                                      <span> • Cohort: {enrollment.cohort.title}</span>
-                                    )}
-                                  </div>
-
-                                  <Button size="sm" asChild>
-                                    <Link to={`/learn/${enrollment.course_id}`}>
-                                      Continue Learning
-                                    </Link>
-                                  </Button>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
+                          <EnrollmentAccessCard enrollment={enrollment} />
                         </motion.div>
                       ))}
                     </div>

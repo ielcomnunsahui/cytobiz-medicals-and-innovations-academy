@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_unlocks: {
+        Row: {
+          cohort_id: string | null
+          course_id: string
+          created_at: string
+          id: string
+          reason: string | null
+          unlock_type: string
+          unlocked_by: string | null
+          user_id: string
+        }
+        Insert: {
+          cohort_id?: string | null
+          course_id: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          unlock_type: string
+          unlocked_by?: string | null
+          user_id: string
+        }
+        Update: {
+          cohort_id?: string | null
+          course_id?: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          unlock_type?: string
+          unlocked_by?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_unlocks_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "access_unlocks_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assessment_attempts: {
         Row: {
           answers: Json
@@ -232,6 +280,69 @@ export type Database = {
         }
         Relationships: []
       }
+      certificate_payments: {
+        Row: {
+          amount: number
+          cohort_id: string | null
+          course_id: string
+          created_at: string
+          currency: string
+          id: string
+          paid_at: string | null
+          payment_method: Database["public"]["Enums"]["payment_method"] | null
+          payment_provider_ref: string | null
+          payment_status: string
+          receipt_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          cohort_id?: string | null
+          course_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          paid_at?: string | null
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          payment_provider_ref?: string | null
+          payment_status?: string
+          receipt_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          cohort_id?: string | null
+          course_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          paid_at?: string | null
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          payment_provider_ref?: string | null
+          payment_status?: string
+          receipt_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificate_payments_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "certificate_payments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       certificates: {
         Row: {
           course_id: string
@@ -260,6 +371,71 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cohort_access_overrides: {
+        Row: {
+          assessment_access:
+            | Database["public"]["Enums"]["assessment_access_mode"]
+            | null
+          certificate_access:
+            | Database["public"]["Enums"]["certificate_access_mode"]
+            | null
+          certificate_fee: number | null
+          cohort_id: string
+          content_access:
+            | Database["public"]["Enums"]["content_access_mode"]
+            | null
+          created_at: string
+          id: string
+          promo_enabled: boolean | null
+          promo_expiry: string | null
+          updated_at: string
+        }
+        Insert: {
+          assessment_access?:
+            | Database["public"]["Enums"]["assessment_access_mode"]
+            | null
+          certificate_access?:
+            | Database["public"]["Enums"]["certificate_access_mode"]
+            | null
+          certificate_fee?: number | null
+          cohort_id: string
+          content_access?:
+            | Database["public"]["Enums"]["content_access_mode"]
+            | null
+          created_at?: string
+          id?: string
+          promo_enabled?: boolean | null
+          promo_expiry?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assessment_access?:
+            | Database["public"]["Enums"]["assessment_access_mode"]
+            | null
+          certificate_access?:
+            | Database["public"]["Enums"]["certificate_access_mode"]
+            | null
+          certificate_fee?: number | null
+          cohort_id?: string
+          content_access?:
+            | Database["public"]["Enums"]["content_access_mode"]
+            | null
+          created_at?: string
+          id?: string
+          promo_enabled?: boolean | null
+          promo_expiry?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cohort_access_overrides_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: true
+            referencedRelation: "cohorts"
             referencedColumns: ["id"]
           },
         ]
@@ -361,6 +537,56 @@ export type Database = {
           views?: number
         }
         Relationships: []
+      }
+      course_access_settings: {
+        Row: {
+          assessment_access: Database["public"]["Enums"]["assessment_access_mode"]
+          certificate_access: Database["public"]["Enums"]["certificate_access_mode"]
+          certificate_fee: number | null
+          content_access: Database["public"]["Enums"]["content_access_mode"]
+          course_id: string
+          created_at: string
+          id: string
+          is_legacy: boolean | null
+          promo_enabled: boolean | null
+          promo_expiry: string | null
+          updated_at: string
+        }
+        Insert: {
+          assessment_access?: Database["public"]["Enums"]["assessment_access_mode"]
+          certificate_access?: Database["public"]["Enums"]["certificate_access_mode"]
+          certificate_fee?: number | null
+          content_access?: Database["public"]["Enums"]["content_access_mode"]
+          course_id: string
+          created_at?: string
+          id?: string
+          is_legacy?: boolean | null
+          promo_enabled?: boolean | null
+          promo_expiry?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assessment_access?: Database["public"]["Enums"]["assessment_access_mode"]
+          certificate_access?: Database["public"]["Enums"]["certificate_access_mode"]
+          certificate_fee?: number | null
+          content_access?: Database["public"]["Enums"]["content_access_mode"]
+          course_id?: string
+          created_at?: string
+          id?: string
+          is_legacy?: boolean | null
+          promo_enabled?: boolean | null
+          promo_expiry?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_access_settings_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: true
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       course_reviews: {
         Row: {
@@ -1141,6 +1367,36 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_access_defaults: {
+        Row: {
+          assessment_access: Database["public"]["Enums"]["assessment_access_mode"]
+          certificate_access: Database["public"]["Enums"]["certificate_access_mode"]
+          content_access: Database["public"]["Enums"]["content_access_mode"]
+          default_certificate_fee: number | null
+          id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          assessment_access?: Database["public"]["Enums"]["assessment_access_mode"]
+          certificate_access?: Database["public"]["Enums"]["certificate_access_mode"]
+          content_access?: Database["public"]["Enums"]["content_access_mode"]
+          default_certificate_fee?: number | null
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          assessment_access?: Database["public"]["Enums"]["assessment_access_mode"]
+          certificate_access?: Database["public"]["Enums"]["certificate_access_mode"]
+          content_access?: Database["public"]["Enums"]["content_access_mode"]
+          default_certificate_fee?: number | null
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1541,6 +1797,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_course_access_settings: {
+        Args: { _cohort_id?: string; _course_id: string }
+        Returns: {
+          assessment_access: Database["public"]["Enums"]["assessment_access_mode"]
+          certificate_access: Database["public"]["Enums"]["certificate_access_mode"]
+          certificate_fee: number
+          content_access: Database["public"]["Enums"]["content_access_mode"]
+          is_legacy: boolean
+          promo_enabled: boolean
+          promo_expiry: string
+        }[]
+      }
+      has_access_unlock: {
+        Args: { _course_id: string; _unlock_type: string; _user_id: string }
+        Returns: boolean
+      }
+      has_paid_certificate: {
+        Args: { _course_id: string; _user_id: string }
+        Returns: boolean
+      }
       has_passed_module_assessment: {
         Args: { _module_id: string; _user_id: string }
         Returns: boolean
@@ -1568,6 +1844,9 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "facilitator" | "learner"
+      assessment_access_mode: "free" | "paid" | "locked"
+      certificate_access_mode: "free" | "paid" | "disabled"
+      content_access_mode: "free" | "paid_before_access"
       content_status: "pending" | "approved" | "rejected"
       course_status: "draft" | "published" | "archived"
       course_type: "cohort" | "self_paced"
@@ -1711,6 +1990,9 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "facilitator", "learner"],
+      assessment_access_mode: ["free", "paid", "locked"],
+      certificate_access_mode: ["free", "paid", "disabled"],
+      content_access_mode: ["free", "paid_before_access"],
       content_status: ["pending", "approved", "rejected"],
       course_status: ["draft", "published", "archived"],
       course_type: ["cohort", "self_paced"],

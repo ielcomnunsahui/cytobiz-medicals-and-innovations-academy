@@ -2,3 +2,6 @@ project_id = "ovkkvqavropsrxupjtsm"
 
 [functions.optimize-receipt]
 verify_jwt = false
+
+[functions.initialize-certificate-payment]
+verify_jwt = false
