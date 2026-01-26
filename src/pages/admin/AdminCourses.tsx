@@ -16,6 +16,7 @@ import {
   ClipboardCheck,
   BookOpen,
   BarChart3,
+  Settings2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,8 +64,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { CourseAccessSettingsForm, CourseAccessFormData } from "@/components/admin/CourseAccessSettingsForm";
 import { useAdminCourses, useCreateCourse, useUpdateCourse, useDeleteCourse } from "@/hooks/useAdminData";
+import { useUpdateCourseAccessSettings } from "@/hooks/useCourseAccess";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
@@ -87,6 +92,17 @@ export default function AdminCourses() {
   const createCourse = useCreateCourse();
   const updateCourse = useUpdateCourse();
   const deleteCourse = useDeleteCourse();
+  const updateAccessSettings = useUpdateCourseAccessSettings();
+
+  // Access settings state for new courses
+  const [accessSettings, setAccessSettings] = useState<CourseAccessFormData>({
+    content_access: 'free',
+    assessment_access: 'free',
+    certificate_access: 'paid',
+    certificate_fee: 5000,
+    promo_enabled: false,
+    promo_expiry: null,
+  });
 
   // Form state
   const [formData, setFormData] = useState({
@@ -142,6 +158,14 @@ export default function AdminCourses() {
       effort_hours_per_week: 4,
       category: "",
       thumbnail_url: "",
+    });
+    setAccessSettings({
+      content_access: 'free',
+      assessment_access: 'free',
+      certificate_access: 'paid',
+      certificate_fee: 5000,
+      promo_enabled: false,
+      promo_expiry: null,
     });
     setIsCreateOpen(true);
   };
@@ -527,250 +551,289 @@ export default function AdminCourses() {
             setEditingCourse(null);
           }
         }}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingCourse ? "Edit Course" : "Create New Course"}</DialogTitle>
               <DialogDescription>
                 {editingCourse ? "Update the course details below." : "Fill in the details to create a new course."}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => {
-                      setFormData({ 
-                        ...formData, 
-                        title: e.target.value,
-                        slug: !editingCourse ? generateSlug(e.target.value) : formData.slug
-                      });
-                    }}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="slug">Slug</Label>
-                  <Input
-                    id="slug"
-                    value={formData.slug}
-                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="short_description">Short Description</Label>
-                <Textarea
-                  id="short_description"
-                  value={formData.short_description}
-                  onChange={(e) => setFormData({ ...formData, short_description: e.target.value })}
-                  rows={2}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Full Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={4}
-                />
-              </div>
-
-              {/* Course Thumbnail Upload */}
-              <div className="space-y-2">
-                <Label>Course Thumbnail</Label>
-                <div className="flex items-start gap-4">
-                  {formData.thumbnail_url ? (
-                    <div className="relative w-32 h-20 rounded-lg overflow-hidden border border-border">
-                      <img
-                        src={formData.thumbnail_url}
-                        alt="Course thumbnail"
-                        className="w-full h-full object-cover"
+            
+            <Tabs defaultValue="details" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="details">Course Details</TabsTrigger>
+                <TabsTrigger value="access" className="flex items-center gap-2">
+                  <Settings2 className="w-4 h-4" />
+                  Access Settings
+                </TabsTrigger>
+              </TabsList>
+              
+              <form onSubmit={handleSubmit}>
+                <TabsContent value="details" className="space-y-4 mt-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="title">Title</Label>
+                      <Input
+                        id="title"
+                        value={formData.title}
+                        onChange={(e) => {
+                          setFormData({ 
+                            ...formData, 
+                            title: e.target.value,
+                            slug: !editingCourse ? generateSlug(e.target.value) : formData.slug
+                          });
+                        }}
+                        required
                       />
-                      <button
-                        type="button"
-                        onClick={handleRemoveImage}
-                        className="absolute top-1 right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center hover:bg-destructive/90"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
                     </div>
-                  ) : (
-                    <div className="w-32 h-20 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-muted/30">
-                      <ImageIcon className="w-8 h-8 text-muted-foreground/50" />
+                    <div className="space-y-2">
+                      <Label htmlFor="slug">Slug</Label>
+                      <Input
+                        id="slug"
+                        value={formData.slug}
+                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                        required
+                      />
                     </div>
-                  )}
-                  <div className="flex-1 space-y-2">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp,image/gif"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isUploading}
-                    >
-                      {isUploading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Uploading...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-4 h-4 mr-2" />
-                          Upload Image
-                        </>
-                      )}
-                    </Button>
-                    <p className="text-xs text-muted-foreground">
-                      JPG, PNG, WebP or GIF (max 5MB)
-                    </p>
                   </div>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="course_type">Course Type</Label>
-                  <Select 
-                    value={formData.course_type} 
-                    onValueChange={(v) => setFormData({ ...formData, course_type: v as any })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="self_paced">Self-Paced</SelectItem>
-                      <SelectItem value="cohort">Cohort</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Select 
-                    value={formData.status} 
-                    onValueChange={(v) => setFormData({ ...formData, status: v as any })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="draft">Draft</SelectItem>
-                      <SelectItem value="published">Published</SelectItem>
-                      <SelectItem value="archived">Archived</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="short_description">Short Description</Label>
+                    <Textarea
+                      id="short_description"
+                      value={formData.short_description}
+                      onChange={(e) => setFormData({ ...formData, short_description: e.target.value })}
+                      rows={2}
+                    />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="original_price">Original Price (₦)</Label>
-                  <Input
-                    id="original_price"
-                    type="number"
-                    min="0"
-                    placeholder="e.g., 50000"
-                    value={formData.original_price ?? ""}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      original_price: e.target.value ? Number(e.target.value) : null,
-                      price: e.target.value ? Number(e.target.value) : formData.price
-                    })}
-                  />
-                  <p className="text-xs text-muted-foreground">Slashed/standard price</p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="discounted_price">Discounted Price (₦)</Label>
-                  <Input
-                    id="discounted_price"
-                    type="number"
-                    min="0"
-                    placeholder="e.g., 25000"
-                    value={formData.discounted_price ?? ""}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      discounted_price: e.target.value ? Number(e.target.value) : null 
-                    })}
-                  />
-                  <p className="text-xs text-muted-foreground">Leave empty for no discount</p>
-                </div>
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Full Description</Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      rows={4}
+                    />
+                  </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="level">Level</Label>
-                  <Select 
-                    value={formData.level} 
-                    onValueChange={(v) => setFormData({ ...formData, level: v })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="beginner">Beginner</SelectItem>
-                      <SelectItem value="intermediate">Intermediate</SelectItem>
-                      <SelectItem value="advanced">Advanced</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Input
-                    id="category"
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="duration_weeks">Duration (weeks)</Label>
-                  <Input
-                    id="duration_weeks"
-                    type="number"
-                    min="1"
-                    value={formData.duration_weeks}
-                    onChange={(e) => setFormData({ ...formData, duration_weeks: Number(e.target.value) })}
-                  />
-                </div>
-              </div>
+                  {/* Course Thumbnail Upload */}
+                  <div className="space-y-2">
+                    <Label>Course Thumbnail</Label>
+                    <div className="flex items-start gap-4">
+                      {formData.thumbnail_url ? (
+                        <div className="relative w-32 h-20 rounded-lg overflow-hidden border border-border">
+                          <img
+                            src={formData.thumbnail_url}
+                            alt="Course thumbnail"
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleRemoveImage}
+                            className="absolute top-1 right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center hover:bg-destructive/90"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-32 h-20 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-muted/30">
+                          <ImageIcon className="w-8 h-8 text-muted-foreground/50" />
+                        </div>
+                      )}
+                      <div className="flex-1 space-y-2">
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/gif"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isUploading}
+                        >
+                          {isUploading ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-4 h-4 mr-2" />
+                              Upload Image
+                            </>
+                          )}
+                        </Button>
+                        <p className="text-xs text-muted-foreground">
+                          JPG, PNG, WebP or GIF (max 5MB)
+                        </p>
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="effort_hours_per_week">Effort (hours/week)</Label>
-                <Input
-                  id="effort_hours_per_week"
-                  type="number"
-                  min="1"
-                  value={formData.effort_hours_per_week}
-                  onChange={(e) => setFormData({ ...formData, effort_hours_per_week: Number(e.target.value) })}
-                />
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="course_type">Course Type</Label>
+                      <Select 
+                        value={formData.course_type} 
+                        onValueChange={(v) => setFormData({ ...formData, course_type: v as any })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="self_paced">Self-Paced</SelectItem>
+                          <SelectItem value="cohort">Cohort</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="status">Status</Label>
+                      <Select 
+                        value={formData.status} 
+                        onValueChange={(v) => setFormData({ ...formData, status: v as any })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="draft">Draft</SelectItem>
+                          <SelectItem value="published">Published</SelectItem>
+                          <SelectItem value="archived">Archived</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => {
-                  setIsCreateOpen(false);
-                  setEditingCourse(null);
-                }}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={createCourse.isPending || updateCourse.isPending}>
-                  {(createCourse.isPending || updateCourse.isPending) && (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  )}
-                  {editingCourse ? "Update" : "Create"}
-                </Button>
-              </DialogFooter>
-            </form>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="original_price">Original Price (₦)</Label>
+                      <Input
+                        id="original_price"
+                        type="number"
+                        min="0"
+                        placeholder="e.g., 50000"
+                        value={formData.original_price ?? ""}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          original_price: e.target.value ? Number(e.target.value) : null,
+                          price: e.target.value ? Number(e.target.value) : formData.price
+                        })}
+                      />
+                      <p className="text-xs text-muted-foreground">Slashed/standard price</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="discounted_price">Discounted Price (₦)</Label>
+                      <Input
+                        id="discounted_price"
+                        type="number"
+                        min="0"
+                        placeholder="e.g., 25000"
+                        value={formData.discounted_price ?? ""}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          discounted_price: e.target.value ? Number(e.target.value) : null 
+                        })}
+                      />
+                      <p className="text-xs text-muted-foreground">Leave empty for no discount</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="level">Level</Label>
+                      <Select 
+                        value={formData.level} 
+                        onValueChange={(v) => setFormData({ ...formData, level: v })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="beginner">Beginner</SelectItem>
+                          <SelectItem value="intermediate">Intermediate</SelectItem>
+                          <SelectItem value="advanced">Advanced</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="category">Category</Label>
+                      <Input
+                        id="category"
+                        value={formData.category}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="duration_weeks">Duration (weeks)</Label>
+                      <Input
+                        id="duration_weeks"
+                        type="number"
+                        min="1"
+                        value={formData.duration_weeks}
+                        onChange={(e) => setFormData({ ...formData, duration_weeks: Number(e.target.value) })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="effort_hours_per_week">Effort (hours/week)</Label>
+                    <Input
+                      id="effort_hours_per_week"
+                      type="number"
+                      min="1"
+                      value={formData.effort_hours_per_week}
+                      onChange={(e) => setFormData({ ...formData, effort_hours_per_week: Number(e.target.value) })}
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="access" className="space-y-4 mt-4">
+                  <div className="bg-muted/30 rounded-lg p-4 border">
+                    <h4 className="font-medium mb-2 flex items-center gap-2">
+                      <Settings2 className="w-4 h-4" />
+                      Access Control Configuration
+                    </h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Configure how learners access content, assessments, and certificates for this course.
+                    </p>
+                    
+                    {editingCourse ? (
+                      <CourseAccessSettingsForm 
+                        courseId={editingCourse.id} 
+                        embedded={true}
+                        onChange={(settings) => setAccessSettings(settings)}
+                      />
+                    ) : (
+                      <CourseAccessSettingsForm 
+                        courseId="new" 
+                        embedded={true}
+                        onChange={(settings) => setAccessSettings(settings)}
+                      />
+                    )}
+                  </div>
+                </TabsContent>
+
+                <DialogFooter className="mt-6">
+                  <Button type="button" variant="outline" onClick={() => {
+                    setIsCreateOpen(false);
+                    setEditingCourse(null);
+                  }}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={createCourse.isPending || updateCourse.isPending}>
+                    {(createCourse.isPending || updateCourse.isPending) && (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    )}
+                    {editingCourse ? "Update" : "Create"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Tabs>
           </DialogContent>
         </Dialog>
 
