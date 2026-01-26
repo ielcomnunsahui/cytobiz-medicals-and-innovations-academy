@@ -18,6 +18,7 @@ import {
   Tag,
   Star,
   BarChart3,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -48,6 +49,7 @@ const adminNavItems = [
   { name: "Success Stories", href: "/admin/success-stories", icon: Quote },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { name: "Certificates", href: "/admin/certificates", icon: Award },
+  { name: "Access Control", href: "/admin/access-settings", icon: Shield },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
