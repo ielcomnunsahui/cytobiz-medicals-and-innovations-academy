@@ -9,6 +9,7 @@ import {
   Loader2,
   Send,
   Save,
+  CreditCard,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -23,6 +24,7 @@ import { useCourse, useCourses } from "@/hooks/useCourses";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useEnrollmentAutoSave } from "@/hooks/useEnrollmentAutoSave";
 import { useIncrementDiscountCodeUsage, DiscountCode } from "@/hooks/useDiscountCodes";
+import { useEffectiveAccessSettings, type CourseAccessSettings } from "@/hooks/useCourseAccess";
 import { toast } from "sonner";
 import { PageTransition } from "@/components/PageTransition";
 
@@ -42,6 +44,9 @@ import { CourseSelectionStep } from "@/components/enrollment/steps/CourseSelecti
 import { MotivationStep } from "@/components/enrollment/steps/MotivationStep";
 import { ReviewStep } from "@/components/enrollment/steps/ReviewStep";
 import { PaymentStep } from "@/components/enrollment/steps/PaymentStep";
+import { CourseSummaryStep } from "@/components/enrollment/steps/CourseSummaryStep";
+import { AccessAcknowledgmentStep } from "@/components/enrollment/steps/AccessAcknowledgmentStep";
+import { AccessSummaryPanel } from "@/components/enrollment/AccessSummaryPanel";
 
 type Cohort = Tables<"cohorts">;
 type PaymentMethod = "stripe" | "paystack" | "bank_transfer";
@@ -119,6 +124,11 @@ export default function Enroll() {
     enabled: !!course?.id && course?.course_type === "cohort",
   });
 
+  // Get selected cohort
+  const selectedCohort = cohorts?.find((c) => c.id === selectedCohortId);
+
+  // Fetch access settings for the course and cohort
+  const accessSettings = useEffectiveAccessSettings(course?.id, selectedCohortId || undefined);
   // Initialize step and load draft
   useEffect(() => {
     if (!course) return;
@@ -151,9 +161,7 @@ export default function Enroll() {
     }
   }, [course, user, cohortFromUrl]);
 
-  // Get selected cohort
-  const selectedCohort = cohorts?.find((c) => c.id === selectedCohortId);
-
+  // Note: selectedCohort is now defined earlier with accessSettings
   // Calculate deadline from cohort's application_deadline or start_date
   const deadline = selectedCohort?.application_deadline
     ? new Date(selectedCohort.application_deadline)
@@ -237,6 +245,9 @@ export default function Enroll() {
         break;
 
       case "review":
+        if (!formData.access_acknowledgment) {
+          newErrors.access_acknowledgment = "Please acknowledge the access requirements";
+        }
         if (!formData.confirmation) {
           newErrors.confirmation = "Please confirm that your information is accurate";
         }
@@ -380,17 +391,32 @@ export default function Enroll() {
   // Render content based on current step
   const renderStepContent = () => {
     if (step === "done") {
+      const contentIsFree = accessSettings?.promo_enabled || accessSettings?.content_access === 'free';
+      
       return (
         <div className="py-12 text-center">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-success/20 dark:bg-success/30 flex items-center justify-center">
-            <CheckCircle2 className="w-8 h-8 text-success" />
+          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+            <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
           <h2 className="text-2xl font-bold text-foreground mb-2">
             Application Submitted!
           </h2>
-          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-            Thank you for applying to {course?.title}. We've received your application and will review it shortly. You'll receive an email confirmation at {formData.email}.
+          <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+            Thank you for applying to {course?.title}. We've received your application and will review it shortly.
           </p>
+          
+          {/* Access Status Summary */}
+          {accessSettings && (
+            <div className="text-left max-w-md mx-auto mb-6 p-4 rounded-lg bg-muted/50 border border-border">
+              <p className="text-sm font-medium mb-2">What to expect:</p>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• {contentIsFree ? "Content will be available after approval" : "Content access requires payment approval"}</li>
+                <li>• {accessSettings.assessment_access === 'free' ? "Assessments are included" : accessSettings.assessment_access === 'locked' ? "Assessments not available" : "Assessments require additional payment"}</li>
+                <li>• {accessSettings.certificate_access === 'free' ? "Certificate is included" : accessSettings.certificate_access === 'disabled' ? "No certificate available" : `Certificate available for ₦${accessSettings.certificate_fee?.toLocaleString()}`}</li>
+              </ul>
+            </div>
+          )}
+          
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button asChild>
               <Link to="/my-enrollments">View My Enrollments</Link>
@@ -434,12 +460,10 @@ export default function Enroll() {
 
       case "course_selection":
         return (
-          <CourseSelectionStep
-            formData={formData}
-            updateField={updateField}
-            errors={errors}
-            currentCourse={course!}
-            availableCourses={availableCourses.length > 0 ? availableCourses : [course!]}
+          <CourseSummaryStep
+            course={course!}
+            cohort={selectedCohort}
+            accessSettings={accessSettings}
           />
         );
 
@@ -454,12 +478,13 @@ export default function Enroll() {
 
       case "review":
         return (
-          <ReviewStep
+          <AccessAcknowledgmentStep
             formData={formData}
             updateField={updateField}
             errors={errors}
             course={course!}
             cohort={selectedCohort}
+            accessSettings={accessSettings}
             onEditStep={handleEditStep}
           />
         );
