@@ -21,26 +21,26 @@ const COHORT_STEPS: StepConfig[] = [
   { key: "cohort", label: "Select Cohort", shortLabel: "Cohort" },
   { key: "personal", label: "Personal Info", shortLabel: "Personal" },
   { key: "background", label: "Background", shortLabel: "Background" },
-  { key: "course_selection", label: "Course & Pricing", shortLabel: "Course" },
+  { key: "course_selection", label: "Course Overview", shortLabel: "Overview" },
   { key: "motivation", label: "Motivation", shortLabel: "Why" },
-  { key: "review", label: "Review", shortLabel: "Review" },
+  { key: "review", label: "Review & Confirm", shortLabel: "Review" },
   { key: "payment", label: "Payment", shortLabel: "Payment" },
 ];
 
-// When cohort is pre-selected from URL, skip the cohort step
 const COHORT_PRESELECTED_STEPS: StepConfig[] = [
   { key: "personal", label: "Personal Info", shortLabel: "Personal" },
   { key: "background", label: "Background", shortLabel: "Background" },
-  { key: "course_selection", label: "Course & Pricing", shortLabel: "Course" },
+  { key: "course_selection", label: "Course Overview", shortLabel: "Overview" },
   { key: "motivation", label: "Motivation", shortLabel: "Why" },
-  { key: "review", label: "Review", shortLabel: "Review" },
+  { key: "review", label: "Review & Confirm", shortLabel: "Review" },
   { key: "payment", label: "Payment", shortLabel: "Payment" },
 ];
 
 const SELF_PACED_STEPS: StepConfig[] = [
   { key: "personal", label: "Personal Info", shortLabel: "Personal" },
   { key: "background", label: "Background", shortLabel: "Background" },
-  { key: "review", label: "Review", shortLabel: "Review" },
+  { key: "course_selection", label: "Course Overview", shortLabel: "Overview" },
+  { key: "review", label: "Review & Confirm", shortLabel: "Review" },
   { key: "payment", label: "Payment", shortLabel: "Payment" },
 ];
 
