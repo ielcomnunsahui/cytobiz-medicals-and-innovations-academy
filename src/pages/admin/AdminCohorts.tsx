@@ -54,9 +54,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { CohortAccessOverridesForm } from "@/components/admin/CohortAccessOverridesForm";
 import { useCohorts, useCreateCohort, useUpdateCohort, useDeleteCohort, CohortWithCourse } from "@/hooks/useCohorts";
 import { useAdminCourses } from "@/hooks/useAdminData";
 import { format, differenceInDays, isPast, isFuture } from "date-fns";
@@ -349,122 +351,143 @@ export default function AdminCohorts() {
             }
           }}
         >
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingCohort ? "Edit Cohort" : "Create New Cohort"}</DialogTitle>
               <DialogDescription>
-                {editingCohort ? "Update the cohort details below." : "Set up a new cohort for a course."}
+                {editingCohort ? "Update the cohort details and access settings." : "Set up a new cohort for a course."}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Cohort Title</Label>
-                <Input
-                  id="title"
-                  placeholder="e.g., HIC: Cohort 4"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  required
-                />
-              </div>
+            
+            <Tabs defaultValue="details" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="details">Cohort Details</TabsTrigger>
+                <TabsTrigger value="access" disabled={!editingCohort}>Access Settings</TabsTrigger>
+              </TabsList>
 
-              <div className="space-y-2">
-                <Label htmlFor="course">Course</Label>
-                <Select 
-                  value={formData.course_id} 
-                  onValueChange={(value) => setFormData({ ...formData, course_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a course" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cohortCourses?.map((course) => (
-                      <SelectItem key={course.id} value={course.id}>
-                        {course.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <TabsContent value="details">
+                <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Cohort Title</Label>
+                    <Input
+                      id="title"
+                      placeholder="e.g., HIC: Cohort 4"
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      required
+                    />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="start_date">Start Date</Label>
-                  <Input
-                    id="start_date"
-                    type="date"
-                    value={formData.start_date}
-                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="end_date">End Date</Label>
-                  <Input
-                    id="end_date"
-                    type="date"
-                    value={formData.end_date}
-                    onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="course">Course</Label>
+                    <Select 
+                      value={formData.course_id} 
+                      onValueChange={(value) => setFormData({ ...formData, course_id: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a course" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cohortCourses?.map((course) => (
+                          <SelectItem key={course.id} value={course.id}>
+                            {course.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="application_deadline">Application Deadline</Label>
-                <Input
-                  id="application_deadline"
-                  type="datetime-local"
-                  value={formData.application_deadline}
-                  onChange={(e) => setFormData({ ...formData, application_deadline: e.target.value })}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Leave empty for no deadline. This controls the countdown shown to learners.
-                </p>
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="start_date">Start Date</Label>
+                      <Input
+                        id="start_date"
+                        type="date"
+                        value={formData.start_date}
+                        onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="end_date">End Date</Label>
+                      <Input
+                        id="end_date"
+                        type="date"
+                        value={formData.end_date}
+                        onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="max_students">Maximum Students</Label>
-                <Input
-                  id="max_students"
-                  type="number"
-                  min={1}
-                  value={formData.max_students}
-                  onChange={(e) => setFormData({ ...formData, max_students: parseInt(e.target.value) || 50 })}
-                />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="application_deadline">Application Deadline</Label>
+                    <Input
+                      id="application_deadline"
+                      type="datetime-local"
+                      value={formData.application_deadline}
+                      onChange={(e) => setFormData({ ...formData, application_deadline: e.target.value })}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Leave empty for no deadline. This controls the countdown shown to learners.
+                    </p>
+                  </div>
 
-              <div className="flex items-center justify-between py-2">
-                <div>
-                  <Label htmlFor="is_active">Active</Label>
-                  <p className="text-xs text-muted-foreground">Allow enrollments for this cohort</p>
-                </div>
-                <Switch
-                  id="is_active"
-                  checked={formData.is_active}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-                />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="max_students">Maximum Students</Label>
+                    <Input
+                      id="max_students"
+                      type="number"
+                      min={1}
+                      value={formData.max_students}
+                      onChange={(e) => setFormData({ ...formData, max_students: parseInt(e.target.value) || 50 })}
+                    />
+                  </div>
 
-              <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => { setIsCreateOpen(false); setEditingCohort(null); }}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={createCohort.isPending || updateCohort.isPending}
-                >
-                  {(createCohort.isPending || updateCohort.isPending) && (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  )}
-                  {editingCohort ? "Save Changes" : "Create Cohort"}
-                </Button>
-              </DialogFooter>
-            </form>
+                  <div className="flex items-center justify-between py-2">
+                    <div>
+                      <Label htmlFor="is_active">Active</Label>
+                      <p className="text-xs text-muted-foreground">Allow enrollments for this cohort</p>
+                    </div>
+                    <Switch
+                      id="is_active"
+                      checked={formData.is_active}
+                      onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                    />
+                  </div>
+
+                  <DialogFooter>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => { setIsCreateOpen(false); setEditingCohort(null); }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      disabled={createCohort.isPending || updateCohort.isPending}
+                    >
+                      {(createCohort.isPending || updateCohort.isPending) && (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      )}
+                      {editingCohort ? "Save Changes" : "Create Cohort"}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="access">
+                {editingCohort && (
+                  <div className="pt-4">
+                    <CohortAccessOverridesForm 
+                      cohortId={editingCohort.id} 
+                      courseId={editingCohort.course_id}
+                    />
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </DialogContent>
         </Dialog>
 
