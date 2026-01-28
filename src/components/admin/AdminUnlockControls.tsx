@@ -38,8 +38,10 @@ import {
   Search,
   UserCheck,
   History,
-  Plus
+  Plus,
+  Users
 } from "lucide-react";
+import { BulkUnlockDialog } from "./BulkUnlockDialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCreateAccessUnlock } from "@/hooks/useCourseAccess";
@@ -60,6 +62,7 @@ interface UserWithProfile {
 
 export function AdminUnlockControls({ courseId, courseName, cohortId }: AdminUnlockControlsProps) {
   const [isUnlockOpen, setIsUnlockOpen] = useState(false);
+  const [isBulkOpen, setIsBulkOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUser, setSelectedUser] = useState<UserWithProfile | null>(null);
   const [unlockType, setUnlockType] = useState<"content" | "assessment" | "certificate">("certificate");
@@ -169,10 +172,16 @@ export function AdminUnlockControls({ courseId, courseName, cohortId }: AdminUnl
               Grant manual access to content, assessments, or certificates for specific users
             </CardDescription>
           </div>
-          <Button onClick={() => setIsUnlockOpen(true)} size="sm">
-            <Plus className="w-4 h-4 mr-2" />
-            Grant Access
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setIsBulkOpen(true)} variant="outline" size="sm">
+              <Users className="w-4 h-4 mr-2" />
+              Bulk Unlock
+            </Button>
+            <Button onClick={() => setIsUnlockOpen(true)} size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              Grant Access
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -353,6 +362,15 @@ export function AdminUnlockControls({ courseId, courseName, cohortId }: AdminUnl
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Unlock Dialog */}
+      <BulkUnlockDialog
+        isOpen={isBulkOpen}
+        onClose={() => setIsBulkOpen(false)}
+        courseId={courseId}
+        courseName={courseName}
+        cohortId={cohortId}
+      />
     </Card>
   );
 }
