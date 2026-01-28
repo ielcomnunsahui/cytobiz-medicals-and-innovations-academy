@@ -254,11 +254,12 @@ export default function Enroll() {
         break;
 
       case "payment":
-        const isFree = !course?.price || course.price === 0;
-        if (!isFree && !paymentMethod) {
+        // Determine if payment is actually required based on access settings
+        const contentIsPaid = accessSettings?.content_access === 'paid_before_access' && (course?.price || 0) > 0;
+        if (contentIsPaid && !paymentMethod) {
           newErrors.paymentMethod = "Please select a payment method";
         }
-        if (paymentMethod === "bank_transfer" && !receiptUrl) {
+        if (contentIsPaid && paymentMethod === "bank_transfer" && !receiptUrl) {
           newErrors.receiptUrl = "Please upload your payment receipt";
         }
         break;
@@ -501,6 +502,7 @@ export default function Enroll() {
             errors={errors}
             appliedDiscount={appliedDiscount}
             onApplyDiscount={setAppliedDiscount}
+            accessSettings={accessSettings}
           />
         );
 
@@ -586,6 +588,7 @@ export default function Enroll() {
                       course={course}
                       cohort={selectedCohort}
                       deadline={deadline}
+                      accessSettings={accessSettings}
                     />
 
                     {/* Progress */}
