@@ -46,7 +46,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { SEOHead } from "@/components/SEOHead";
 import { useAuth } from "@/hooks/useAuth";
-import { useCourseWithDetails, useEnrolledCourses } from "@/hooks/useCourses";
+import { useCourseWithDetails, useEnrolledCourses, useCourses } from "@/hooks/useCourses";
 import { useCourseAverageRating } from "@/hooks/useCourseReviews";
 import { CourseReviewForm } from "@/components/courses/CourseReviewForm";
 import { CourseReviewsList } from "@/components/courses/CourseReviewsList";
@@ -66,6 +66,12 @@ export default function CourseDetail() {
   const { data: course, isLoading, error } = useCourseWithDetails(slug || "");
   const { data: ratingData } = useCourseAverageRating(course?.id || "");
   const { data: enrolledCourses } = useEnrolledCourses(user?.id);
+  
+  // Fetch all published courses for next/prev navigation
+  const { data: allCourses } = useCourses({ status: "published" });
+  
+  const currentIndex = allCourses?.findIndex((c) => c.slug === slug) ?? -1;
+  const nextCourse = currentIndex >= 0 && allCourses ? allCourses[(currentIndex + 1) % allCourses.length] : null;
   
   const isEnrolled = enrolledCourses?.some((e: any) => e.course_id === course?.id) || false;
 
@@ -695,6 +701,26 @@ export default function CourseDetail() {
           </div>
         </div>
       </main>
+
+      {/* Next Course Navigation */}
+      {nextCourse && (
+        <section className="border-t border-border bg-muted/30">
+          <div className="container-wide py-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Next Course</p>
+                <p className="font-semibold text-foreground">{nextCourse.title}</p>
+              </div>
+              <Button asChild variant="outline" size="lg">
+                <Link to={`/courses/${nextCourse.slug}`}>
+                  View Course
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Mobile Fixed CTA */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-card border-t border-border">
