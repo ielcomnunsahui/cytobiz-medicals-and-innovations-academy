@@ -191,6 +191,23 @@ export function FeaturedCoursesSection() {
             </div>
           )}
         </div>
+
+        {/* View More CTA */}
+        {displayCourses.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="flex justify-center mt-12"
+          >
+            <Button asChild size="lg" className="h-12 px-8">
+              <Link to="/courses">
+                View More Courses
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Link>
+            </Button>
+          </motion.div>
+        )}
       </div>
     </section>
   );
