@@ -20,6 +20,7 @@ import {
   BarChart3,
   Shield,
   Unlock,
+  Plug,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -52,6 +53,7 @@ const adminNavItems = [
   { name: "Certificates", href: "/admin/certificates", icon: Award },
   { name: "Access Control", href: "/admin/access-settings", icon: Shield },
   { name: "Access Unlocks", href: "/admin/access-unlocks", icon: Unlock },
+  { name: "Coursebox", href: "/admin/coursebox", icon: Plug },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
