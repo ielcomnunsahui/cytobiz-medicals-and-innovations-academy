@@ -53,6 +53,7 @@ import AdminAssessments from "./pages/admin/AdminAssessments";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminAccessSettings from "./pages/admin/AdminAccessSettings";
 import AdminUserAccessUnlocks from "./pages/admin/AdminUserAccessUnlocks";
+import AdminCoursebox from "./pages/admin/AdminCoursebox";
 const queryClient = new QueryClient();
 
 function AnimatedRoutes() {
@@ -106,6 +107,7 @@ function AnimatedRoutes() {
           <Route path="/admin/analytics" element={<AdminAnalytics />} />
           <Route path="/admin/access-settings" element={<AdminAccessSettings />} />
           <Route path="/admin/access-unlocks" element={<AdminUserAccessUnlocks />} />
+          <Route path="/admin/coursebox" element={<AdminCoursebox />} />
         </Route>
 
         {/* Catch-all */}
