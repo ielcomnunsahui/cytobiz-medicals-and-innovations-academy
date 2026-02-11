@@ -518,6 +518,8 @@ export default function LearnPage() {
                 <ScormPlayer
                   scormUrl={currentLesson.external_url}
                   title={currentLesson.title}
+                  learnerId={user?.id}
+                  learnerName={user?.user_metadata?.display_name || user?.email || "Learner"}
                   onComplete={() => markCompleteMutation.mutate(currentLesson.id)}
                 />
               )}

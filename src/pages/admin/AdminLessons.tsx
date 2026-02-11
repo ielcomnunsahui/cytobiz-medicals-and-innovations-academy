@@ -56,6 +56,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ScormUpload } from "@/components/admin/ScormUpload";
 
 type LessonType = "text" | "video" | "document" | "external" | "scorm";
 
@@ -707,17 +708,11 @@ export default function AdminLessons() {
               )}
 
               {lessonForm.lesson_type === "scorm" && (
-                <div className="space-y-2">
-                  <Label>SCORM Package URL</Label>
-                  <Input
-                    value={lessonForm.external_url}
-                    onChange={(e) => setLessonForm({ ...lessonForm, external_url: e.target.value })}
-                    placeholder="https://your-scorm-host.com/package/index.html"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    URL to the SCORM package launch page. The package will be loaded in an iframe.
-                  </p>
-                </div>
+                <ScormUpload
+                  currentUrl={lessonForm.external_url}
+                  onUrlChange={(url) => setLessonForm({ ...lessonForm, external_url: url })}
+                  courseId={courseId}
+                />
               )}
 
               <div className="space-y-2">

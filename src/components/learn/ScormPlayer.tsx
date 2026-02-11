@@ -6,15 +6,63 @@ import { cn } from "@/lib/utils";
 interface ScormPlayerProps {
   scormUrl: string;
   title: string;
+  learnerId?: string;
+  learnerName?: string;
   onComplete?: () => void;
 }
 
-export function ScormPlayer({ scormUrl, title, onComplete }: ScormPlayerProps) {
+export function ScormPlayer({ scormUrl, title, learnerId, learnerName, onComplete }: ScormPlayerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Fetch the HTML, substitute placeholders, and create a blob URL
+  useEffect(() => {
+    let blobUrl: string | null = null;
+
+    const prepare = async () => {
+      try {
+        setIsLoading(true);
+        setHasError(false);
+
+        const response = await fetch(scormUrl);
+        if (!response.ok) throw new Error("Failed to fetch SCORM content");
+
+        const contentType = response.headers.get("content-type") || "";
+        const text = await response.text();
+
+        // Check if this is HTML that needs placeholder substitution
+        const isHtml = contentType.includes("text/html") || text.trimStart().startsWith("<!DOCTYPE") || text.trimStart().startsWith("<html");
+
+        if (isHtml && (text.includes("LEARNER_ID") || text.includes("LEARNER_NAME"))) {
+          // Substitute placeholders with actual learner data
+          let processed = text
+            .replace(/LEARNER_ID/g, learnerId || "anonymous")
+            .replace(/LEARNER_NAME/g, encodeURIComponent(learnerName || "Learner"));
+
+          const blob = new Blob([processed], { type: "text/html" });
+          blobUrl = URL.createObjectURL(blob);
+          setResolvedUrl(blobUrl);
+        } else {
+          // Use the URL directly
+          setResolvedUrl(scormUrl);
+        }
+      } catch (err) {
+        console.error("ScormPlayer: failed to prepare content", err);
+        setHasError(true);
+        setIsLoading(false);
+      }
+    };
+
+    prepare();
+
+    return () => {
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+    };
+  }, [scormUrl, learnerId, learnerName]);
 
   // Provide a minimal SCORM 1.2 API for the package
   useEffect(() => {
@@ -26,7 +74,8 @@ export function ScormPlayer({ scormUrl, title, onComplete }: ScormPlayerProps) {
       },
       LMSGetValue: (key: string) => {
         const defaults: Record<string, string> = {
-          "cmi.core.student_name": "Learner",
+          "cmi.core.student_name": learnerName || "Learner",
+          "cmi.core.student_id": learnerId || "",
           "cmi.core.lesson_status": "not attempted",
           "cmi.core.lesson_location": "",
           "cmi.core.score.raw": "",
@@ -51,13 +100,12 @@ export function ScormPlayer({ scormUrl, title, onComplete }: ScormPlayerProps) {
       LMSGetDiagnostic: () => "",
     };
 
-    // Expose the API on the window so the SCORM content can find it
     (window as any).API = scormAPI;
 
     return () => {
       delete (window as any).API;
     };
-  }, [title, onComplete]);
+  }, [title, learnerId, learnerName, onComplete]);
 
   const toggleFullscreen = () => {
     if (!isFullscreen && containerRef.current) {
@@ -72,11 +120,6 @@ export function ScormPlayer({ scormUrl, title, onComplete }: ScormPlayerProps) {
     document.addEventListener("fullscreenchange", handler);
     return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
-
-  // Determine the launch URL
-  // If it's a zip URL, we need the extracted index.html path
-  // For hosted packages, use the URL directly
-  const launchUrl = scormUrl;
 
   if (hasError) {
     return (
@@ -117,23 +160,24 @@ export function ScormPlayer({ scormUrl, title, onComplete }: ScormPlayerProps) {
       )}
 
       {/* SCORM iframe */}
-      <iframe
-        ref={iframeRef}
-        src={launchUrl}
-        title={`SCORM: ${title}`}
-        className={cn(
-          "w-full border-x border-b border-border rounded-b-2xl bg-white",
-          isFullscreen ? "h-[calc(100vh-48px)]" : "h-[600px]",
-          isLoading && "hidden"
-        )}
-        onLoad={() => setIsLoading(false)}
-        onError={() => {
-          setIsLoading(false);
-          setHasError(true);
-        }}
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-        allow="fullscreen"
-      />
+      {resolvedUrl && (
+        <iframe
+          ref={iframeRef}
+          src={resolvedUrl}
+          title={`SCORM: ${title}`}
+          className={cn(
+            "w-full border-x border-b border-border rounded-b-2xl bg-white",
+            isFullscreen ? "h-[calc(100vh-48px)]" : "h-[600px]",
+            isLoading && "hidden"
+          )}
+          onLoad={() => setIsLoading(false)}
+          onError={() => {
+            setIsLoading(false);
+            setHasError(true);
+          }}
+          allow="fullscreen"
+        />
+      )}
     </div>
   );
 }

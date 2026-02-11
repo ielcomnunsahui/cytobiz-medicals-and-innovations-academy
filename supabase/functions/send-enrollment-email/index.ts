@@ -4,7 +4,7 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 // Custom domain sender - update this when you verify your domain in Resend
 // Default: onboarding@resend.dev (for testing)
 // After verification: noreply@yourdomain.com
-const FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "Cytobiz Academy <onboarding@resend.dev>";
+const FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "Cytobiz Academy <noreply@cytobiz.com>";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
