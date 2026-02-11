@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -16,6 +16,9 @@ import {
   File,
   Loader2,
   ClipboardCheck,
+  ImagePlus,
+  Package,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,7 +57,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-type LessonType = "text" | "video" | "document" | "external";
+type LessonType = "text" | "video" | "document" | "external" | "scorm";
 
 interface Lesson {
   id: string;
@@ -83,6 +86,7 @@ const lessonTypeConfig = {
   video: { icon: Youtube, label: "YouTube Video", color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
   document: { icon: File, label: "Document/PDF", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
   external: { icon: ExternalLink, label: "External Link", color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" },
+  scorm: { icon: Package, label: "SCORM Package", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
 };
 
 export default function AdminLessons() {
@@ -112,6 +116,61 @@ export default function AdminLessons() {
     title: "",
     description: "",
   });
+
+  // Image upload state
+  const [lessonImages, setLessonImages] = useState<string[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploadingImages(true);
+    const newUrls: string[] = [];
+    try {
+      for (const file of Array.from(files)) {
+        const ext = file.name.split('.').pop();
+        const path = `lessons/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error } = await supabase.storage
+          .from("lesson-images")
+          .upload(path, file, { contentType: file.type });
+        if (error) throw error;
+        const { data: urlData } = supabase.storage
+          .from("lesson-images")
+          .getPublicUrl(path);
+        newUrls.push(urlData.publicUrl);
+      }
+      setLessonImages((prev) => [...prev, ...newUrls]);
+      toast.success(`${newUrls.length} image(s) uploaded`);
+    } catch (err) {
+      toast.error("Image upload failed: " + (err as Error).message);
+    } finally {
+      setUploadingImages(false);
+      if (imageInputRef.current) imageInputRef.current.value = "";
+    }
+  };
+
+  const removeImage = (url: string) => {
+    setLessonImages((prev) => prev.filter((u) => u !== url));
+  };
+
+  // Build content with embedded images
+  const buildContentWithImages = (textContent: string, images: string[]) => {
+    if (images.length === 0) return textContent;
+    const imageBlock = images.map((url) => `![lesson-image](${url})`).join("\n");
+    return textContent ? `${textContent}\n\n${imageBlock}` : imageBlock;
+  };
+
+  // Extract images from markdown content
+  const extractImagesFromContent = (content: string): { text: string; images: string[] } => {
+    const imageRegex = /!\[lesson-image\]\(([^)]+)\)/g;
+    const images: string[] = [];
+    let match;
+    while ((match = imageRegex.exec(content)) !== null) {
+      images.push(match[1]);
+    }
+    const text = content.replace(/\n*!\[lesson-image\]\([^)]+\)\n*/g, "").trim();
+    return { text, images };
+  };
 
   // Fetch course with modules and lessons
   const { data: course, isLoading } = useQuery({
@@ -208,11 +267,12 @@ export default function AdminLessons() {
     mutationFn: async (data: { moduleId: string; form: typeof lessonForm }) => {
       const module = course?.modules?.find((m: Module) => m.id === data.moduleId);
       const maxOrder = module?.lessons?.length || 0;
+      const finalContent = buildContentWithImages(data.form.content, lessonImages);
 
       const { error } = await supabase.from("lessons").insert({
         module_id: data.moduleId,
         title: data.form.title,
-        content: data.form.content || null,
+        content: finalContent || null,
         lesson_type: data.form.lesson_type,
         video_url: data.form.video_url || null,
         external_url: data.form.external_url || null,
@@ -237,11 +297,12 @@ export default function AdminLessons() {
   // Update lesson mutation
   const updateLesson = useMutation({
     mutationFn: async (data: { id: string; form: typeof lessonForm }) => {
+      const finalContent = buildContentWithImages(data.form.content, lessonImages);
       const { error } = await supabase
         .from("lessons")
         .update({
           title: data.form.title,
-          content: data.form.content || null,
+          content: finalContent || null,
           lesson_type: data.form.lesson_type,
           video_url: data.form.video_url || null,
           external_url: data.form.external_url || null,
@@ -290,13 +351,16 @@ export default function AdminLessons() {
       duration_minutes: "",
       is_free_preview: false,
     });
+    setLessonImages([]);
   };
 
   const openEditLesson = (lesson: Lesson) => {
     setEditingLesson(lesson);
+    const { text, images } = extractImagesFromContent(lesson.content || "");
+    setLessonImages(images);
     setLessonForm({
       title: lesson.title,
-      content: lesson.content || "",
+      content: text,
       lesson_type: (lesson.lesson_type as LessonType) || "text",
       video_url: lesson.video_url || "",
       external_url: lesson.external_url || "",
@@ -590,6 +654,12 @@ export default function AdminLessons() {
                         External Link
                       </div>
                     </SelectItem>
+                    <SelectItem value="scorm">
+                      <div className="flex items-center gap-2">
+                        <Package className="w-4 h-4" />
+                        SCORM Package
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -636,6 +706,20 @@ export default function AdminLessons() {
                 </div>
               )}
 
+              {lessonForm.lesson_type === "scorm" && (
+                <div className="space-y-2">
+                  <Label>SCORM Package URL</Label>
+                  <Input
+                    value={lessonForm.external_url}
+                    onChange={(e) => setLessonForm({ ...lessonForm, external_url: e.target.value })}
+                    placeholder="https://your-scorm-host.com/package/index.html"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    URL to the SCORM package launch page. The package will be loaded in an iframe.
+                  </p>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label>Content</Label>
                 <Textarea
@@ -644,6 +728,54 @@ export default function AdminLessons() {
                   placeholder="Write your lesson content here..."
                   rows={8}
                 />
+              </div>
+
+              {/* Image Upload Section */}
+              <div className="space-y-2">
+                <Label>Lesson Images</Label>
+                <div className="border border-dashed border-border rounded-lg p-4 space-y-3">
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => handleImageUpload(e.target.files)}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => imageInputRef.current?.click()}
+                    disabled={uploadingImages}
+                  >
+                    {uploadingImages ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <ImagePlus className="w-4 h-4 mr-2" />
+                    )}
+                    {uploadingImages ? "Uploading..." : "Add Images"}
+                  </Button>
+                  {lessonImages.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2">
+                      {lessonImages.map((url, idx) => (
+                        <div key={idx} className="relative group rounded-lg overflow-hidden border border-border">
+                          <img src={url} alt={`Lesson image ${idx + 1}`} className="w-full h-24 object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(url)}
+                            className="absolute top-1 right-1 bg-background/80 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Upload one or more images to display alongside the lesson content.
+                  </p>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
