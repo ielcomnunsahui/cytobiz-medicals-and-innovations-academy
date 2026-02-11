@@ -15,6 +15,7 @@ import {
   X,
   ExternalLink,
   ClipboardCheck,
+  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -24,6 +25,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ModuleAssessment } from "@/components/learn/ModuleAssessment";
+import { ScormPlayer } from "@/components/learn/ScormPlayer";
+import { LessonContent } from "@/components/learn/LessonContent";
 import {
   useModuleAssessmentStatus,
   useAssessmentAttempts,
@@ -273,6 +276,7 @@ export default function LearnPage() {
   }
 
   const getLessonIcon = (lesson: Lesson) => {
+    if (lesson.lesson_type === "scorm") return Package;
     if (lesson.video_url) return Video;
     return FileText;
   };
@@ -509,8 +513,17 @@ export default function LearnPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
             >
+              {/* SCORM Player */}
+              {currentLesson.lesson_type === "scorm" && currentLesson.external_url && (
+                <ScormPlayer
+                  scormUrl={currentLesson.external_url}
+                  title={currentLesson.title}
+                  onComplete={() => markCompleteMutation.mutate(currentLesson.id)}
+                />
+              )}
+
               {/* YouTube Video Player */}
-              {currentLesson.video_url && (
+              {currentLesson.video_url && currentLesson.lesson_type !== "scorm" && (
                 <div className="aspect-video bg-black rounded-2xl mb-8 overflow-hidden">
                   {currentLesson.video_url.includes("youtube.com") || currentLesson.video_url.includes("youtu.be") ? (
                     <iframe
@@ -532,7 +545,7 @@ export default function LearnPage() {
               )}
 
               {/* External URL Link */}
-              {currentLesson.external_url && (
+              {currentLesson.external_url && currentLesson.lesson_type !== "scorm" && (
                 <a
                   href={currentLesson.external_url}
                   target="_blank"
@@ -570,13 +583,9 @@ export default function LearnPage() {
                 {currentLesson.title}
               </h1>
 
-              {/* Lesson Content */}
+              {/* Lesson Content with Image Support */}
               {currentLesson.content && (
-                <div className="prose prose-lg max-w-none text-muted-foreground mb-8">
-                  {currentLesson.content.split('\n').map((paragraph, i) => (
-                    <p key={i}>{paragraph}</p>
-                  ))}
-                </div>
+                <LessonContent content={currentLesson.content} />
               )}
 
               {/* Mark Complete Button */}
