@@ -62,6 +62,66 @@ export type Database = {
           },
         ]
       }
+      alumni: {
+        Row: {
+          area_of_expertise: string | null
+          certificate_url: string | null
+          course_completed: string | null
+          created_at: string
+          email: string
+          field_of_practice: string | null
+          full_name: string
+          id: string
+          is_approved: boolean | null
+          linkedin_url: string | null
+          location: string | null
+          phone: string | null
+          photo_url: string | null
+          testimonial: string | null
+          updated_at: string
+          user_id: string
+          would_recommend: boolean | null
+        }
+        Insert: {
+          area_of_expertise?: string | null
+          certificate_url?: string | null
+          course_completed?: string | null
+          created_at?: string
+          email: string
+          field_of_practice?: string | null
+          full_name: string
+          id?: string
+          is_approved?: boolean | null
+          linkedin_url?: string | null
+          location?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          testimonial?: string | null
+          updated_at?: string
+          user_id: string
+          would_recommend?: boolean | null
+        }
+        Update: {
+          area_of_expertise?: string | null
+          certificate_url?: string | null
+          course_completed?: string | null
+          created_at?: string
+          email?: string
+          field_of_practice?: string | null
+          full_name?: string
+          id?: string
+          is_approved?: boolean | null
+          linkedin_url?: string | null
+          location?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          testimonial?: string | null
+          updated_at?: string
+          user_id?: string
+          would_recommend?: boolean | null
+        }
+        Relationships: []
+      }
       assessment_attempts: {
         Row: {
           answers: Json
