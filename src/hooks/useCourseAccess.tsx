@@ -500,7 +500,23 @@ export function useAllCertificatePayments() {
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return data;
+
+      // Get profile info
+      const userIds = data?.map(p => p.user_id) || [];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, display_name, avatar_url")
+        .in("user_id", userIds);
+
+      const profileMap = profiles?.reduce((acc, p) => {
+        acc[p.user_id] = p;
+        return acc;
+      }, {} as Record<string, any>);
+
+      return data?.map(p => ({
+        ...p,
+        profile: profileMap?.[p.user_id] || null,
+      }));
     },
   });
 }

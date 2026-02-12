@@ -146,14 +146,22 @@ export function CertificatePaymentDialog({
         .from("payment-receipts")
         .getPublicUrl(fileName);
 
-      // Update payment with receipt
+      // Update payment with receipt and mark as completed
       await updatePayment.mutateAsync({
         paymentId,
-        status: 'pending',
+        status: 'completed',
         receiptUrl: publicUrl,
       });
 
-      toast.success("Receipt uploaded! Your certificate will be unlocked after admin review.");
+      // Auto-generate certificate
+      const verificationCode = `CYT-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      await supabase.from("certificates").insert({
+        user_id: user.id,
+        course_id: courseId,
+        verification_code: verificationCode,
+      });
+
+      toast.success("Payment submitted and certificate generated! You can download it from your dashboard.");
       onOpenChange(false);
     } catch (error: any) {
       toast.error(`Upload failed: ${error.message}`);
