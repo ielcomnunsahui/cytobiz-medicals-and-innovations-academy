@@ -281,14 +281,25 @@ export default function CourseDetail() {
 
               {/* Mobile CTA */}
               <div className="lg:hidden">
-                <Button
-                  size="lg"
-                  className="w-full bg-white text-foreground hover:bg-white/90 h-14"
-                  onClick={() => setEnrollOpen(true)}
-                >
-                  Enroll Now - {course.discounted_price !== null ? `₦${course.discounted_price.toLocaleString()}` : course.original_price ? `₦${course.original_price.toLocaleString()}` : course.price ? `₦${course.price.toLocaleString()}` : "Free"}
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
+                {isEnrolled ? (
+                  <Button
+                    size="lg"
+                    className="w-full bg-white text-foreground hover:bg-white/90 h-14"
+                    onClick={() => navigate(`/learn/${course.id}`)}
+                  >
+                    Continue Learning
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                ) : (
+                  <Button
+                    size="lg"
+                    className="w-full bg-white text-foreground hover:bg-white/90 h-14"
+                    onClick={() => setEnrollOpen(true)}
+                  >
+                    Enroll Now - {course.discounted_price !== null ? `₦${course.discounted_price.toLocaleString()}` : course.original_price ? `₦${course.original_price.toLocaleString()}` : course.price ? `₦${course.price.toLocaleString()}` : "Free"}
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                )}
               </div>
             </motion.div>
 
@@ -341,14 +352,25 @@ export default function CourseDetail() {
                     <span className="text-muted-foreground">one-time payment</span>
                   )}
 
-                  <Button
-                    size="lg"
-                    className="w-full bg-primary hover:bg-primary/90 mb-3 h-14 text-lg"
-                    onClick={() => setEnrollOpen(true)}
-                  >
-                    Enroll Now
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
+                  {isEnrolled ? (
+                    <Button
+                      size="lg"
+                      className="w-full bg-success hover:bg-success/90 mb-3 h-14 text-lg"
+                      onClick={() => navigate(`/learn/${course.id}`)}
+                    >
+                      Continue Learning
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </Button>
+                  ) : (
+                    <Button
+                      size="lg"
+                      className="w-full bg-primary hover:bg-primary/90 mb-3 h-14 text-lg"
+                      onClick={() => setEnrollOpen(true)}
+                    >
+                      Enroll Now
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </Button>
+                  )}
 
                   <div className="flex gap-2">
                     <Button

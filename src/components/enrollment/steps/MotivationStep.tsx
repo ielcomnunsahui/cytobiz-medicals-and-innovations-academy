@@ -36,7 +36,7 @@ export function MotivationStep({ formData, updateField, errors }: MotivationStep
         {/* Why do you want to take this course? */}
         <div className="space-y-2">
           <Label htmlFor="motivation">
-            Why do you want to take this course? <span className="text-destructive">*</span>
+            Why do you want to take this course? <span className="text-muted-foreground text-xs">(optional)</span>
           </Label>
           <Textarea
             id="motivation"
@@ -45,12 +45,7 @@ export function MotivationStep({ formData, updateField, errors }: MotivationStep
             onChange={(e) => updateField("motivation", e.target.value)}
             className={`min-h-[120px] resize-none ${errors.motivation ? "border-destructive" : ""}`}
           />
-          <div className="flex justify-between text-xs">
-            {errors.motivation ? (
-              <p className="text-destructive">{errors.motivation}</p>
-            ) : (
-              <p className="text-muted-foreground">Minimum 20 characters</p>
-            )}
+          <div className="flex justify-end text-xs">
             <span className="text-muted-foreground">
               {(formData.motivation || "").length} characters
             </span>

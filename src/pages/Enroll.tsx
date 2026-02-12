@@ -231,14 +231,7 @@ export default function Enroll() {
         break;
 
       case "motivation":
-        if (!formData.motivation?.trim()) {
-          newErrors.motivation = "Please tell us why you want to take this course";
-        } else if (formData.motivation.trim().length < 20) {
-          newErrors.motivation = "Please provide at least 20 characters";
-        }
-        if (!formData.discovery_source) {
-          newErrors.discovery_source = "Please tell us how you heard about us";
-        }
+        // Motivation is now optional - no validation
         if (formData.discovery_source === "other" && !formData.discovery_source_other?.trim()) {
           newErrors.discovery_source_other = "Please specify where you heard about us";
         }
@@ -307,6 +300,11 @@ export default function Enroll() {
       const discountAmount = appliedDiscount?.discountAmount ?? 0;
       const finalAmount = appliedDiscount?.finalAmount ?? originalAmount;
 
+      // Determine if this is a free course (auto-approve)
+      const contentIsFree = accessSettings?.promo_enabled || accessSettings?.content_access === 'free';
+      const isFreeEnrollment = contentIsFree && (originalAmount === 0 || finalAmount === 0);
+      const enrollmentStatus = isFreeEnrollment ? "confirmed" : "pending";
+
       // Create enrollment with discount info
       const { data: enrollment, error: enrollmentError } = await supabase
         .from("enrollments")
@@ -328,6 +326,9 @@ export default function Enroll() {
         .single();
 
       if (enrollmentError) throw enrollmentError;
+
+      // For free courses, we skip the status update here (trigger blocks non-admin changes)
+      // The Learn page allows access for any enrollment status
 
       // Increment discount code usage if applied
       if (appliedDiscount?.code.id) {
@@ -358,26 +359,37 @@ export default function Enroll() {
     },
     onSuccess: async (enrollment) => {
       setSubmittedEnrollmentId(enrollment.id);
-      setStep("done");
       clearDraft();
-      toast.success("Application submitted successfully!");
       queryClient.invalidateQueries({ queryKey: ["enrollments"] });
 
-      // Send submission confirmation email
-      try {
-        await supabase.functions.invoke("send-enrollment-email", {
-          body: {
-            type: "submitted",
-            enrollmentId: enrollment.id,
-            userEmail: formData.email || user?.email,
-            userName: formData.full_name || "Learner",
-            courseName: course?.title,
-            cohortName: cohorts?.find((c: Cohort) => c.id === selectedCohortId)?.title,
-          },
-        });
-      } catch (emailError) {
-        console.error("Failed to send confirmation email:", emailError);
-        // Don't show error to user, enrollment was successful
+      const contentIsFree = accessSettings?.promo_enabled || accessSettings?.content_access === 'free';
+      const isFreeEnrollment = contentIsFree && ((course?.price ?? 0) === 0 || (appliedDiscount?.finalAmount ?? (course?.price ?? 0)) === 0);
+
+      if (isFreeEnrollment) {
+        // Auto-approved: redirect directly to course
+        toast.success("You're enrolled! Redirecting to your course...");
+        setTimeout(() => {
+          navigate(`/learn/${course?.id}`);
+        }, 1500);
+      } else {
+        setStep("done");
+        toast.success("Application submitted successfully!");
+
+        // Send submission confirmation email
+        try {
+          await supabase.functions.invoke("send-enrollment-email", {
+            body: {
+              type: "submitted",
+              enrollmentId: enrollment.id,
+              userEmail: formData.email || user?.email,
+              userName: formData.full_name || "Learner",
+              courseName: course?.title,
+              cohortName: cohorts?.find((c: Cohort) => c.id === selectedCohortId)?.title,
+            },
+          });
+        } catch (emailError) {
+          console.error("Failed to send confirmation email:", emailError);
+        }
       }
     },
     onError: (error: any) => {

@@ -16,6 +16,9 @@ import {
   ExternalLink,
   ClipboardCheck,
   Package,
+  Trophy,
+  CreditCard,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -32,6 +35,8 @@ import {
   useAssessmentAttempts,
   type Assessment,
 } from "@/hooks/useAssessments";
+import { useCourseAccessStatus } from "@/hooks/useCourseAccess";
+import { CertificatePaymentDialog } from "@/components/learner/CertificatePaymentDialog";
 
 // Helper function to extract YouTube embed URL
 function getYouTubeEmbedUrl(url: string): string {
@@ -72,6 +77,8 @@ export default function LearnPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentLessonId, setCurrentLessonId] = useState<string | null>(null);
   const [showAssessment, setShowAssessment] = useState<string | null>(null); // module id
+  const [showCompletion, setShowCompletion] = useState(false);
+  const [showCertPayment, setShowCertPayment] = useState(false);
 
   // Check if user is enrolled
   const { data: enrollment, isLoading: enrollmentLoading } = useQuery({
@@ -239,6 +246,60 @@ export default function LearnPage() {
   // Calculate progress
   const completedCount = Object.values(lessonProgress || {}).filter(Boolean).length;
   const progressPercent = allLessons.length > 0 ? (completedCount / allLessons.length) * 100 : 0;
+
+  // Course access status for certificate
+  const { accessStatus } = useCourseAccessStatus(courseId, enrollment?.cohort_id || undefined);
+
+  // Check if course is fully completed (all lessons + all required assessments)
+  const allLessonsComplete = allLessons.length > 0 && allLessons.every((l) => lessonProgress?.[l.id]);
+  const allRequiredAssessmentsPassed = course?.modules?.every((m: ModuleWithLessons) => {
+    if (!m.assessment?.is_required) return true;
+    return assessmentStatus?.[m.id]?.passed;
+  }) ?? true;
+  const isCourseComplete = allLessonsComplete && allRequiredAssessmentsPassed;
+
+  // Auto-generate certificate for free certificate access
+  const generateCertificateMutation = useMutation({
+    mutationFn: async () => {
+      if (!user?.id || !courseId) throw new Error("Missing data");
+      // Check if certificate already exists
+      const { data: existing } = await supabase
+        .from("certificates")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("course_id", courseId)
+        .maybeSingle();
+      if (existing) return existing;
+      
+      const verificationCode = `CYT-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      const { data, error } = await supabase
+        .from("certificates")
+        .insert({ user_id: user.id, course_id: courseId, verification_code: verificationCode })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["certificates"] });
+    },
+  });
+
+  // Check existing certificate
+  const { data: existingCertificate } = useQuery({
+    queryKey: ["certificate", courseId, user?.id],
+    queryFn: async () => {
+      if (!user?.id || !courseId) return null;
+      const { data } = await supabase
+        .from("certificates")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("course_id", courseId)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user?.id && !!courseId,
+  });
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -499,6 +560,16 @@ export default function LearnPage() {
                       setShowAssessment(null);
                       setCurrentLessonId(nextModule.lessons[0].id);
                     }, 2000);
+                  } else {
+                    // This was the last module's assessment - check if course is complete
+                    setTimeout(() => {
+                      setShowAssessment(null);
+                      setShowCompletion(true);
+                      // Auto-generate certificate if free
+                      if (accessStatus?.certificate.mode === 'free') {
+                        generateCertificateMutation.mutate();
+                      }
+                    }, 2000);
                   }
                 }
               }}
@@ -626,12 +697,120 @@ export default function LearnPage() {
             </motion.div>
           )}
 
+          {/* Course Completion View */}
+          {showCompletion && isCourseComplete && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-card border border-border rounded-2xl p-8 text-center"
+            >
+              <div className="w-20 h-20 rounded-full bg-success/20 mx-auto mb-6 flex items-center justify-center">
+                <Trophy className="w-10 h-10 text-success" />
+              </div>
+              <h2 className="text-3xl font-bold mb-2 text-foreground">🎉 Congratulations!</h2>
+              <p className="text-lg text-muted-foreground mb-6">
+                You've completed <strong>{course.title}</strong>!
+              </p>
+              <p className="text-muted-foreground mb-8">
+                You've finished all modules and passed all assessments. Great job!
+              </p>
+
+              {/* Certificate Section */}
+              {accessStatus?.certificate.mode === 'free' && (
+                <div className="bg-success/10 border border-success/30 rounded-xl p-6 mb-6">
+                  <Award className="w-8 h-8 text-success mx-auto mb-3" />
+                  <h3 className="font-semibold text-foreground mb-2">Your Certificate is Ready!</h3>
+                  {existingCertificate ? (
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Certificate generated. You can download it from your dashboard.
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {generateCertificateMutation.isPending ? "Generating your certificate..." : "Your certificate has been auto-generated!"}
+                    </p>
+                  )}
+                  <Button asChild>
+                    <Link to="/dashboard">
+                      <Download className="w-4 h-4 mr-2" />
+                      Go to Dashboard
+                    </Link>
+                  </Button>
+                </div>
+              )}
+
+              {accessStatus?.certificate.mode === 'paid' && !accessStatus.certificate.hasAccess && (
+                <div className="bg-primary/10 border border-primary/30 rounded-xl p-6 mb-6">
+                  <CreditCard className="w-8 h-8 text-primary mx-auto mb-3" />
+                  <h3 className="font-semibold text-foreground mb-2">Get Your Certificate</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Pay ₦{accessStatus.certificate.fee.toLocaleString()} to access your certificate of completion.
+                  </p>
+                  <Button onClick={() => setShowCertPayment(true)}>
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    Pay for Certificate
+                  </Button>
+                </div>
+              )}
+
+              {accessStatus?.certificate.mode === 'paid' && accessStatus.certificate.hasAccess && (
+                <div className="bg-success/10 border border-success/30 rounded-xl p-6 mb-6">
+                  <Award className="w-8 h-8 text-success mx-auto mb-3" />
+                  <h3 className="font-semibold text-foreground mb-2">Your Certificate is Ready!</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Payment confirmed. Download your certificate from the dashboard.
+                  </p>
+                  <Button asChild>
+                    <Link to="/dashboard">
+                      <Download className="w-4 h-4 mr-2" />
+                      Go to Dashboard
+                    </Link>
+                  </Button>
+                </div>
+              )}
+
+              {accessStatus?.certificate.mode === 'disabled' && (
+                <div className="bg-muted rounded-xl p-6 mb-6">
+                  <p className="text-sm text-muted-foreground">
+                    Certificates are not available for this course.
+                  </p>
+                </div>
+              )}
+
+              <Button variant="outline" onClick={() => setShowCompletion(false)} className="mt-4">
+                Review Course Content
+              </Button>
+            </motion.div>
+          )}
+
+          {/* Certificate Payment Dialog */}
+          {showCertPayment && courseId && (
+            <CertificatePaymentDialog
+              open={showCertPayment}
+              onOpenChange={setShowCertPayment}
+              courseId={courseId}
+              cohortId={enrollment?.cohort_id || undefined}
+              courseName={course.title}
+              certificateFee={accessStatus?.certificate.fee || 0}
+            />
+          )}
+
           {/* No Content Selected */}
-          {!showAssessment && !currentLesson && (
+          {!showAssessment && !currentLesson && !showCompletion && (
             <div className="text-center py-16">
-              <FileText className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <h2 className="text-xl font-semibold mb-2">No lesson selected</h2>
-              <p className="text-muted-foreground">Select a lesson from the sidebar to begin.</p>
+              {isCourseComplete ? (
+                <div>
+                  <Trophy className="w-16 h-16 mx-auto text-success mb-4" />
+                  <h2 className="text-xl font-semibold mb-2">Course Completed!</h2>
+                  <p className="text-muted-foreground mb-4">You've completed this course.</p>
+                  <Button onClick={() => setShowCompletion(true)}>View Completion Details</Button>
+                </div>
+              ) : (
+                <>
+                  <FileText className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                  <h2 className="text-xl font-semibold mb-2">No lesson selected</h2>
+                  <p className="text-muted-foreground">Select a lesson from the sidebar to begin.</p>
+                </>
+              )}
             </div>
           )}
         </div>

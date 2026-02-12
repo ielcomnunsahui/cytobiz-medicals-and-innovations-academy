@@ -17,6 +17,7 @@ interface EnrollmentEmailRequest {
   userEmail: string;
   userName: string;
   courseName: string;
+  courseId?: string;
   cohortName?: string;
   rejectionReason?: string;
 }
@@ -130,7 +131,11 @@ const getEmailContent = (req: EnrollmentEmailRequest) => {
         `,
       };
 
-    case "approved":
+    case "approved": {
+      const firstName = req.userName.split(" ")[0];
+      const courseLink = req.courseId 
+        ? `https://academy.cytobiz.com/learn/${req.courseId}`
+        : "https://academy.cytobiz.com/dashboard";
       return {
         subject: `🎊 Congratulations! You're In - ${req.courseName}`,
         html: `
@@ -152,48 +157,77 @@ const getEmailContent = (req: EnrollmentEmailRequest) => {
               </div>
               
               <div style="background: #ffffff; padding: 32px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                <p style="color: #374151; font-size: 16px; margin-top: 0;">Dear <strong>${req.userName}</strong>,</p>
+                <p style="color: #374151; font-size: 16px; margin-top: 0;">Hello <strong>${firstName}</strong>,</p>
                 
                 <p style="color: #374151; font-size: 16px;">
-                  <strong>Great news!</strong> Your enrollment for <strong style="color: #059669;">${req.courseName}</strong>${req.cohortName ? ` (${req.cohortName})` : ""} has been approved!
+                  Great news! 🎉
                 </p>
                 
-                <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center; border: 2px solid #10b981;">
-                  <p style="color: #065f46; font-size: 20px; font-weight: 700; margin: 0;">
-                    ✅ Your enrollment is confirmed!
-                  </p>
-                </div>
+                <p style="color: #374151; font-size: 16px;">
+                  Your enrollment for <strong style="color: #059669;">${req.courseName}</strong>${req.cohortName ? ` (${req.cohortName})` : ""} has been approved.
+                </p>
                 
                 <p style="color: #374151; font-size: 16px;">
-                  You now have full access to the course materials. Log in to your dashboard to start your learning journey!
+                  You can now access your course content immediately.
+                </p>
+                
+                <p style="color: #374151; font-size: 16px;">
+                  Click the button below to begin:
                 </p>
                 
                 <div style="text-align: center; margin: 32px 0;">
-                  <a href="https://cytobiz.com/dashboard" style="${buttonStyle}">
-                    Start Learning →
+                  <p style="color: #374151; font-size: 16px; margin-bottom: 16px;">👉</p>
+                  <a href="${courseLink}" style="${buttonStyle}">
+                    Start Course Now
                   </a>
+                  <p style="color: #6b7280; font-size: 13px; margin-top: 12px;">
+                    <a href="${courseLink}" style="color: #4f46e5; text-decoration: underline;">${courseLink}</a>
+                  </p>
+                </div>
+                
+                <div style="${cardStyle}">
+                  <h3 style="color: #1e1b4b; margin: 0 0 16px 0; font-size: 18px;">What's next:</h3>
+                  <div style="color: #4b5563;">
+                    <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+                      <span style="color: #10b981; margin-right: 12px; font-size: 18px;">•</span>
+                      <span>Go through the modules at your own pace</span>
+                    </div>
+                    <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+                      <span style="color: #10b981; margin-right: 12px; font-size: 18px;">•</span>
+                      <span>Complete all assessments</span>
+                    </div>
+                    <div style="display: flex; align-items: flex-start;">
+                      <span style="color: #10b981; margin-right: 12px; font-size: 18px;">•</span>
+                      <span>Apply for your certificate upon completion</span>
+                    </div>
+                  </div>
                 </div>
                 
                 <p style="color: #374151; font-size: 16px;">
-                  We're thrilled to have you on this learning journey. Get ready to gain practical skills and advance your healthcare career!
+                  If you experience any issues accessing your dashboard, kindly reply to this email.
+                </p>
+                
+                <p style="color: #374151; font-size: 16px;">
+                  Welcome to Cytobiz Medical &amp; Innovation Academy.
                 </p>
                 
                 <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0;">
                 
                 <p style="color: #374151; font-size: 16px; margin-bottom: 0;">
                   Best regards,<br>
-                  <strong style="color: #1e1b4b;">The Cytobiz Academy Team</strong>
+                  <strong style="color: #1e1b4b;">Cytobiz Academy Support Team</strong>
                 </p>
               </div>
               
               <div style="text-align: center; padding: 24px; color: #9ca3af; font-size: 14px;">
-                <p style="margin: 0;">© 2024 Cytobiz Medical & Innovation Academy</p>
+                <p style="margin: 0;">© ${new Date().getFullYear()} Cytobiz Medical & Innovation Academy</p>
               </div>
             </div>
           </body>
           </html>
         `,
       };
+    }
 
     case "rejected":
       return {
