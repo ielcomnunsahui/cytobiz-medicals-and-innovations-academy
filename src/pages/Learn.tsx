@@ -412,6 +412,7 @@ export default function LearnPage() {
                           if (!locked) {
                             setCurrentLessonId(lesson.id);
                             setShowAssessment(null);
+                            setShowCompletion(false);
                           }
                         }}
                         disabled={locked}
@@ -457,6 +458,7 @@ export default function LearnPage() {
                         if (!locked) {
                           setShowAssessment(module.id);
                           setCurrentLessonId(null);
+                          setShowCompletion(false);
                         }
                       }}
                       disabled={locked}
@@ -493,6 +495,66 @@ export default function LearnPage() {
               </div>
             );
           })}
+
+          {/* Certificate Section in Sidebar */}
+          {accessStatus && (
+            <div className="mb-6 mt-2">
+              <div className="flex items-center gap-2 mb-2">
+                {isCourseComplete && (existingCertificate || accessStatus.certificate.mode === 'free') ? (
+                  <CheckCircle className="w-4 h-4 text-success" />
+                ) : (
+                  <Award className="w-4 h-4 text-muted-foreground" />
+                )}
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Certificate
+                </h3>
+              </div>
+              <button
+                onClick={() => {
+                  if (isCourseComplete) {
+                    setShowCompletion(true);
+                    setCurrentLessonId(null);
+                    setShowAssessment(null);
+                  }
+                }}
+                className={cn(
+                  "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors border-2",
+                  !isCourseComplete
+                    ? "opacity-60 cursor-default border-border border-dashed"
+                    : showCompletion
+                      ? "border-primary bg-primary/10 text-primary"
+                      : existingCertificate
+                        ? "border-success/50 text-success hover:bg-success/5"
+                        : "border-amber-500/50 text-amber-600 hover:bg-amber-500/5 cursor-pointer"
+                )}
+              >
+                <div className={cn(
+                  "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0",
+                  existingCertificate ? "bg-success text-success-foreground" : "bg-muted"
+                )}>
+                  <Award className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">
+                    {accessStatus.certificate.mode === 'disabled' 
+                      ? "No Certificate" 
+                      : existingCertificate 
+                        ? "Certificate Earned" 
+                        : "Course Certificate"}
+                  </p>
+                  <p className="text-xs opacity-70">
+                    {accessStatus.certificate.mode === 'disabled'
+                      ? "Not available"
+                      : accessStatus.certificate.mode === 'free'
+                        ? isCourseComplete ? (existingCertificate ? "Download available" : "Auto-generated on completion") : "Free · Complete course to unlock"
+                        : isCourseComplete
+                          ? (accessStatus.certificate.hasAccess ? "Paid · Download available" : `₦${accessStatus.certificate.fee?.toLocaleString()} · Pay to unlock`)
+                          : `₦${accessStatus.certificate.fee?.toLocaleString()} · Complete course first`}
+                  </p>
+                </div>
+              </button>
+            </div>
+          )}
         </div>
       </aside>
 
@@ -540,7 +602,9 @@ export default function LearnPage() {
         </header>
 
         {/* Main Content Area */}
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className={cn(
+          currentLesson?.lesson_type === "scorm" ? "px-0 py-0" : "max-w-4xl mx-auto px-4 py-8"
+        )}>
           {/* Assessment View */}
           {showAssessment && currentAssessmentModule?.assessment && user && (
             <ModuleAssessment
@@ -651,49 +715,53 @@ export default function LearnPage() {
                 </a>
               )}
 
-              {/* Lesson Title */}
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-                {currentLesson.title}
-              </h1>
+              {/* Lesson Title - hide for SCORM */}
+              {currentLesson.lesson_type !== "scorm" && (
+                <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+                  {currentLesson.title}
+                </h1>
+              )}
 
-              {/* Lesson Content with Image Support */}
-              {currentLesson.content && (
+              {/* Lesson Content with Image Support - hide for SCORM */}
+              {currentLesson.content && currentLesson.lesson_type !== "scorm" && (
                 <LessonContent content={currentLesson.content} />
               )}
 
-              {/* Mark Complete Button */}
-              <div className="flex items-center gap-4 pt-8 border-t border-border">
-                {lessonProgress?.[currentLesson.id] ? (
-                  <div className="flex items-center gap-2 text-success">
-                    <CheckCircle className="w-5 h-5" />
-                    <span className="font-medium">Completed</span>
-                  </div>
-                ) : (
-                  <Button
-                    onClick={() => markCompleteMutation.mutate(currentLesson.id)}
-                    disabled={markCompleteMutation.isPending}
-                    className="bg-success hover:bg-success/90"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Mark as Complete
-                  </Button>
-                )}
+              {/* Mark Complete Button - hide for SCORM (auto-completes via SCORM API) */}
+              {currentLesson.lesson_type !== "scorm" && (
+                <div className="flex items-center gap-4 pt-8 border-t border-border">
+                  {lessonProgress?.[currentLesson.id] ? (
+                    <div className="flex items-center gap-2 text-success">
+                      <CheckCircle className="w-5 h-5" />
+                      <span className="font-medium">Completed</span>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={() => markCompleteMutation.mutate(currentLesson.id)}
+                      disabled={markCompleteMutation.isPending}
+                      className="bg-success hover:bg-success/90"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Mark as Complete
+                    </Button>
+                  )}
 
-                {nextLesson && (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      if (!lessonProgress?.[currentLesson.id]) {
-                        markCompleteMutation.mutate(currentLesson.id);
-                      }
-                      setCurrentLessonId(nextLesson.id);
-                    }}
-                  >
-                    Continue to Next Lesson
-                    <ChevronRight className="w-4 h-4 ml-2" />
-                  </Button>
-                )}
-              </div>
+                  {nextLesson && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        if (!lessonProgress?.[currentLesson.id]) {
+                          markCompleteMutation.mutate(currentLesson.id);
+                        }
+                        setCurrentLessonId(nextLesson.id);
+                      }}
+                    >
+                      Continue to Next Lesson
+                      <ChevronRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  )}
+                </div>
+              )}
             </motion.div>
           )}
 

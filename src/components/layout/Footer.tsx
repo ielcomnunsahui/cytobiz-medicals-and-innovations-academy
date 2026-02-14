@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Mail, MapPin, ArrowRight, Twitter, Linkedin, Instagram, Youtube } from "lucide-react";
+import { Mail, MapPin, ArrowRight, Twitter, Linkedin, Instagram, Youtube, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import logoIcon from "@/assets/logo-icon.png";
 
 const footerLinks = {
@@ -38,32 +41,85 @@ const socialLinks = [
 ];
 
 export function Footer() {
+  const [email, setEmail] = useState("");
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
+
+  const handleSubscribe = async () => {
+    if (!email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    setIsSubscribing(true);
+    try {
+      // Send welcome email
+      await supabase.functions.invoke("send-enrollment-email", {
+        body: {
+          type: "newsletter_welcome",
+          userEmail: email,
+          userName: email.split("@")[0],
+        },
+      });
+      setSubscribed(true);
+      toast.success("🎉 Subscription Confirmed! Welcome to Cytobiz Medical & Innovation Academy.");
+    } catch (err) {
+      console.error("Subscribe error:", err);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
+
   return (
     <footer className="bg-navy text-white">
       {/* Newsletter Section */}
       <div className="border-b border-white/10">
         <div className="container-wide py-12 md:py-16">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-            <div className="max-w-lg">
-              <h3 className="font-display text-2xl md:text-3xl font-bold mb-3">
-                Stay Ahead in Healthcare Innovation
-              </h3>
-              <p className="text-white/70">
-                Get the latest courses, insights, and industry updates delivered to your inbox.
+          {subscribed ? (
+            <div className="text-center py-4">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center">
+                <CheckCircle className="w-7 h-7 text-green-400" />
+              </div>
+              <h3 className="font-display text-2xl font-bold mb-2">🎉 Subscription Confirmed!</h3>
+              <p className="text-white/70 max-w-lg mx-auto">
+                Welcome to Cytobiz Medical & Innovation Academy. You'll now receive updates on new courses, innovation insights, and exclusive learning opportunities directly in your inbox.
               </p>
+              <p className="text-white/50 text-sm mt-3">Stay ahead in healthcare innovation.</p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 max-w-sm focus:border-primary focus:ring-primary"
-              />
-              <Button className="bg-primary hover:bg-primary/90 text-white shrink-0 shadow-lg">
-                Subscribe
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
+          ) : (
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+              <div className="max-w-lg">
+                <h3 className="font-display text-2xl md:text-3xl font-bold mb-3">
+                  Stay Ahead in Healthcare Innovation
+                </h3>
+                <p className="text-white/70">
+                  Get the latest courses, insights, and industry updates delivered to your inbox.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSubscribe()}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50 max-w-sm focus:border-primary focus:ring-primary"
+                />
+                <Button
+                  className="bg-primary hover:bg-primary/90 text-white shrink-0 shadow-lg"
+                  onClick={handleSubscribe}
+                  disabled={isSubscribing}
+                >
+                  {isSubscribing ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <ArrowRight className="w-4 h-4 mr-2" />
+                  )}
+                  Subscribe
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

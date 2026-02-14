@@ -37,11 +37,60 @@ export function ScormPlayer({ scormUrl, title, learnerId, learnerName, onComplet
         // Check if this is HTML that needs placeholder substitution
         const isHtml = contentType.includes("text/html") || text.trimStart().startsWith("<!DOCTYPE") || text.trimStart().startsWith("<html");
 
-        if (isHtml && (text.includes("LEARNER_ID") || text.includes("LEARNER_NAME"))) {
+        if (isHtml) {
+          let processed = text;
+
           // Substitute placeholders with actual learner data
-          let processed = text
-            .replace(/LEARNER_ID/g, learnerId || "anonymous")
-            .replace(/LEARNER_NAME/g, encodeURIComponent(learnerName || "Learner"));
+          if (text.includes("LEARNER_ID") || text.includes("LEARNER_NAME")) {
+            processed = processed
+              .replace(/LEARNER_ID/g, learnerId || "anonymous")
+              .replace(/LEARNER_NAME/g, encodeURIComponent(learnerName || "Learner"));
+          }
+
+          // Inject a script to auto-bypass Coursebox landing/intro screens
+          // This clicks "Get Started", "Start", "Begin", or "Continue" buttons automatically
+          const autoBypassScript = `
+<script>
+(function() {
+  function tryBypass() {
+    // Common selectors for Coursebox landing page buttons
+    var selectors = [
+      'button[class*="start"]', 'a[class*="start"]',
+      'button[class*="begin"]', 'a[class*="begin"]',
+      'button[class*="launch"]', 'a[class*="launch"]',
+      '.btn-start', '.start-btn', '.get-started',
+      '[data-action="start"]', '[data-action="begin"]',
+    ];
+    for (var i = 0; i < selectors.length; i++) {
+      var el = document.querySelector(selectors[i]);
+      if (el) { el.click(); return true; }
+    }
+    // Also try matching by button text content
+    var buttons = document.querySelectorAll('button, a.btn, a[role="button"], input[type="button"], input[type="submit"]');
+    for (var j = 0; j < buttons.length; j++) {
+      var txt = (buttons[j].textContent || buttons[j].value || '').trim().toLowerCase();
+      if (txt === 'get started' || txt === 'start' || txt === 'begin' || txt === 'start course' || txt === 'launch' || txt === 'continue') {
+        buttons[j].click(); return true;
+      }
+    }
+    return false;
+  }
+  // Try immediately and then poll for a few seconds in case content loads async
+  if (!tryBypass()) {
+    var attempts = 0;
+    var interval = setInterval(function() {
+      if (tryBypass() || ++attempts > 20) clearInterval(interval);
+    }, 500);
+  }
+})();
+</script>`;
+
+          // Insert the script before </body> or at the end
+          if (processed.includes("</body>")) {
+            processed = processed.replace("</body>", autoBypassScript + "</body>");
+          } else {
+            processed += autoBypassScript;
+          }
 
           const blob = new Blob([processed], { type: "text/html" });
           blobUrl = URL.createObjectURL(blob);
@@ -137,39 +186,29 @@ export function ScormPlayer({ scormUrl, title, learnerId, learnerName, onComplet
   }
 
   return (
-    <div ref={containerRef} className={cn("mb-8", isFullscreen && "fixed inset-0 z-50 bg-background")}>
-      {/* Player Header */}
-      <div className="flex items-center justify-between p-3 bg-muted/50 border border-border rounded-t-2xl">
-        <div className="flex items-center gap-2">
-          <Package className="w-5 h-5 text-primary" />
-          <span className="font-medium text-sm">SCORM Content: {title}</span>
-        </div>
-        <Button variant="ghost" size="sm" onClick={toggleFullscreen}>
-          {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-        </Button>
-      </div>
-
+    <div ref={containerRef} className={cn("mb-0", isFullscreen && "fixed inset-0 z-50 bg-background")}>
       {/* Loading Overlay */}
       {isLoading && (
-        <div className="flex items-center justify-center h-96 border-x border-border bg-background">
+        <div className="flex items-center justify-center h-[calc(100vh-64px)] bg-background">
           <div className="text-center">
             <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">Loading SCORM content…</p>
+            <p className="text-sm text-muted-foreground">Loading course content…</p>
           </div>
         </div>
       )}
 
-      {/* SCORM iframe */}
+      {/* SCORM iframe - fullscreen by default */}
       {resolvedUrl && (
         <iframe
           ref={iframeRef}
           src={resolvedUrl}
           title={`SCORM: ${title}`}
           className={cn(
-            "w-full border-x border-b border-border rounded-b-2xl bg-white",
-            isFullscreen ? "h-[calc(100vh-48px)]" : "h-[600px]",
+            "w-full bg-white",
+            isFullscreen ? "h-screen" : "h-[calc(100vh-64px)]",
             isLoading && "hidden"
           )}
+          style={{ border: "none" }}
           onLoad={() => setIsLoading(false)}
           onError={() => {
             setIsLoading(false);

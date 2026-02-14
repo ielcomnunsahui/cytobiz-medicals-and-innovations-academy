@@ -10,6 +10,7 @@ import {
   Send,
   Save,
   CreditCard,
+  Play,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -404,35 +405,24 @@ export default function Enroll() {
   // Render content based on current step
   const renderStepContent = () => {
     if (step === "done") {
-      const contentIsFree = accessSettings?.promo_enabled || accessSettings?.content_access === 'free';
-      
       return (
         <div className="py-12 text-center">
           <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
             <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
           <h2 className="text-2xl font-bold text-foreground mb-2">
-            Application Submitted!
+            🎉 Application Successful!
           </h2>
           <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-            Thank you for applying to {course?.title}. We've received your application and will review it shortly.
+            You have been successfully enrolled in <strong>{course?.title}</strong>. You can start learning right away!
           </p>
-          
-          {/* Access Status Summary */}
-          {accessSettings && (
-            <div className="text-left max-w-md mx-auto mb-6 p-4 rounded-lg bg-muted/50 border border-border">
-              <p className="text-sm font-medium mb-2">What to expect:</p>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• {contentIsFree ? "Content will be available after approval" : "Content access requires payment approval"}</li>
-                <li>• {accessSettings.assessment_access === 'free' ? "Assessments are included" : accessSettings.assessment_access === 'locked' ? "Assessments not available" : "Assessments require additional payment"}</li>
-                <li>• {accessSettings.certificate_access === 'free' ? "Certificate is included" : accessSettings.certificate_access === 'disabled' ? "No certificate available" : `Certificate available for ₦${accessSettings.certificate_fee?.toLocaleString()}`}</li>
-              </ul>
-            </div>
-          )}
           
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button asChild>
-              <Link to="/my-enrollments">View My Enrollments</Link>
+              <Link to={`/learn/${course?.id}`}>
+                <Play className="w-4 h-4 mr-2" />
+                View Course
+              </Link>
             </Button>
             <Button variant="outline" asChild>
               <Link to="/courses">Browse More Courses</Link>
