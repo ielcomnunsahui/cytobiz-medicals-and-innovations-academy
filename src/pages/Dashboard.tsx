@@ -215,6 +215,37 @@ export default function Dashboard() {
                 )}
               </section>
 
+              {/* Completed Courses */}
+              {enrollments && enrollments.filter((e: any) => e.progress_percentage === 100 || e.completed_at).length > 0 && (
+                <section>
+                  <h2 className="text-xl font-semibold text-foreground mb-6">
+                    Completed Courses
+                  </h2>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {enrollments.filter((e: any) => e.progress_percentage === 100 || e.completed_at).map((enrollment: any) => (
+                      <div key={`completed-${enrollment.id}`} className="bg-card border border-success/30 rounded-2xl p-5">
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
+                            <CheckCircle className="w-6 h-6 text-success" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-card-foreground">
+                              {enrollment.course?.title || "Course"}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              Completed {enrollment.completed_at ? new Date(enrollment.completed_at).toLocaleDateString() : ""}
+                            </p>
+                          </div>
+                        </div>
+                        <Button variant="outline" size="sm" className="w-full mt-4" asChild>
+                          <Link to={`/learn/${enrollment.course_id}`}>Review Course</Link>
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
               {/* Certificates */}
               {certificates && certificates.length > 0 && (
                 <section>

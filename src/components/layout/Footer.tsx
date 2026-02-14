@@ -1,11 +1,18 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Mail, MapPin, ArrowRight, Twitter, Linkedin, Instagram, Youtube, CheckCircle, Loader2 } from "lucide-react";
+import { Mail, MapPin, ArrowRight, Linkedin, Instagram, Facebook, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import logoIcon from "@/assets/logo-icon.png";
+
+// X (Twitter) icon component
+const XIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
 
 const footerLinks = {
   learning: [
@@ -34,10 +41,10 @@ const footerLinks = {
 };
 
 const socialLinks = [
-  { name: "Twitter", icon: Twitter, href: "#" },
-  { name: "LinkedIn", icon: Linkedin, href: "#" },
-  { name: "Instagram", icon: Instagram, href: "#" },
-  { name: "YouTube", icon: Youtube, href: "#" },
+  { name: "LinkedIn", icon: Linkedin, href: "https://www.linkedin.com/company/cytobiz-medical-of-innovation-and-academy/" },
+  { name: "Instagram", icon: Instagram, href: "https://www.instagram.com/cytobizhub_hq?igsh=MTZqbGczYzl5OXYyNg==" },
+  { name: "Facebook", icon: Facebook, href: "https://www.facebook.com/share/18GEsG61BB/" },
+  { name: "X", icon: XIcon, href: "https://x.com/Cytobizhub_hq" },
 ];
 
 export function Footer() {
