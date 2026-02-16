@@ -51,7 +51,6 @@ const adminNavItems = [
   { name: "Success Stories", href: "/admin/success-stories", icon: Quote },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { name: "Certificates", href: "/admin/certificates", icon: Award },
-  { name: "Alumni", href: "/admin/alumni", icon: Users },
   { name: "Access Control", href: "/admin/access-settings", icon: Shield },
   { name: "Access Unlocks", href: "/admin/access-unlocks", icon: Unlock },
   { name: "Coursebox", href: "/admin/coursebox", icon: Plug },

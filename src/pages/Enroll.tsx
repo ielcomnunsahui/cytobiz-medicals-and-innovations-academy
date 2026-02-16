@@ -367,11 +367,9 @@ export default function Enroll() {
       const isFreeEnrollment = contentIsFree && ((course?.price ?? 0) === 0 || (appliedDiscount?.finalAmount ?? (course?.price ?? 0)) === 0);
 
       if (isFreeEnrollment) {
-        // Auto-approved: redirect directly to course
-        toast.success("You're enrolled! Redirecting to your course...");
-        setTimeout(() => {
-          navigate(`/learn/${course?.id}`);
-        }, 1500);
+        // Show success step with View Course button
+        setStep("done");
+        toast.success("🎉 You're enrolled! Start learning now.");
       } else {
         setStep("done");
         toast.success("Application submitted successfully!");
@@ -405,25 +403,37 @@ export default function Enroll() {
   // Render content based on current step
   const renderStepContent = () => {
     if (step === "done") {
+      const contentIsFree = accessSettings?.promo_enabled || accessSettings?.content_access === 'free';
+      const isFreeEnrollment = contentIsFree && ((course?.price ?? 0) === 0 || (appliedDiscount?.finalAmount ?? (course?.price ?? 0)) === 0);
+
       return (
         <div className="py-12 text-center">
           <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
             <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
           <h2 className="text-2xl font-bold text-foreground mb-2">
-            🎉 Application Successful!
+            🎉 {isFreeEnrollment ? "Application Successful!" : "Application Submitted!"}
           </h2>
           <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-            You have been successfully enrolled in <strong>{course?.title}</strong>. You can start learning right away!
+            {isFreeEnrollment 
+              ? <>You have been successfully enrolled in <strong>{course?.title}</strong>. You can start learning right away!</>
+              : <>Your application for <strong>{course?.title}</strong> has been submitted. You'll receive an email once it's reviewed.</>
+            }
           </p>
           
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button asChild>
-              <Link to={`/learn/${course?.id}`}>
-                <Play className="w-4 h-4 mr-2" />
-                View Course
-              </Link>
-            </Button>
+            {isFreeEnrollment ? (
+              <Button asChild>
+                <Link to={`/learn/${course?.id}`}>
+                  <Play className="w-4 h-4 mr-2" />
+                  View Course
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild>
+                <Link to="/my-enrollments">View My Enrollments</Link>
+              </Button>
+            )}
             <Button variant="outline" asChild>
               <Link to="/courses">Browse More Courses</Link>
             </Button>

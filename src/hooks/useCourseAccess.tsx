@@ -426,6 +426,22 @@ export function useCreateCertificatePayment() {
       const { data: currentUser } = await supabase.auth.getUser();
       if (!currentUser.user) throw new Error("Not authenticated");
       
+      // Check for existing payment first
+      const { data: existing } = await supabase
+        .from("certificate_payments")
+        .select("*")
+        .eq("user_id", currentUser.user.id)
+        .eq("course_id", courseId)
+        .maybeSingle();
+
+      if (existing) {
+        if (existing.payment_status === 'completed') {
+          throw new Error("You have already paid for this certificate. Check your dashboard to download it.");
+        }
+        // Return existing pending payment instead of creating duplicate
+        return existing;
+      }
+
       const { data, error } = await supabase
         .from("certificate_payments")
         .insert({
@@ -439,7 +455,12 @@ export function useCreateCertificatePayment() {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505') {
+          throw new Error("A payment for this certificate already exists. Please check your dashboard.");
+        }
+        throw error;
+      }
       return data;
     },
     onSuccess: (_, variables) => {
@@ -500,23 +521,7 @@ export function useAllCertificatePayments() {
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-
-      // Get profile info
-      const userIds = data?.map(p => p.user_id) || [];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("user_id, display_name, avatar_url")
-        .in("user_id", userIds);
-
-      const profileMap = profiles?.reduce((acc, p) => {
-        acc[p.user_id] = p;
-        return acc;
-      }, {} as Record<string, any>);
-
-      return data?.map(p => ({
-        ...p,
-        profile: profileMap?.[p.user_id] || null,
-      }));
+      return data;
     },
   });
 }

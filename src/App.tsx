@@ -28,7 +28,7 @@ import Partners from "./pages/Partners";
 import Sponsor from "./pages/Sponsor";
 import Collaborate from "./pages/Collaborate";
 import Referral from "./pages/Referral";
-import Alumni from "./pages/Alumni";
+
 // Protected Pages
 import Dashboard from "./pages/Dashboard";
 import Learn from "./pages/Learn";
@@ -54,7 +54,6 @@ import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminAccessSettings from "./pages/admin/AdminAccessSettings";
 import AdminUserAccessUnlocks from "./pages/admin/AdminUserAccessUnlocks";
 import AdminCoursebox from "./pages/admin/AdminCoursebox";
-import AdminAlumni from "./pages/admin/AdminAlumni";
 const queryClient = new QueryClient();
 
 function AnimatedRoutes() {
@@ -80,7 +79,7 @@ function AnimatedRoutes() {
         <Route path="/sponsor" element={<Sponsor />} />
         <Route path="/collaborate" element={<Collaborate />} />
         <Route path="/referral" element={<Referral />} />
-        <Route path="/alumni" element={<Alumni />} />
+
         {/* Protected Learner Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
@@ -109,7 +108,6 @@ function AnimatedRoutes() {
           <Route path="/admin/access-settings" element={<AdminAccessSettings />} />
           <Route path="/admin/access-unlocks" element={<AdminUserAccessUnlocks />} />
           <Route path="/admin/coursebox" element={<AdminCoursebox />} />
-          <Route path="/admin/alumni" element={<AdminAlumni />} />
         </Route>
 
         {/* Catch-all */}
