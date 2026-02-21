@@ -387,9 +387,72 @@ export function useAdminCertificates() {
   });
 }
 
+// ==================== CERTIFICATE PAYMENTS ====================
+export function useAdminCertificatePayments() {
+  return useQuery({
+    queryKey: ["admin-certificate-payments"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("certificate_payments")
+        .select(`
+          *,
+          course:courses(title, slug)
+        `)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      const userIds = data.map((p) => p.user_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, display_name, avatar_url")
+        .in("user_id", userIds);
+
+      const profileMap = profiles?.reduce((acc, p) => {
+        acc[p.user_id] = p;
+        return acc;
+      }, {} as Record<string, any>);
+
+      return data.map((payment) => ({
+        ...payment,
+        profile: profileMap?.[payment.user_id] || null,
+      }));
+    },
+  });
+}
+
+export function useUpdateCertificatePaymentStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, payment_status }: { id: string; payment_status: string }) => {
+      const updates: any = { payment_status };
+      if (payment_status === "completed") {
+        updates.paid_at = new Date().toISOString();
+      }
+      const { data, error } = await supabase
+        .from("certificate_payments")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-certificate-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-certificates"] });
+      toast.success("Payment status updated");
+    },
+    onError: (error) => {
+      toast.error(`Failed to update payment status: ${error.message}`);
+    },
+  });
+}
+
 export function useDeleteCertificate() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("certificates").delete().eq("id", id);

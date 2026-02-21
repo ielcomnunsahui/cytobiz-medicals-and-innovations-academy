@@ -259,10 +259,10 @@ export default function CourseDetail() {
                     <span className="text-white/60">({ratingData.count} reviews)</span>
                   </div>
                 )}
-                {course.duration_weeks && (
+                {course.duration_hours && (
                   <div className="flex items-center gap-2">
                     <Clock className="w-5 h-5" />
-                    {course.duration_weeks} weeks
+                    {course.duration_hours} hours
                   </div>
                 )}
                 {course.effort_hours_per_week && (
@@ -392,10 +392,10 @@ export default function CourseDetail() {
                   </div>
 
                   <div className="mt-6 space-y-3 text-sm">
-                    {course.duration_weeks && (
+                    {course.duration_hours && (
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <CheckCircle className="w-4 h-4 text-success" />
-                        {course.duration_weeks} weeks of content
+                        {course.duration_hours} hours of content
                       </div>
                     )}
                     <div className="flex items-center gap-2 text-muted-foreground">

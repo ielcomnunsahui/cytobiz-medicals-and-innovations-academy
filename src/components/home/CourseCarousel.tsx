@@ -155,7 +155,7 @@ export function CourseCarousel() {
                       <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                         <div className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
-                          {course.duration_weeks ? `${course.duration_weeks} weeks` : "Flexible"}
+                          {course.duration_hours ? `${course.duration_hours} hours` : "Flexible"}
                         </div>
                         <div className="flex items-center gap-1">
                           <Users className="w-4 h-4" />

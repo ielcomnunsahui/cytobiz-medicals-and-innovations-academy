@@ -13,6 +13,12 @@ const employers = [
   { name: "Community Health Network", logo: "🤝" },
   { name: "Wellness Foundation", logo: "🌱" },
   { name: "Medical Innovation Hub", logo: "💡" },
+  { name: "NEMA", logo: "/employers/nema-logo.jpeg" },
+  { name: "Society for Family Health", logo: "/employers/sfh-logo.jpeg" },
+  { name: "Olabisi Onabanjo University", logo: "/employers/oou-logo.jpeg" },
+  { name: "Al-Hikmah University, Ilorin", logo: "/employers/alhikmah-logo.jpeg" },
+  { name: "Federal University of Health Sciences, Ila Orangun", logo: "/employers/fuhs-logo.jpeg" },
+  { name: "Digital Health Africa", logo: "💊"},
 ];
 
 export function GraduateEmployersSection() {
@@ -20,10 +26,7 @@ export function GraduateEmployersSection() {
   const isInView = useInView(ref, { once: true, margin: "-50px" });
 
   return (
-    <section
-      ref={ref}
-      className="py-16 bg-muted/30 overflow-hidden"
-    >
+    <section ref={ref} className="py-16 bg-muted/30 overflow-hidden">
       <div className="container-wide mb-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -39,44 +42,40 @@ export function GraduateEmployersSection() {
             Where Our Learners Work
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Our graduates are making an impact at leading healthcare organizations, hospitals, 
-            tech companies, and startups across Africa and beyond.
+            Our graduates are making an impact at leading healthcare organizations, hospitals,
+            universities, and agencies across Africa and beyond.
           </p>
         </motion.div>
       </div>
 
       {/* Infinite scrolling logo carousel */}
       <div className="relative">
-        {/* Gradient overlays for smooth fade effect */}
         <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-muted/30 to-transparent z-10 pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-muted/30 to-transparent z-10 pointer-events-none" />
 
         <div className="flex overflow-hidden">
           <motion.div
             className="flex gap-8 items-center"
-            animate={{
-              x: [0, -1800],
-            }}
+            animate={{ x: [0, -2400] }}
             transition={{
-              x: {
-                repeat: Infinity,
-                repeatType: "loop",
-                duration: 35,
-                ease: "linear",
-              },
+              x: { repeat: Infinity, repeatType: "loop", duration: 40, ease: "linear" },
             }}
           >
-            {/* Duplicate employers for seamless loop */}
             {[...employers, ...employers, ...employers].map((employer, index) => (
-              <div
-                key={`${employer.name}-${index}`}
-                className="flex-shrink-0 group"
-              >
-                <div className="flex flex-col items-center gap-3 px-6 py-4 rounded-xl bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300">
-                  <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
-                    {employer.logo}
+              <div key={`${employer.name}-${index}`} className="flex-shrink-0 group">
+                <div className="flex flex-col items-center gap-3 px-6 py-4 rounded-xl bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 min-w-[180px]">
+                  <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center overflow-hidden group-hover:scale-110 transition-transform">
+                    {employer.logo ? (
+                      <img
+                        src={employer.logo}
+                        alt={employer.name}
+                        className="w-14 h-14 object-contain rounded-lg"
+                      />
+                    ) : (
+                      <Briefcase className="w-7 h-7 text-primary/60" />
+                    )}
                   </div>
-                  <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground whitespace-nowrap transition-colors">
+                  <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground whitespace-nowrap transition-colors max-w-[160px] truncate">
                     {employer.name}
                   </span>
                 </div>

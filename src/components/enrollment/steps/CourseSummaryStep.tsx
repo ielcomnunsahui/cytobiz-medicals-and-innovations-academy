@@ -74,10 +74,10 @@ export function CourseSummaryStep({
             <span className="text-muted-foreground">100% Online</span>
           </div>
           
-          {course.duration_weeks && (
+          {course.duration_hours && (
             <div className="flex items-center gap-2 text-sm">
               <Calendar className="w-4 h-4 text-primary" />
-              <span className="text-muted-foreground">{course.duration_weeks} weeks</span>
+              <span className="text-muted-foreground">{course.duration_hours} hours</span>
             </div>
           )}
           

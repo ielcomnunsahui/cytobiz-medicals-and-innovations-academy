@@ -21,6 +21,8 @@ import {
   Download,
   Clock,
 } from "lucide-react";
+import { generateCertificatePNG, generateCertificateJPEG, generateCertificatePDF, generateCertificatePreviewURL } from "@/lib/generateCertificate";
+import logoFull from "@/assets/logo-full.png";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -80,7 +82,8 @@ export default function LearnPage() {
   const [showAssessment, setShowAssessment] = useState<string | null>(null); // module id
   const [showCompletion, setShowCompletion] = useState(false);
   const [showCertPayment, setShowCertPayment] = useState(false);
-
+  const [certPreviewUrl, setCertPreviewUrl] = useState<string | null>(null);
+  const [certPreviewLoading, setCertPreviewLoading] = useState(false);
   // Check if user is enrolled
   const { data: enrollment, isLoading: enrollmentLoading } = useQuery({
     queryKey: ["enrollment", courseId, user?.id],
@@ -312,6 +315,28 @@ export default function LearnPage() {
       navigate("/login");
     }
   }, [user, authLoading, navigate]);
+
+  // Helper to build cert params
+  const getCertParams = () => ({
+    recipientName: user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Learner',
+    courseTitle: course?.title || 'Course',
+    courseType: (course?.course_type || 'self_paced') as 'cohort' | 'self_paced',
+    verificationCode: existingCertificate?.verification_code || '',
+    issuedDate: existingCertificate?.issued_at
+      ? new Date(existingCertificate.issued_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+      : new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+    logoUrl: logoFull,
+  });
+
+  // Load cert preview as soon as certificate exists and course is complete
+  useEffect(() => {
+    if (existingCertificate && !certPreviewUrl && !certPreviewLoading) {
+      setCertPreviewLoading(true);
+      generateCertificatePreviewURL(getCertParams())
+        .then(url => setCertPreviewUrl(url))
+        .finally(() => setCertPreviewLoading(false));
+    }
+  }, [existingCertificate, course?.title, user?.id]);
 
   // Redirect if not enrolled
   useEffect(() => {
@@ -633,23 +658,35 @@ export default function LearnPage() {
               {/* Certificate Section */}
               {accessStatus?.certificate.mode === 'free' && (
                 <div className="bg-success/10 border border-success/30 rounded-xl p-6 mb-6">
-                  <Award className="w-8 h-8 text-success mx-auto mb-3" />
-                  <h3 className="font-semibold text-foreground mb-2">Your Certificate is Ready!</h3>
-                  {existingCertificate ? (
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Certificate generated. You can download it from your dashboard.
-                    </p>
+                  {/* Real Certificate Preview */}
+                  {certPreviewLoading ? (
+                    <div className="flex items-center justify-center h-48">
+                      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+                    </div>
+                  ) : certPreviewUrl ? (
+                    <img src={certPreviewUrl} alt="Certificate Preview" className="w-full rounded-lg shadow-lg border border-border mb-4" />
                   ) : (
-                    <p className="text-sm text-muted-foreground mb-4">
+                    <div className="flex items-center justify-center h-48 bg-muted rounded-lg mb-4">
+                      <Award className="w-12 h-12 text-muted-foreground" />
+                    </div>
+                  )}
+                  <h3 className="font-semibold text-foreground mb-2 text-center">🎉 Your Certificate is Ready!</h3>
+                  {!existingCertificate && (
+                    <p className="text-sm text-muted-foreground mb-4 text-center">
                       {generateCertificateMutation.isPending ? "Generating your certificate..." : "Your certificate has been auto-generated!"}
                     </p>
                   )}
-                  <Button asChild>
-                    <Link to="/dashboard">
-                      <Download className="w-4 h-4 mr-2" />
-                      Go to Dashboard
-                    </Link>
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" className="flex-1" onClick={() => generateCertificateJPEG(getCertParams())}>
+                      <Download className="w-4 h-4 mr-1" /> JPEG
+                    </Button>
+                    <Button variant="outline" className="flex-1" onClick={() => generateCertificatePNG(getCertParams())}>
+                      <Download className="w-4 h-4 mr-1" /> PNG
+                    </Button>
+                    <Button className="flex-1" onClick={() => generateCertificatePDF(getCertParams())}>
+                      <Download className="w-4 h-4 mr-1" /> PDF
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -682,17 +719,30 @@ export default function LearnPage() {
 
               {accessStatus?.certificate.mode === 'paid' && accessStatus.certificate.hasAccess && (
                 <div className="bg-success/10 border border-success/30 rounded-xl p-6 mb-6">
-                  <Award className="w-8 h-8 text-success mx-auto mb-3" />
-                  <h3 className="font-semibold text-foreground mb-2">Your Certificate is Ready!</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Payment confirmed. Download your certificate from the dashboard.
-                  </p>
-                  <Button asChild>
-                    <Link to="/dashboard">
-                      <Download className="w-4 h-4 mr-2" />
-                      Go to Dashboard
-                    </Link>
-                  </Button>
+                  {/* Real Certificate Preview */}
+                  {certPreviewLoading ? (
+                    <div className="flex items-center justify-center h-48">
+                      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+                    </div>
+                  ) : certPreviewUrl ? (
+                    <img src={certPreviewUrl} alt="Certificate Preview" className="w-full rounded-lg shadow-lg border border-border mb-4" />
+                  ) : (
+                    <div className="flex items-center justify-center h-48 bg-muted rounded-lg mb-4">
+                      <Award className="w-12 h-12 text-muted-foreground" />
+                    </div>
+                  )}
+                  <h3 className="font-semibold text-foreground mb-2 text-center">🎉 Your Certificate is Ready!</h3>
+                  <div className="flex gap-2">
+                    <Button variant="outline" className="flex-1" onClick={() => generateCertificateJPEG(getCertParams())}>
+                      <Download className="w-4 h-4 mr-1" /> JPEG
+                    </Button>
+                    <Button variant="outline" className="flex-1" onClick={() => generateCertificatePNG(getCertParams())}>
+                      <Download className="w-4 h-4 mr-1" /> PNG
+                    </Button>
+                    <Button className="flex-1" onClick={() => generateCertificatePDF(getCertParams())}>
+                      <Download className="w-4 h-4 mr-1" /> PDF
+                    </Button>
+                  </div>
                 </div>
               )}
 

@@ -40,8 +40,9 @@ import logoIcon from "@/assets/logo-icon.png";
 const navLinks = [
   { name: "Home", href: "/" },
   { name: "Courses", href: "/courses" },
+  { name: "Certifications", href: "/certifications" },
+  { name: "Our Team", href: "/team" },
   { name: "About", href: "/about" },
-  { name: "FAQ", href: "/faq" },
   { name: "Contact", href: "/contact" },
 ];
 
@@ -127,7 +128,7 @@ export function Navbar() {
                 </span>
                 <span
                   className={cn(
-                    "text-xs font-medium leading-tight transition-colors hidden sm:block",
+                    "text-xs font-medium leading-tight transition-colors",
                     isScrolled ? "text-muted-foreground dark:text-primary/70" : "text-white/70",
                   )}
                 >

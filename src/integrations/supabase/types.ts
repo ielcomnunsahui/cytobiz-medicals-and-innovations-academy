@@ -697,6 +697,7 @@ export type Database = {
           created_by: string | null
           description: string | null
           discounted_price: number | null
+          duration_hours: number | null
           duration_weeks: number | null
           effort_hours_per_week: number | null
           id: string
@@ -721,6 +722,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           discounted_price?: number | null
+          duration_hours?: number | null
           duration_weeks?: number | null
           effort_hours_per_week?: number | null
           id?: string
@@ -745,6 +747,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           discounted_price?: number | null
+          duration_hours?: number | null
           duration_weeks?: number | null
           effort_hours_per_week?: number | null
           id?: string

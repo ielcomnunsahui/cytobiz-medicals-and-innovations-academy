@@ -145,7 +145,7 @@ export function FeaturedCoursesSection() {
                     <div className="grid grid-cols-2 gap-3 text-sm text-muted-foreground mb-5">
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 flex-shrink-0" />
-                        <span>{course.duration_weeks ? `${course.duration_weeks} weeks` : "Self-paced"}</span>
+                        <span>{course.duration_hours ? `${course.duration_hours} hours` : "Self-paced"}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 flex-shrink-0" />

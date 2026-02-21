@@ -1,48 +1,31 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Users,
-  Upload,
-  Loader2,
-  MapPin,
-  Linkedin,
-  Briefcase,
-  Award,
-  CheckCircle,
-  Star,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Search, MapPin, Linkedin, Award, Users, Upload, CheckCircle } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SEOHead } from "@/components/SEOHead";
+import { PageTransition } from "@/components/PageTransition";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
-export default function AlumniPage() {
+export default function Alumni() {
+  const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [showForm, setShowForm] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [certFile, setCertFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
-  const [form, setForm] = useState({
+  // Form state
+  const [formData, setFormData] = useState({
     full_name: "",
     phone: "",
     email: "",
@@ -52,12 +35,13 @@ export default function AlumniPage() {
     field_of_practice: "",
     area_of_expertise: "",
     testimonial: "",
-    would_recommend: "yes",
+    would_recommend: true,
   });
+  const [certificateFile, setCertificateFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
-  // Fetch approved alumni
   const { data: alumni, isLoading } = useQuery({
-    queryKey: ["alumni"],
+    queryKey: ["alumni-public"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("alumni")
@@ -69,309 +53,438 @@ export default function AlumniPage() {
     },
   });
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setPhotoFile(file);
-      setPhotoPreview(URL.createObjectURL(file));
-    }
-  };
+  // Check if user already submitted
+  const { data: existingSubmission } = useQuery({
+    queryKey: ["alumni-submission", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from("alumni")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user?.id,
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) {
-      toast.error("Please log in to register as alumni");
-      return;
-    }
+  // Fetch courses for dropdown
+  const { data: courses } = useQuery({
+    queryKey: ["courses-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("courses")
+        .select("id, title")
+        .eq("status", "published")
+        .order("title");
+      if (error) throw error;
+      return data;
+    },
+  });
 
-    setIsSubmitting(true);
-    try {
-      let photoUrl = "";
-      let certUrl = "";
+  const submitMutation = useMutation({
+    mutationFn: async () => {
+      if (!user?.id) throw new Error("Please log in to register");
 
-      // Upload photo
-      if (photoFile) {
-        const ext = photoFile.name.split(".").pop();
-        const path = `${user.id}/photo.${ext}`;
-        const { error } = await supabase.storage.from("alumni-photos").upload(path, photoFile, { upsert: true });
-        if (error) throw error;
-        const { data: urlData } = supabase.storage.from("alumni-photos").getPublicUrl(path);
-        photoUrl = urlData.publicUrl;
-      }
+      let certificate_url: string | null = null;
 
-      // Upload certificate
-      if (certFile) {
-        const ext = certFile.name.split(".").pop();
-        const path = `${user.id}/certificate.${ext}`;
-        const { error } = await supabase.storage.from("alumni-photos").upload(path, certFile, { upsert: true });
-        if (error) throw error;
-        const { data: urlData } = supabase.storage.from("alumni-photos").getPublicUrl(path);
-        certUrl = urlData.publicUrl;
+      if (certificateFile) {
+        setUploading(true);
+        const fileExt = certificateFile.name.split(".").pop();
+        const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from("alumni-photos")
+          .upload(filePath, certificateFile);
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from("alumni-photos")
+          .getPublicUrl(filePath);
+        certificate_url = urlData.publicUrl;
+        setUploading(false);
       }
 
       const { error } = await supabase.from("alumni").insert({
         user_id: user.id,
-        full_name: form.full_name,
-        phone: form.phone,
-        email: form.email,
-        linkedin_url: form.linkedin_url,
-        location: form.location,
-        course_completed: form.course_completed,
-        certificate_url: certUrl,
-        photo_url: photoUrl,
-        field_of_practice: form.field_of_practice,
-        area_of_expertise: form.area_of_expertise,
-        testimonial: form.testimonial,
-        would_recommend: form.would_recommend === "yes",
+        full_name: formData.full_name.trim(),
+        phone: formData.phone.trim() || null,
+        email: formData.email.trim(),
+        linkedin_url: formData.linkedin_url.trim() || null,
+        location: formData.location.trim() || null,
+        course_completed: formData.course_completed || null,
+        field_of_practice: formData.field_of_practice.trim() || null,
+        area_of_expertise: formData.area_of_expertise.trim() || null,
+        testimonial: formData.testimonial.trim() || null,
+        would_recommend: formData.would_recommend,
+        certificate_url,
+        is_approved: false,
       });
 
       if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Alumni registration submitted! It will be reviewed by an admin.");
+      queryClient.invalidateQueries({ queryKey: ["alumni-submission", user?.id] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
 
-      toast.success("Alumni registration submitted successfully!");
-      setShowForm(false);
-      queryClient.invalidateQueries({ queryKey: ["alumni"] });
-      setForm({
-        full_name: "", phone: "", email: "", linkedin_url: "", location: "",
-        course_completed: "", field_of_practice: "", area_of_expertise: "",
-        testimonial: "", would_recommend: "yes",
-      });
-      setPhotoFile(null);
-      setCertFile(null);
-      setPhotoPreview(null);
-    } catch (error: any) {
-      toast.error(`Submission failed: ${error.message}`);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const updateField = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
+  const filtered = alumni?.filter((a) =>
+    a.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    a.field_of_practice?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    a.area_of_expertise?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    a.location?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <PageTransition>
+      <SEOHead
+        title="Alumni Network | Cytobiz Medical Academy"
+        description="Meet our alumni making an impact in healthcare across Africa and beyond."
+      />
       <Navbar />
-
-      <main className="flex-1 pt-24 pb-16">
+      <main className="min-h-screen bg-background pt-24 pb-16">
         <div className="container-wide">
-          {/* Hero */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
-            <Badge variant="outline" className="mb-4">
-              <Users className="w-3 h-3 mr-1" /> Community
-            </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Alumni Network</h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Connect with graduates of Cytobiz Medical & Innovation Academy. Join our growing community of healthcare professionals.
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-12"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+              <Users className="w-4 h-4" />
+              Our Community
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+              Alumni Network
+            </h1>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              Our graduates are transforming healthcare across Africa and beyond. Discover their stories and connect with fellow professionals.
             </p>
-            {user && (
-              <Dialog open={showForm} onOpenChange={setShowForm}>
-                <DialogTrigger asChild>
-                  <Button size="lg" className="bg-primary hover:bg-primary/90">
-                    Join Alumni Network
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Alumni Network Registration</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Photo Upload */}
-                    <div className="space-y-2">
-                      <Label>Profile Photo</Label>
-                      <div className="flex items-center gap-4">
-                        {photoPreview ? (
-                          <Avatar className="w-20 h-20">
-                            <AvatarImage src={photoPreview} />
-                            <AvatarFallback>PH</AvatarFallback>
-                          </Avatar>
-                        ) : (
-                          <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
-                            <Upload className="w-6 h-6 text-muted-foreground" />
-                          </div>
-                        )}
-                        <Input type="file" accept="image/*" onChange={handlePhotoChange} />
-                      </div>
-                    </div>
-
-                    {/* Personal Details */}
-                    <div className="space-y-1 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Personal Details</div>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Full Name *</Label>
-                        <Input value={form.full_name} onChange={e => updateField("full_name", e.target.value)} required />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Phone Number</Label>
-                        <Input value={form.phone} onChange={e => updateField("phone", e.target.value)} />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Email Address *</Label>
-                        <Input type="email" value={form.email} onChange={e => updateField("email", e.target.value)} required />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>LinkedIn Profile Link</Label>
-                        <Input value={form.linkedin_url} onChange={e => updateField("linkedin_url", e.target.value)} placeholder="https://linkedin.com/in/..." />
-                      </div>
-                      <div className="sm:col-span-2 space-y-2">
-                        <Label>Current Location (City & State)</Label>
-                        <Input value={form.location} onChange={e => updateField("location", e.target.value)} />
-                      </div>
-                    </div>
-
-                    {/* Academic Information */}
-                    <div className="space-y-1 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Academic Information</div>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Course Completed *</Label>
-                        <Input value={form.course_completed} onChange={e => updateField("course_completed", e.target.value)} required />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Certificate Upload</Label>
-                        <Input type="file" accept="image/*,.pdf" onChange={e => setCertFile(e.target.files?.[0] || null)} />
-                      </div>
-                    </div>
-
-                    {/* Professional Information */}
-                    <div className="space-y-1 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Professional Information</div>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Field of Practice</Label>
-                        <Input value={form.field_of_practice} onChange={e => updateField("field_of_practice", e.target.value)} />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Area of Expertise</Label>
-                        <Input value={form.area_of_expertise} onChange={e => updateField("area_of_expertise", e.target.value)} />
-                      </div>
-                    </div>
-
-                    {/* Alumni Reflection */}
-                    <div className="space-y-1 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Alumni Reflection</div>
-                    <div className="space-y-2">
-                      <Label>Share a short testimonial about your experience *</Label>
-                      <Textarea
-                        value={form.testimonial}
-                        onChange={e => updateField("testimonial", e.target.value)}
-                        placeholder="What did you learn? How did it impact your skills, confidence, or career journey?"
-                        rows={4}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Would you recommend it to others?</Label>
-                      <RadioGroup value={form.would_recommend} onValueChange={v => updateField("would_recommend", v)}>
-                        <div className="flex items-center space-x-4">
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="yes" id="yes" />
-                            <Label htmlFor="yes">Yes</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="no" id="no" />
-                            <Label htmlFor="no">No</Label>
-                          </div>
-                        </div>
-                      </RadioGroup>
-                    </div>
-
-                    <Button type="submit" className="w-full" disabled={isSubmitting}>
-                      {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Submitting...</> : "Submit Registration"}
-                    </Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            )}
-            {!user && (
-              <p className="text-sm text-muted-foreground">Please <a href="/login" className="text-primary underline">log in</a> to join the alumni network.</p>
-            )}
           </motion.div>
 
-          {/* Alumni Grid */}
-          {isLoading ? (
-            <div className="flex justify-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-          ) : alumni && alumni.length > 0 ? (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {alumni.map((person, i) => (
-                <motion.div
-                  key={person.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                >
-                  <Card className="h-full hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-4 mb-4">
-                        <Avatar className="w-16 h-16">
-                          <AvatarImage src={person.photo_url || ""} />
+          <Tabs defaultValue="directory" className="space-y-8">
+            <TabsList className="mx-auto flex w-fit">
+              <TabsTrigger value="directory">Alumni Directory</TabsTrigger>
+              <TabsTrigger value="register">Join Alumni Network</TabsTrigger>
+            </TabsList>
+
+            {/* Directory Tab */}
+            <TabsContent value="directory">
+              {/* Search */}
+              <div className="max-w-md mx-auto mb-10">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by name, field, or location..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              {/* Alumni Grid */}
+              {isLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="bg-card border border-border rounded-xl p-6">
+                      <div className="flex items-center gap-4 mb-4">
+                        <Skeleton className="w-14 h-14 rounded-full" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-16 w-full" />
+                    </div>
+                  ))}
+                </div>
+              ) : filtered?.length === 0 ? (
+                <div className="text-center py-16 text-muted-foreground">
+                  <Users className="w-12 h-12 mx-auto mb-4 opacity-40" />
+                  <p className="text-lg">No alumni found</p>
+                  <p className="text-sm">Try adjusting your search query</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filtered?.map((alum, index) => (
+                    <motion.div
+                      key={alum.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="bg-card border border-border rounded-xl p-6 hover:border-primary/30 hover:shadow-lg transition-all"
+                    >
+                      <div className="flex items-center gap-4 mb-4">
+                        <Avatar className="w-14 h-14">
+                          <AvatarImage src={alum.photo_url || ""} />
                           <AvatarFallback className="bg-primary text-primary-foreground text-lg">
-                            {person.full_name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                            {alum.full_name[0]?.toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-foreground truncate">{person.full_name}</h3>
-                          {person.field_of_practice && (
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Briefcase className="w-3 h-3" />
-                              <span className="truncate">{person.field_of_practice}</span>
-                            </div>
-                          )}
-                          {person.location && (
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <MapPin className="w-3 h-3" />
-                              <span className="truncate">{person.location}</span>
-                            </div>
+                        <div>
+                          <h3 className="font-semibold text-foreground">{alum.full_name}</h3>
+                          {alum.field_of_practice && (
+                            <p className="text-sm text-muted-foreground">{alum.field_of_practice}</p>
                           )}
                         </div>
                       </div>
-                      {person.course_completed && (
+
+                      {alum.area_of_expertise && (
                         <Badge variant="secondary" className="mb-3">
                           <Award className="w-3 h-3 mr-1" />
-                          {person.course_completed}
+                          {alum.area_of_expertise}
                         </Badge>
                       )}
-                      {person.area_of_expertise && (
-                        <Badge variant="outline" className="mb-3 ml-2">
-                          {person.area_of_expertise}
-                        </Badge>
-                      )}
-                      {person.testimonial && (
-                        <p className="text-sm text-muted-foreground mt-3 line-clamp-3 italic">
-                          "{person.testimonial}"
+
+                      {alum.location && (
+                        <p className="text-sm text-muted-foreground flex items-center gap-1 mb-3">
+                          <MapPin className="w-3 h-3" />
+                          {alum.location}
                         </p>
                       )}
-                      <div className="flex items-center gap-2 mt-4">
-                        {person.would_recommend && (
-                          <div className="flex items-center gap-1 text-xs text-success">
-                            <Star className="w-3 h-3 fill-current" />
-                            Recommends
+
+                      {alum.testimonial && (
+                        <p className="text-sm text-muted-foreground italic line-clamp-3">
+                          "{alum.testimonial}"
+                        </p>
+                      )}
+
+                      {alum.linkedin_url && (
+                        <a
+                          href={alum.linkedin_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-3"
+                        >
+                          <Linkedin className="w-4 h-4" />
+                          LinkedIn Profile
+                        </a>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Registration Tab */}
+            <TabsContent value="register">
+              <div className="max-w-2xl mx-auto">
+                {!user ? (
+                  <div className="bg-card border border-border rounded-xl p-8 text-center">
+                    <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="font-semibold text-foreground mb-2">Login Required</h3>
+                    <p className="text-muted-foreground mb-4">Please log in to register as an alumni.</p>
+                    <Button asChild>
+                      <a href="/login">Log In</a>
+                    </Button>
+                  </div>
+                ) : existingSubmission ? (
+                  <div className="bg-card border border-border rounded-xl p-8 text-center">
+                    <CheckCircle className="w-12 h-12 text-success mx-auto mb-4" />
+                    <h3 className="font-semibold text-foreground mb-2">
+                      {existingSubmission.is_approved ? "You're in the Alumni Network!" : "Registration Submitted"}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {existingSubmission.is_approved
+                        ? "Your profile is visible in the alumni directory."
+                        : "Your registration is pending admin approval."}
+                    </p>
+                  </div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-card border border-border rounded-xl p-6 md:p-8"
+                  >
+                    <h2 className="text-2xl font-bold text-foreground mb-2">Alumni Network Registration Form</h2>
+                    <p className="text-muted-foreground mb-8">Join our growing community of healthcare professionals.</p>
+
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (!formData.full_name.trim() || !formData.email.trim()) {
+                          toast.error("Full name and email are required.");
+                          return;
+                        }
+                        submitMutation.mutate();
+                      }}
+                      className="space-y-8"
+                    >
+                      {/* Personal Details */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-foreground mb-4 border-b border-border pb-2">Personal Details</h3>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="full_name">Full Name *</Label>
+                            <Input
+                              id="full_name"
+                              required
+                              value={formData.full_name}
+                              onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                              placeholder="Your full name"
+                            />
                           </div>
-                        )}
-                        {person.linkedin_url && (
-                          <a
-                            href={person.linkedin_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="ml-auto text-muted-foreground hover:text-primary transition-colors"
-                          >
-                            <Linkedin className="w-4 h-4" />
-                          </a>
-                        )}
+                          <div className="space-y-2">
+                            <Label htmlFor="phone">Phone Number</Label>
+                            <Input
+                              id="phone"
+                              value={formData.phone}
+                              onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                              placeholder="+234..."
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="email">Email Address *</Label>
+                            <Input
+                              id="email"
+                              type="email"
+                              required
+                              value={formData.email}
+                              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                              placeholder="your@email.com"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="linkedin">LinkedIn Profile Link</Label>
+                            <Input
+                              id="linkedin"
+                              value={formData.linkedin_url}
+                              onChange={(e) => setFormData(prev => ({ ...prev, linkedin_url: e.target.value }))}
+                              placeholder="https://linkedin.com/in/..."
+                            />
+                          </div>
+                          <div className="space-y-2 sm:col-span-2">
+                            <Label htmlFor="location">Current Location (City & State)</Label>
+                            <Input
+                              id="location"
+                              value={formData.location}
+                              onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                              placeholder="Lagos, Nigeria"
+                            />
+                          </div>
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16">
-              <Users className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">No alumni yet</h3>
-              <p className="text-muted-foreground">Be the first to join our alumni network!</p>
-            </div>
-          )}
+
+                      {/* Academic Information */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-foreground mb-4 border-b border-border pb-2">Academic Information</h3>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="course">Course Completed</Label>
+                            <select
+                              id="course"
+                              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                              value={formData.course_completed}
+                              onChange={(e) => setFormData(prev => ({ ...prev, course_completed: e.target.value }))}
+                            >
+                              <option value="">Select a course</option>
+                              {courses?.map((c) => (
+                                <option key={c.id} value={c.title}>{c.title}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="certificate">Certificate Upload</Label>
+                            <div className="flex items-center gap-3">
+                              <label className="flex items-center gap-2 px-4 py-2 border border-input rounded-md cursor-pointer hover:bg-muted transition-colors text-sm">
+                                <Upload className="w-4 h-4" />
+                                {certificateFile ? certificateFile.name : "Choose file"}
+                                <input
+                                  type="file"
+                                  accept="image/*,.pdf"
+                                  className="hidden"
+                                  onChange={(e) => setCertificateFile(e.target.files?.[0] || null)}
+                                />
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Professional Information */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-foreground mb-4 border-b border-border pb-2">Professional Information</h3>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="field">Field of Practice</Label>
+                            <Input
+                              id="field"
+                              value={formData.field_of_practice}
+                              onChange={(e) => setFormData(prev => ({ ...prev, field_of_practice: e.target.value }))}
+                              placeholder="e.g. Public Health, Clinical Research"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="expertise">Area of Expertise</Label>
+                            <Input
+                              id="expertise"
+                              value={formData.area_of_expertise}
+                              onChange={(e) => setFormData(prev => ({ ...prev, area_of_expertise: e.target.value }))}
+                              placeholder="e.g. Epidemiology, Health Informatics"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Alumni Reflection */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-foreground mb-4 border-b border-border pb-2">Alumni Reflection</h3>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="testimonial">
+                              Share a short testimonial about your experience at Cytobiz Medical & Innovation Academy
+                            </Label>
+                            <p className="text-xs text-muted-foreground">
+                              What did you learn? How did it impact your skills, confidence, or career journey?
+                            </p>
+                            <Textarea
+                              id="testimonial"
+                              rows={4}
+                              value={formData.testimonial}
+                              onChange={(e) => setFormData(prev => ({ ...prev, testimonial: e.target.value }))}
+                              placeholder="Share your experience..."
+                            />
+                          </div>
+                          <div className="space-y-3">
+                            <Label>Would you recommend Cytobiz to others?</Label>
+                            <RadioGroup
+                              value={formData.would_recommend ? "yes" : "no"}
+                              onValueChange={(v) => setFormData(prev => ({ ...prev, would_recommend: v === "yes" }))}
+                              className="flex gap-6"
+                            >
+                              <div className="flex items-center gap-2">
+                                <RadioGroupItem value="yes" id="rec-yes" />
+                                <Label htmlFor="rec-yes" className="font-normal">Yes</Label>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <RadioGroupItem value="no" id="rec-no" />
+                                <Label htmlFor="rec-no" className="font-normal">No</Label>
+                              </div>
+                            </RadioGroup>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={submitMutation.isPending || uploading}
+                      >
+                        {submitMutation.isPending || uploading ? "Submitting..." : "Submit Registration"}
+                      </Button>
+                    </form>
+                  </motion.div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
-
       <Footer />
-    </div>
+    </PageTransition>
   );
 }

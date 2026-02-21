@@ -171,10 +171,10 @@ export function EnrollmentHeader({ course, cohort, deadline, accessSettings }: E
               <Monitor className="w-4 h-4" />
               <span>100% Virtual</span>
             </div>
-            {course.duration_weeks && (
+            {course.duration_hours && (
               <div className="flex items-center gap-1.5">
                 <Clock className="w-4 h-4" />
-                <span>{course.duration_weeks} weeks</span>
+                <span>{course.duration_hours} hours</span>
               </div>
             )}
             {deadline && (

@@ -453,7 +453,7 @@ const Courses = () => {
                           <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-5">
                             <div className="flex items-center gap-2">
                               <Clock className="w-4 h-4" />
-                              <span>{course.duration_weeks ? `${course.duration_weeks} weeks` : "Flexible"}</span>
+                              <span>{course.duration_hours ? `${course.duration_hours} hours` : "Flexible"}</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <Calendar className="w-4 h-4" />

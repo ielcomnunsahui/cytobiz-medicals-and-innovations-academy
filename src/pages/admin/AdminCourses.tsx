@@ -116,7 +116,7 @@ export default function AdminCourses() {
     price: 0,
     original_price: null as number | null,
     discounted_price: null as number | null,
-    duration_weeks: 4,
+    duration_hours: 8,
     effort_hours_per_week: 4,
     category: "",
     thumbnail_url: "",
@@ -154,7 +154,7 @@ export default function AdminCourses() {
       price: 0,
       original_price: null,
       discounted_price: null,
-      duration_weeks: 4,
+      duration_hours: 8,
       effort_hours_per_week: 4,
       category: "",
       thumbnail_url: "",
@@ -182,7 +182,7 @@ export default function AdminCourses() {
       price: course.price || 0,
       original_price: course.original_price ?? null,
       discounted_price: course.discounted_price ?? null,
-      duration_weeks: course.duration_weeks || 4,
+      duration_hours: course.duration_hours || 8,
       effort_hours_per_week: course.effort_hours_per_week || 4,
       category: course.category || "",
       thumbnail_url: course.thumbnail_url || "",
@@ -769,13 +769,13 @@ export default function AdminCourses() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="duration_weeks">Duration (weeks)</Label>
+                      <Label htmlFor="duration_hours">Duration (hours)</Label>
                       <Input
-                        id="duration_weeks"
+                        id="duration_hours"
                         type="number"
                         min="1"
-                        value={formData.duration_weeks}
-                        onChange={(e) => setFormData({ ...formData, duration_weeks: Number(e.target.value) })}
+                        value={formData.duration_hours}
+                        onChange={(e) => setFormData({ ...formData, duration_hours: Number(e.target.value) })}
                       />
                     </div>
                   </div>

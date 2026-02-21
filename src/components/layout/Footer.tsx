@@ -17,11 +17,9 @@ const footerLinks = {
   company: [
     { name: "About Us", href: "/about" },
     { name: "Our Team", href: "/team" },
-    { name: "Careers", href: "/careers" },
     { name: "Contact", href: "/contact" },
   ],
   resources: [
-    { name: "Blog", href: "/blog" },
     { name: "Alumni Network", href: "/alumni" },
     { name: "Partners", href: "/partners" },
     { name: "FAQ", href: "/faq" },
@@ -29,7 +27,6 @@ const footerLinks = {
   legal: [
     { name: "Privacy Policy", href: "/privacy" },
     { name: "Terms of Service", href: "/terms" },
-    { name: "Cookie Policy", href: "/cookies" },
   ],
 };
 
@@ -250,7 +247,7 @@ export function Footer() {
             <span>•</span>
             <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>
             <span>•</span>
-            <Link to="/cookies" className="hover:text-white transition-colors">Cookies</Link>
+            <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
           </div>
         </div>
       </div>
