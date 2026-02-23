@@ -426,10 +426,38 @@ export function useUpdateCertificatePaymentStatus() {
 
   return useMutation({
     mutationFn: async ({ id, payment_status }: { id: string; payment_status: string }) => {
+      // First get the payment to know user_id and course_id
+      const { data: payment, error: fetchError } = await supabase
+        .from("certificate_payments")
+        .select("user_id, course_id")
+        .eq("id", id)
+        .single();
+      if (fetchError) throw fetchError;
+
       const updates: any = { payment_status };
       if (payment_status === "completed") {
         updates.paid_at = new Date().toISOString();
+
+        // Ensure certificate exists for this user+course
+        const verificationCode = `CYT-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+        await supabase
+          .from("certificates")
+          .upsert({
+            user_id: payment.user_id,
+            course_id: payment.course_id,
+            verification_code: verificationCode,
+          }, { onConflict: "user_id,course_id" });
       }
+
+      if (payment_status === "failed") {
+        // Revoke certificate if payment is invalid
+        await supabase
+          .from("certificates")
+          .delete()
+          .eq("user_id", payment.user_id)
+          .eq("course_id", payment.course_id);
+      }
+
       const { data, error } = await supabase
         .from("certificate_payments")
         .update(updates)
@@ -442,6 +470,8 @@ export function useUpdateCertificatePaymentStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-certificate-payments"] });
       queryClient.invalidateQueries({ queryKey: ["admin-certificates"] });
+      queryClient.invalidateQueries({ queryKey: ["certificates"] });
+      queryClient.invalidateQueries({ queryKey: ["certificate"] });
       toast.success("Payment status updated");
     },
     onError: (error) => {

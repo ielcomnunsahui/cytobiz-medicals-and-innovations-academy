@@ -8,6 +8,7 @@ import {
   CheckCircle,
   Upload,
 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -45,6 +46,7 @@ export function CertificatePaymentDialog({
 }: CertificatePaymentDialogProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: settings } = useSiteSettings();
   const createPayment = useCreateCertificatePayment();
   const updatePayment = useUpdateCertificatePayment();
@@ -146,14 +148,29 @@ export function CertificatePaymentDialog({
         .from("payment-receipts")
         .getPublicUrl(fileName);
 
-      // Update payment with receipt
+      // Update payment with receipt and mark as completed immediately
       await updatePayment.mutateAsync({
         paymentId,
-        status: 'pending',
+        status: 'completed',
         receiptUrl: publicUrl,
       });
 
-      toast.success("Receipt uploaded! Your certificate will be unlocked after admin review.");
+      // Auto-generate certificate immediately
+      const verificationCode = `CYT-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      await supabase
+        .from("certificates")
+        .upsert({
+          user_id: user.id,
+          course_id: courseId,
+          verification_code: verificationCode,
+        }, { onConflict: "user_id,course_id" });
+
+      // Invalidate all related queries so Learn page refreshes
+      queryClient.invalidateQueries({ queryKey: ["certificate"] });
+      queryClient.invalidateQueries({ queryKey: ["certificate-payment"] });
+      queryClient.invalidateQueries({ queryKey: ["certificates"] });
+
+      toast.success("Payment confirmed! Your certificate is ready for download.");
       onOpenChange(false);
     } catch (error: any) {
       toast.error(`Upload failed: ${error.message}`);
@@ -209,10 +226,10 @@ export function CertificatePaymentDialog({
                   <RadioGroupItem value="bank_transfer" id="bank_transfer" />
                   <Label htmlFor="bank_transfer" className="flex items-center gap-2 cursor-pointer flex-1">
                     <Building2 className="w-4 h-4" />
-                    <div>
-                      <p className="font-medium">Bank Transfer</p>
-                      <p className="text-xs text-muted-foreground">Manual verification (1-24 hours)</p>
-                    </div>
+                     <div>
+                       <p className="font-medium">Bank Transfer</p>
+                       <p className="text-xs text-muted-foreground">Upload receipt for instant certificate</p>
+                     </div>
                   </Label>
                 </div>
               </RadioGroup>
