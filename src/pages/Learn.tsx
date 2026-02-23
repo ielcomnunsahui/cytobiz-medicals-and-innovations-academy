@@ -691,18 +691,6 @@ export default function LearnPage() {
               )}
 
               {accessStatus?.certificate.mode === 'paid' && !accessStatus.certificate.hasAccess && (
-                certificatePayment?.payment_status === 'pending' ? (
-                  <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-6 mb-6">
-                    <Clock className="w-8 h-8 text-amber-500 mx-auto mb-3" />
-                    <h3 className="font-semibold text-foreground mb-2">Payment Under Review</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Your payment is being processed. Your certificate will be available once an admin confirms your payment.
-                    </p>
-                    <Button variant="outline" asChild>
-                      <Link to="/dashboard">Go to Dashboard</Link>
-                    </Button>
-                  </div>
-                ) : (
                 <div className="bg-primary/10 border border-primary/30 rounded-xl p-6 mb-6">
                   <CreditCard className="w-8 h-8 text-primary mx-auto mb-3" />
                   <h3 className="font-semibold text-foreground mb-2">Get Your Certificate</h3>
@@ -714,7 +702,6 @@ export default function LearnPage() {
                     Pay for Certificate
                   </Button>
                 </div>
-                )
               )}
 
               {accessStatus?.certificate.mode === 'paid' && accessStatus.certificate.hasAccess && (
