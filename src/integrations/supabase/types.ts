@@ -700,6 +700,7 @@ export type Database = {
           duration_hours: number | null
           duration_weeks: number | null
           effort_hours_per_week: number | null
+          enrollment_deadline: string | null
           id: string
           learning_outcomes: string[] | null
           level: string | null
@@ -725,6 +726,7 @@ export type Database = {
           duration_hours?: number | null
           duration_weeks?: number | null
           effort_hours_per_week?: number | null
+          enrollment_deadline?: string | null
           id?: string
           learning_outcomes?: string[] | null
           level?: string | null
@@ -750,6 +752,7 @@ export type Database = {
           duration_hours?: number | null
           duration_weeks?: number | null
           effort_hours_per_week?: number | null
+          enrollment_deadline?: string | null
           id?: string
           learning_outcomes?: string[] | null
           level?: string | null

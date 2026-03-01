@@ -120,6 +120,7 @@ export default function AdminCourses() {
     effort_hours_per_week: 4,
     category: "",
     thumbnail_url: "",
+    enrollment_deadline: "",
   });
 
   const filteredCourses = courses?.filter((course) => {
@@ -158,6 +159,7 @@ export default function AdminCourses() {
       effort_hours_per_week: 4,
       category: "",
       thumbnail_url: "",
+      enrollment_deadline: "",
     });
     setAccessSettings({
       content_access: 'free',
@@ -186,6 +188,7 @@ export default function AdminCourses() {
       effort_hours_per_week: course.effort_hours_per_week || 4,
       category: course.category || "",
       thumbnail_url: course.thumbnail_url || "",
+      enrollment_deadline: course.enrollment_deadline ? course.enrollment_deadline.slice(0, 16) : "",
     });
     setEditingCourse(course);
   };
@@ -244,11 +247,15 @@ export default function AdminCourses() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const submitData = {
+      ...formData,
+      enrollment_deadline: formData.enrollment_deadline ? new Date(formData.enrollment_deadline).toISOString() : null,
+    };
     if (editingCourse) {
-      await updateCourse.mutateAsync({ id: editingCourse.id, ...formData });
+      await updateCourse.mutateAsync({ id: editingCourse.id, ...submitData });
       setEditingCourse(null);
     } else {
-      await createCourse.mutateAsync(formData);
+      await createCourse.mutateAsync(submitData);
       setIsCreateOpen(false);
     }
   };
@@ -780,15 +787,27 @@ export default function AdminCourses() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="effort_hours_per_week">Effort (hours/week)</Label>
-                    <Input
-                      id="effort_hours_per_week"
-                      type="number"
-                      min="1"
-                      value={formData.effort_hours_per_week}
-                      onChange={(e) => setFormData({ ...formData, effort_hours_per_week: Number(e.target.value) })}
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="effort_hours_per_week">Effort (hours/week)</Label>
+                      <Input
+                        id="effort_hours_per_week"
+                        type="number"
+                        min="1"
+                        value={formData.effort_hours_per_week}
+                        onChange={(e) => setFormData({ ...formData, effort_hours_per_week: Number(e.target.value) })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="enrollment_deadline">Enrollment Deadline</Label>
+                      <Input
+                        id="enrollment_deadline"
+                        type="datetime-local"
+                        value={formData.enrollment_deadline}
+                        onChange={(e) => setFormData({ ...formData, enrollment_deadline: e.target.value })}
+                      />
+                      <p className="text-xs text-muted-foreground">When enrollment closes (leave empty for no deadline)</p>
+                    </div>
                   </div>
                 </TabsContent>
 

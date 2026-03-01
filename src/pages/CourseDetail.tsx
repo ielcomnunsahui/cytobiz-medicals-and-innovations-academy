@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -17,6 +17,7 @@ import {
   Loader2,
   Star,
   MessageSquare,
+  Timer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -74,6 +75,39 @@ export default function CourseDetail() {
   const nextCourse = currentIndex >= 0 && allCourses ? allCourses[(currentIndex + 1) % allCourses.length] : null;
   
   const isEnrolled = enrolledCourses?.some((e: any) => e.course_id === course?.id) || false;
+
+  // Enrollment deadline countdown
+  const [countdown, setCountdown] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
+  const [deadlinePassed, setDeadlinePassed] = useState(false);
+
+  useEffect(() => {
+    const deadline = (course as any)?.enrollment_deadline;
+    if (!deadline) return;
+
+    const update = () => {
+      const now = new Date().getTime();
+      const end = new Date(deadline).getTime();
+      const diff = end - now;
+
+      if (diff <= 0) {
+        setDeadlinePassed(true);
+        setCountdown(null);
+        return;
+      }
+
+      setDeadlinePassed(false);
+      setCountdown({
+        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+        minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+        seconds: Math.floor((diff % (1000 * 60)) / 1000),
+      });
+    };
+
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [(course as any)?.enrollment_deadline]);
 
   const getLessonIcon = (type: string) => {
     switch (type) {
@@ -279,6 +313,39 @@ export default function CourseDetail() {
                 )}
               </div>
 
+              {/* Enrollment Deadline Countdown */}
+              {countdown && !deadlinePassed && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4"
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <Timer className="w-5 h-5 text-gold" />
+                    <span className="font-semibold text-gold text-sm uppercase tracking-wider">Enrollment Closes In</span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-3 text-center">
+                    {[
+                      { value: countdown.days, label: "Days" },
+                      { value: countdown.hours, label: "Hours" },
+                      { value: countdown.minutes, label: "Mins" },
+                      { value: countdown.seconds, label: "Secs" },
+                    ].map(({ value, label }) => (
+                      <div key={label} className="bg-white/10 rounded-lg p-2">
+                        <div className="text-2xl font-bold text-white">{String(value).padStart(2, "0")}</div>
+                        <div className="text-xs text-white/60">{label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+              {deadlinePassed && (
+                <div className="bg-destructive/20 border border-destructive/30 rounded-xl p-4 flex items-center gap-3">
+                  <Timer className="w-5 h-5 text-destructive" />
+                  <span className="font-semibold text-white">Enrollment for this course has closed</span>
+                </div>
+              )}
+
               {/* Mobile CTA */}
               <div className="lg:hidden">
                 {isEnrolled ? (
@@ -352,6 +419,34 @@ export default function CourseDetail() {
                     <span className="text-muted-foreground">one-time payment</span>
                   )}
 
+                  {/* Countdown in sidebar */}
+                  {countdown && !deadlinePassed && (
+                    <div className="mb-4 bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Timer className="w-4 h-4 text-destructive" />
+                        <span className="text-xs font-semibold text-destructive uppercase tracking-wider">Enrollment Closes In</span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-2 text-center">
+                        {[
+                          { value: countdown.days, label: "D" },
+                          { value: countdown.hours, label: "H" },
+                          { value: countdown.minutes, label: "M" },
+                          { value: countdown.seconds, label: "S" },
+                        ].map(({ value, label }) => (
+                          <div key={label} className="bg-destructive/10 rounded p-1.5">
+                            <div className="text-lg font-bold text-foreground">{String(value).padStart(2, "0")}</div>
+                            <div className="text-[10px] text-muted-foreground">{label}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {deadlinePassed && !isEnrolled && (
+                    <div className="mb-4 bg-destructive/10 border border-destructive/20 rounded-lg p-3 text-center">
+                      <p className="text-sm font-semibold text-destructive">Enrollment Closed</p>
+                    </div>
+                  )}
+
                   {isEnrolled ? (
                     <Button
                       size="lg"
@@ -366,9 +461,10 @@ export default function CourseDetail() {
                       size="lg"
                       className="w-full bg-primary hover:bg-primary/90 mb-3 h-14 text-lg"
                       onClick={() => setEnrollOpen(true)}
+                      disabled={deadlinePassed}
                     >
-                      Enroll Now
-                      <ArrowRight className="w-5 h-5 ml-2" />
+                      {deadlinePassed ? "Enrollment Closed" : "Enroll Now"}
+                      {!deadlinePassed && <ArrowRight className="w-5 h-5 ml-2" />}
                     </Button>
                   )}
 
