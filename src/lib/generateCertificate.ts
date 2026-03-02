@@ -7,9 +7,16 @@ interface CertificateParams {
   recipientName: string;
   courseTitle: string;
   courseType: "cohort" | "self_paced";
-  verificationCode: string;
+  verificationCode?: string;
   issuedDate: string;
   logoUrl: string;
+}
+
+function generateSerialNumber(): string {
+  const prefix = "CMA";
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `${prefix}-${timestamp}-${random}`;
 }
 
 // ─── QR Code Generator ──────────────────────────────────────────────────────
@@ -253,7 +260,8 @@ function drawModernDivider(ctx: CanvasRenderingContext2D, cx: number, y: number,
 // ─── Canvas Rendering ────────────────────────────────────────────────────────
 
 async function renderCertificateCanvas(params: CertificateParams) {
-  const { recipientName, courseTitle, courseType, verificationCode, issuedDate, logoUrl } = params;
+  const serialCode = params.verificationCode || generateSerialNumber();
+  const { recipientName, courseTitle, courseType, issuedDate, logoUrl } = params;
   const W = 1600;
   const H = 1200;
   const canvas = document.createElement("canvas");
@@ -407,7 +415,7 @@ async function renderCertificateCanvas(params: CertificateParams) {
 
   ctx.fillStyle = navy;
   ctx.font = "bold 13px 'Segoe UI', sans-serif";
-  ctx.fillText(`Serial No: ${verificationCode}`, W / 2 + 160, infoY);
+  ctx.fillText(`Serial No: ${serialCode}`, W / 2 + 160, infoY);
 
   // ── Signature Section ──
   const sigCx = W / 2;
@@ -442,14 +450,14 @@ async function renderCertificateCanvas(params: CertificateParams) {
   ctx.fillStyle = textMuted;
   ctx.fillText("GMD, Cytobiz Group", sigCx, sigY + 60);
 
-  // ── QR Code ──
-  const qrCx = W - 150;
-  const qrCy = H - 170;
-  drawQRCode(ctx, qrCx, qrCy, `https://cytobiz.com/verify/${verificationCode}`, 3.5, navy);
+  // ── QR Code (larger) ──
+  const qrCx = W - 160;
+  const qrCy = H - 185;
+  drawQRCode(ctx, qrCx, qrCy, `https://cytobiz.com/verify/${serialCode}`, 5, navy);
   ctx.fillStyle = textMuted;
-  ctx.font = "500 9px 'Segoe UI', sans-serif";
+  ctx.font = "500 10px 'Segoe UI', sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("Scan to verify", qrCx, qrCy + 48);
+  ctx.fillText("Scan to verify", qrCx, qrCy + 64);
 
   // ── Accreditation Section ──
   const accY = H - 108;
@@ -516,12 +524,12 @@ export async function generateCertificatePreviewURL(params: CertificateParams): 
 
 export async function generateCertificateJPEG(params: CertificateParams) {
   const canvas = await renderCertificateCanvas(params);
-  triggerDownload(canvas.toDataURL("image/jpeg", 0.95), `Cytobiz-Certificate-${params.verificationCode}.jpeg`);
+  triggerDownload(canvas.toDataURL("image/jpeg", 0.95), `Cytobiz-Certificate-${params.verificationCode || 'certificate'}.jpeg`);
 }
 
 export async function generateCertificatePNG(params: CertificateParams) {
   const canvas = await renderCertificateCanvas(params);
-  triggerDownload(canvas.toDataURL("image/png", 1.0), `Cytobiz-Certificate-${params.verificationCode}.png`);
+  triggerDownload(canvas.toDataURL("image/png", 1.0), `Cytobiz-Certificate-${params.verificationCode || 'certificate'}.png`);
 }
 
 export async function generateCertificatePDF(params: CertificateParams) {
@@ -584,7 +592,7 @@ export async function generateCertificatePDF(params: CertificateParams) {
 
   const blob = new Blob([pdf], { type: "application/pdf" });
   const url = URL.createObjectURL(blob);
-  triggerDownload(url, `Cytobiz-Certificate-${params.verificationCode}.pdf`);
+  triggerDownload(url, `Cytobiz-Certificate-${params.verificationCode || 'certificate'}.pdf`);
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
