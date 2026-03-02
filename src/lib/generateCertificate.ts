@@ -63,14 +63,14 @@ async function renderCertificateCanvas(params: CertificateParams) {
   // ── Logo (large & proportional) ──
   try {
     const logo = await loadImage(logoUrl);
-    const logoH = 160;
+    const logoH = 220;
     const logoW = (logo.width / logo.height) * logoH;
-    ctx.drawImage(logo, (W - logoW) / 2, 100, logoW, logoH);
+    ctx.drawImage(logo, (W - logoW) / 2, 80, logoW, logoH);
   } catch {
     ctx.fillStyle = primaryBlue;
-    ctx.font = "bold 36px 'Georgia', serif";
+    ctx.font = "bold 42px 'Georgia', serif";
     ctx.textAlign = "center";
-    ctx.fillText("CYTOBIZ MEDICAL & INNOVATION HUB", W / 2, 180);
+    ctx.fillText("CYTOBIZ MEDICAL & INNOVATION HUB", W / 2, 200);
   }
 
   // ── Academy Name ──
@@ -142,10 +142,9 @@ async function renderCertificateCanvas(params: CertificateParams) {
   ctx.fillText(`Issued: ${issuedDate}`, W / 2, infoY);
   ctx.fillText(`Certificate No: ${verificationCode}`, W / 2, infoY + 24);
 
-  // ── E-Signatures ──
+  // ── E-Signature ──
   const sigY = H - 210;
-  drawESignature(ctx, 350, sigY, "Dr. Abdulrahman O.", "Director", "Cytobiz Medical & Innovation Academy", navy, textMuted, primaryBlue);
-  drawESignature(ctx, W - 350, sigY, "Pharm. Ayomide K.", "Academic Registrar", "Cytobiz Medical & Innovation Academy", navy, textMuted, primaryBlue);
+  drawESignature(ctx, W / 2, sigY, "Jimoh Habibullahi", "GMD", "Cytobiz Group", navy, textMuted, primaryBlue);
 
   // ── Accreditation Section ──
   const accY = H - 108;
