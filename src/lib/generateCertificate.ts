@@ -262,24 +262,30 @@ async function renderCertificateCanvas(params: CertificateParams) {
   ctx.fillText("Scan to verify", qrCx, qrCy + 52);
 
   // ── Accreditation Section ──
-  const accY = H - 108;
+  const accY = H - 115;
   ctx.fillStyle = primaryBlue;
   ctx.fillRect(60, accY - 22, W - 120, 2);
 
   ctx.fillStyle = textMuted;
-  ctx.font = "400 12px 'Segoe UI', sans-serif";
+  ctx.font = "500 13px 'Segoe UI', sans-serif";
   ctx.textAlign = "center";
   ctx.fillText("Accredited by", W / 2, accY + 2);
 
-  drawAccreditationBadge(ctx, W / 2 - 180, accY + 32, "WAHBS", primaryBlue, gold);
-  ctx.fillStyle = textDark;
-  ctx.font = "500 11px 'Segoe UI', sans-serif";
-  ctx.fillText("West Africa Health Business Society", W / 2 - 180, accY + 58);
+  // WAHBS - left side, text only, bold and prominent
+  ctx.fillStyle = navy;
+  ctx.font = "bold 26px 'Georgia', serif";
+  ctx.fillText("WAHBS", W / 2 - 200, accY + 38);
+  ctx.fillStyle = textMuted;
+  ctx.font = "400 12px 'Segoe UI', sans-serif";
+  ctx.fillText("West Africa Health Business Society", W / 2 - 200, accY + 56);
 
-  drawAccreditationBadge(ctx, W / 2 + 180, accY + 32, "SDCC", primaryBlue, gold);
-  ctx.fillStyle = textDark;
-  ctx.font = "500 11px 'Segoe UI', sans-serif";
-  ctx.fillText("Skill Development Council Canada", W / 2 + 180, accY + 58);
+  // SDCC - right side, text only, bold and prominent
+  ctx.fillStyle = navy;
+  ctx.font = "bold 26px 'Georgia', serif";
+  ctx.fillText("SDCC", W / 2 + 200, accY + 38);
+  ctx.fillStyle = textMuted;
+  ctx.font = "400 12px 'Segoe UI', sans-serif";
+  ctx.fillText("Skill Development Council Canada", W / 2 + 200, accY + 56);
 
   // ── Bottom Decorative Line ──
   drawGoldLine(ctx, 180, H - 50, W - 180, H - 50, gold);
@@ -508,25 +514,4 @@ function drawCornerOrnaments(ctx: CanvasRenderingContext2D, W: number, H: number
   });
 }
 
-function drawAccreditationBadge(
-  ctx: CanvasRenderingContext2D, cx: number, cy: number, label: string,
-  blue: string, gold: string
-) {
-  ctx.beginPath();
-  ctx.arc(cx, cy, 18, 0, Math.PI * 2);
-  ctx.strokeStyle = gold;
-  ctx.lineWidth = 2.5;
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.arc(cx, cy, 14, 0, Math.PI * 2);
-  ctx.fillStyle = blue;
-  ctx.fill();
-
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 9px 'Segoe UI', sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(label, cx, cy);
-  ctx.textBaseline = "alphabetic";
-}
+// (drawAccreditationBadge removed — accreditation now rendered as prominent text)
