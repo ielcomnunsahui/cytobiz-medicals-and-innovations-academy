@@ -14,6 +14,7 @@ import {
   Gift,
   Handshake,
   HelpCircle,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -396,6 +397,26 @@ export function Navbar() {
                     </Link>
                   </motion.div>
                 )}
+
+                {/* Install App Link */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.55 }}
+                >
+                  <Link
+                    to="/install"
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-3 text-lg font-medium rounded-xl transition-colors",
+                      location.pathname === "/install"
+                        ? "text-primary bg-primary/10"
+                        : "text-foreground hover:bg-muted",
+                    )}
+                  >
+                    <Download className="w-5 h-5" />
+                    Install App
+                  </Link>
+                </motion.div>
 
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}

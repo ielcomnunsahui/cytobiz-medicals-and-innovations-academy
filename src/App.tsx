@@ -9,6 +9,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { SmartInstallBanner } from "@/components/SmartInstallBanner";
 
 // Public Pages
 import Index from "./pages/Index";
@@ -136,6 +137,7 @@ const App = () => (
             <BrowserRouter>
               <ScrollToTop />
               <AnimatedRoutes />
+              <SmartInstallBanner />
             </BrowserRouter>
           </TooltipProvider>
         </AuthProvider>

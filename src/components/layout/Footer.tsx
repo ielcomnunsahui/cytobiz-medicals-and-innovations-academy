@@ -23,6 +23,7 @@ const footerLinks = {
     { name: "Alumni Network", href: "/alumni" },
     { name: "Partners", href: "/partners" },
     { name: "FAQ", href: "/faq" },
+    { name: "Install App", href: "/install" },
   ],
   legal: [
     { name: "Privacy Policy", href: "/privacy" },
