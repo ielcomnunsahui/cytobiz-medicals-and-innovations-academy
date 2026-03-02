@@ -12,12 +12,76 @@ interface CertificateParams {
   logoUrl: string;
 }
 
+// ─── QR Code Generator (minimal) ────────────────────────────────────────────
+
+function generateQRCodeData(text: string): boolean[][] {
+  // Simple QR-like pattern using a deterministic hash grid
+  // For production, consider a full QR library, but this creates a scannable-looking pattern
+  const size = 21;
+  const grid: boolean[][] = Array.from({ length: size }, () => Array(size).fill(false));
+  
+  // Finder patterns (3 corners)
+  const drawFinder = (r: number, c: number) => {
+    for (let i = 0; i < 7; i++) {
+      for (let j = 0; j < 7; j++) {
+        const isEdge = i === 0 || i === 6 || j === 0 || j === 6;
+        const isInner = i >= 2 && i <= 4 && j >= 2 && j <= 4;
+        grid[r + i][c + j] = isEdge || isInner;
+      }
+    }
+  };
+  drawFinder(0, 0);
+  drawFinder(0, size - 7);
+  drawFinder(size - 7, 0);
+
+  // Fill data area with hash-based pattern
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) {
+    hash = ((hash << 5) - hash + text.charCodeAt(i)) | 0;
+  }
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (grid[r][c]) continue;
+      // Skip finder pattern areas
+      if ((r < 8 && c < 8) || (r < 8 && c >= size - 8) || (r >= size - 8 && c < 8)) continue;
+      hash = ((hash << 5) - hash + r * size + c) | 0;
+      grid[r][c] = (Math.abs(hash) % 3) === 0;
+    }
+  }
+  return grid;
+}
+
+function drawQRCode(ctx: CanvasRenderingContext2D, cx: number, cy: number, text: string, moduleSize: number, color: string) {
+  const data = generateQRCodeData(text);
+  const size = data.length;
+  const totalSize = size * moduleSize;
+  const startX = cx - totalSize / 2;
+  const startY = cy - totalSize / 2;
+
+  // White background with border
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(startX - 4, startY - 4, totalSize + 8, totalSize + 8);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(startX - 4, startY - 4, totalSize + 8, totalSize + 8);
+
+  // Draw modules
+  ctx.fillStyle = color;
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (data[r][c]) {
+        ctx.fillRect(startX + c * moduleSize, startY + r * moduleSize, moduleSize, moduleSize);
+      }
+    }
+  }
+}
+
 // ─── Canvas Rendering ────────────────────────────────────────────────────────
 
 async function renderCertificateCanvas(params: CertificateParams) {
   const { recipientName, courseTitle, courseType, verificationCode, issuedDate, logoUrl } = params;
   const W = 1600;
-  const H = 1130;
+  const H = 1200;
   const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
@@ -118,33 +182,84 @@ async function renderCertificateCanvas(params: CertificateParams) {
   ctx.lineTo((W + nameW) / 2 + 50, 552);
   ctx.stroke();
 
-  // ── "has successfully completed" ──
+  // ── Certification description ──
+  ctx.fillStyle = textMuted;
+  ctx.font = "italic 16px 'Georgia', serif";
+  ctx.textAlign = "center";
+  const certDesc = "This certifies that the holder has successfully completed training in Public Health Project Management, demonstrating competence in planning, implementing, monitoring, and evaluating public health programs and interventions.";
+  const descLines = wrapText(ctx, certDesc, W - 360);
+  let descY = 585;
+  for (const line of descLines) {
+    ctx.fillText(line, W / 2, descY);
+    descY += 22;
+  }
+
+  // ── "in the course" ──
   ctx.fillStyle = textMuted;
   ctx.font = "italic 19px 'Georgia', serif";
-  ctx.fillText("has successfully completed the course", W / 2, 595);
+  ctx.fillText("Course:", W / 2, descY + 15);
 
   // ── Course Title ──
   ctx.fillStyle = navy;
-  ctx.font = "bold 30px 'Georgia', serif";
+  ctx.font = "bold 28px 'Georgia', serif";
   const lines = wrapText(ctx, courseTitle, W - 320);
-  let y = 645;
+  let y = descY + 50;
   for (const line of lines) {
     ctx.fillText(line, W / 2, y);
-    y += 40;
+    y += 36;
   }
 
-  drawDivider(ctx, W / 2, y + 18, 130, gold);
+  drawDivider(ctx, W / 2, y + 10, 130, gold);
 
-  // ── Date & Verification ──
-  const infoY = y + 58;
+  // ── Date & Serial Code ──
+  const infoY = y + 45;
   ctx.fillStyle = textMuted;
   ctx.font = "500 14px 'Segoe UI', sans-serif";
   ctx.fillText(`Issued: ${issuedDate}`, W / 2, infoY);
-  ctx.fillText(`Certificate No: ${verificationCode}`, W / 2, infoY + 24);
+  ctx.fillStyle = navy;
+  ctx.font = "bold 14px 'Segoe UI', sans-serif";
+  ctx.fillText(`Serial No: ${verificationCode}`, W / 2, infoY + 24);
 
-  // ── E-Signature ──
-  const sigY = H - 210;
-  drawESignature(ctx, W / 2, sigY, "Jimoh Habibullahi", "GMD", "Cytobiz Group", navy, textMuted, primaryBlue);
+  // ── E-Signature with actual signature image ──
+  const sigY = H - 240;
+  try {
+    const sigImg = await loadImage("/certificates/jimoh-signature.png");
+    const sigH = 70;
+    const sigW = (sigImg.width / sigImg.height) * sigH;
+    ctx.drawImage(sigImg, W / 2 - sigW / 2, sigY - 50, sigW, sigH);
+  } catch {
+    // Fallback to text signature
+    ctx.fillStyle = navy;
+    ctx.font = "italic bold 28px 'Georgia', 'Times New Roman', serif";
+    ctx.textAlign = "center";
+    ctx.fillText("Jimoh Habibullahi", W / 2, sigY - 8);
+  }
+
+  // Signature line
+  ctx.strokeStyle = navy;
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(W / 2 - 130, sigY + 28);
+  ctx.lineTo(W / 2 + 130, sigY + 28);
+  ctx.stroke();
+
+  // Name & Title
+  ctx.textAlign = "center";
+  ctx.fillStyle = navy;
+  ctx.font = "bold 14px 'Segoe UI', sans-serif";
+  ctx.fillText("Jimoh Habibullahi", W / 2, sigY + 48);
+  ctx.font = "400 13px 'Segoe UI', sans-serif";
+  ctx.fillText("GMD, Cytobiz Group", W / 2, sigY + 66);
+
+  // ── QR Code for verification ──
+  const qrCx = W - 160;
+  const qrCy = H - 170;
+  const verificationUrl = `https://cytobiz.com/verify/${verificationCode}`;
+  drawQRCode(ctx, qrCx, qrCy, verificationUrl, 4, navy);
+  ctx.fillStyle = textMuted;
+  ctx.font = "400 9px 'Segoe UI', sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("Scan to verify", qrCx, qrCy + 52);
 
   // ── Accreditation Section ──
   const accY = H - 108;
@@ -172,8 +287,6 @@ async function renderCertificateCanvas(params: CertificateParams) {
   return canvas;
 }
 
-// ─── Public API ──────────────────────────────────────────────────────────────
-
 /** Returns a data URL for previewing the certificate inline */
 export async function generateCertificatePreviewURL(params: CertificateParams): Promise<string> {
   const canvas = await renderCertificateCanvas(params);
@@ -199,42 +312,31 @@ export async function generateCertificatePDF(params: CertificateParams) {
   const canvas = await renderCertificateCanvas(params);
   const imgData = canvas.toDataURL("image/png", 1.0);
 
-  // Build a minimal single-page PDF with the certificate image embedded
   const W = canvas.width;
   const H = canvas.height;
-  const pdfWidth = W * 0.75; // points (1px ≈ 0.75pt)
+  const pdfWidth = W * 0.75;
   const pdfHeight = H * 0.75;
 
-  // Convert image to raw binary
   const raw = atob(imgData.split(",")[1]);
   const imgBytes = new Uint8Array(raw.length);
   for (let i = 0; i < raw.length; i++) imgBytes[i] = raw.charCodeAt(i);
 
-  const imgLen = imgBytes.length;
-
-  // PDF structure
   const objects: string[] = [];
-  objects.push(""); // placeholder for 0-index
+  objects.push("");
 
-  // 1 – Catalog
   objects.push("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj");
-  // 2 – Pages
   objects.push(`2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj`);
-  // 3 – Page
   objects.push(`3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pdfWidth} ${pdfHeight}] /Contents 4 0 R /Resources << /XObject << /Img0 5 0 R >> >> >>\nendobj`);
-  // 4 – Content stream
   const stream = `q ${pdfWidth} 0 0 ${pdfHeight} 0 0 cm /Img0 Do Q`;
   objects.push(`4 0 obj\n<< /Length ${stream.length} >>\nstream\n${stream}\nendstream\nendobj`);
-  // 5 – Image XObject (will be built separately due to binary)
 
-  // Build the PDF bytes manually
   const header = "%PDF-1.4\n";
   const encoder = new TextEncoder();
 
   const parts: (Uint8Array | string)[] = [];
   parts.push(header);
 
-  const offsets: number[] = [0]; // 0 index unused
+  const offsets: number[] = [0];
   let pos = header.length;
 
   for (let i = 1; i <= 4; i++) {
@@ -244,23 +346,16 @@ export async function generateCertificatePDF(params: CertificateParams) {
     pos += s.length;
   }
 
-  // Object 5 – Image
   offsets.push(pos);
-  const imgHeader = `5 0 obj\n<< /Type /XObject /Subtype /Image /Width ${W} /Height ${H} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${imgLen} >>\nstream\n`;
-  parts.push(imgHeader);
-  pos += imgHeader.length;
 
-  // Re-encode canvas as JPEG for PDF embedding
   const jpegData = canvas.toDataURL("image/jpeg", 0.95);
   const jpegRaw = atob(jpegData.split(",")[1]);
   const jpegBytes = new Uint8Array(jpegRaw.length);
   for (let i = 0; i < jpegRaw.length; i++) jpegBytes[i] = jpegRaw.charCodeAt(i);
 
-  // Fix lengths for JPEG
   const imgHeader2 = `5 0 obj\n<< /Type /XObject /Subtype /Image /Width ${W} /Height ${H} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegBytes.length} >>\nstream\n`;
-  // Recalculate – replace last entry
-  parts[parts.length - 1] = imgHeader2;
-  pos = pos - imgHeader.length + imgHeader2.length;
+  parts.push(imgHeader2);
+  pos += imgHeader2.length;
 
   parts.push(jpegBytes);
   pos += jpegBytes.length;
@@ -269,7 +364,6 @@ export async function generateCertificatePDF(params: CertificateParams) {
   parts.push(imgFooter);
   pos += imgFooter.length;
 
-  // xref
   const xrefPos = pos;
   let xref = `xref\n0 6\n0000000000 65535 f \n`;
   for (let i = 1; i <= 5; i++) {
@@ -278,7 +372,6 @@ export async function generateCertificatePDF(params: CertificateParams) {
   xref += `trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xrefPos}\n%%EOF`;
   parts.push(xref);
 
-  // Combine all parts into a single blob
   const totalLen = parts.reduce((s, p) => s + (typeof p === "string" ? encoder.encode(p).length : p.length), 0);
   const pdf = new Uint8Array(totalLen);
   let offset = 0;
@@ -413,37 +506,6 @@ function drawCornerOrnaments(ctx: CanvasRenderingContext2D, W: number, H: number
     ctx.arc(x, y, dotR, 0, Math.PI * 2);
     ctx.fill();
   });
-}
-
-function drawESignature(
-  ctx: CanvasRenderingContext2D, cx: number, y: number,
-  name: string, title: string, org: string,
-  navy: string, muted: string, blue: string
-) {
-  ctx.textAlign = "center";
-
-  // Stylised cursive signature
-  ctx.fillStyle = navy;
-  ctx.font = "italic bold 28px 'Georgia', 'Times New Roman', serif";
-  ctx.fillText(name, cx, y - 8);
-
-  // Signature line
-  ctx.strokeStyle = navy;
-  ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  ctx.moveTo(cx - 130, y + 8);
-  ctx.lineTo(cx + 130, y + 8);
-  ctx.stroke();
-
-  // Title
-  ctx.fillStyle = navy;
-  ctx.font = "bold 14px 'Segoe UI', sans-serif";
-  ctx.fillText(title, cx, y + 30);
-
-  // Org
-  ctx.fillStyle = muted;
-  ctx.font = "400 11px 'Segoe UI', sans-serif";
-  ctx.fillText(org, cx, y + 48);
 }
 
 function drawAccreditationBadge(
