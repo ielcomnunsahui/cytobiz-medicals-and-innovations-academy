@@ -327,18 +327,18 @@ async function renderCertificateCanvas(params: CertificateParams) {
 
   // ── Academy name (spaced) ──
   ctx.fillStyle = navy;
-  ctx.font = "600 13px 'Segoe UI', Arial, sans-serif";
+  ctx.font = "600 14px 'Segoe UI', Arial, sans-serif";
   ctx.textAlign = "center";
   ctx.letterSpacing = "4px";
-  ctx.fillText("C Y T O B I Z   M E D I C A L   &   I N N O V A T I O N   A C A D E M Y", W / 2, 282);
+  ctx.fillText("C Y T O B I Z   M E D I C A L   &   I N N O V A T I O N   A C A D E M Y", W / 2, 285);
 
-  drawModernDivider(ctx, W / 2, 306, 220, gold);
+  drawModernDivider(ctx, W / 2, 310, 220, gold);
 
   // ── Certificate type ──
   const certType = courseType === "cohort" ? "DIPLOMA" : "COMPLETION";
   ctx.fillStyle = textMuted;
-  ctx.font = "400 14px 'Segoe UI', sans-serif";
-  ctx.fillText("C E R T I F I C A T E   O F", W / 2, 342);
+  ctx.font = "400 15px 'Segoe UI', sans-serif";
+  ctx.fillText("C E R T I F I C A T E   O F", W / 2, 348);
 
   // Gradient text for cert type
   const certGrad = ctx.createLinearGradient(W / 2 - 200, 0, W / 2 + 200, 0);
@@ -347,23 +347,24 @@ async function renderCertificateCanvas(params: CertificateParams) {
   certGrad.addColorStop(1, navy);
   ctx.fillStyle = certGrad;
   ctx.font = "bold 52px 'Georgia', serif";
-  ctx.fillText(certType, W / 2, 400);
+  ctx.fillText(certType, W / 2, 408);
 
-  drawModernDivider(ctx, W / 2, 428, 180, gold);
+  drawModernDivider(ctx, W / 2, 436, 180, gold);
 
   // ── "This is to certify that" ──
   ctx.fillStyle = textMuted;
-  ctx.font = "italic 18px 'Georgia', serif";
-  ctx.fillText("This is to certify that", W / 2, 466);
+  ctx.font = "italic 19px 'Georgia', serif";
+  ctx.fillText("This is to certify that", W / 2, 476);
 
   // ── Recipient Name ──
   ctx.fillStyle = navy;
   ctx.font = "bold 48px 'Georgia', serif";
-  ctx.fillText(recipientName, W / 2, 528);
+  ctx.fillText(recipientName, W / 2, 536);
 
   // Gold underline with fade
   const nameW = ctx.measureText(recipientName).width;
-  const nameGrad = ctx.createLinearGradient((W - nameW) / 2 - 60, 544, (W + nameW) / 2 + 60, 544);
+  const ulY = 552;
+  const nameGrad = ctx.createLinearGradient((W - nameW) / 2 - 60, ulY, (W + nameW) / 2 + 60, ulY);
   nameGrad.addColorStop(0, "rgba(212,168,67,0)");
   nameGrad.addColorStop(0.1, gold);
   nameGrad.addColorStop(0.9, gold);
@@ -371,55 +372,54 @@ async function renderCertificateCanvas(params: CertificateParams) {
   ctx.strokeStyle = nameGrad;
   ctx.lineWidth = 2.5;
   ctx.beginPath();
-  ctx.moveTo((W - nameW) / 2 - 60, 544);
-  ctx.lineTo((W + nameW) / 2 + 60, 544);
+  ctx.moveTo((W - nameW) / 2 - 60, ulY);
+  ctx.lineTo((W + nameW) / 2 + 60, ulY);
   ctx.stroke();
 
   // ── Certification description ──
-  ctx.fillStyle = textMuted;
-  ctx.font = "italic 15px 'Georgia', serif";
+  ctx.fillStyle = textDark;
+  ctx.font = "italic 19px 'Georgia', serif";
   ctx.textAlign = "center";
   const certDesc =
     "This certifies that the holder has successfully completed training in Public Health Project Management, demonstrating competence in planning, implementing, monitoring, and evaluating public health programs and interventions.";
-  const descLines = wrapText(ctx, certDesc, W - 400);
-  let descY = 578;
+  const descLines = wrapText(ctx, certDesc, W - 320);
+  let descY = 592;
   for (const line of descLines) {
     ctx.fillText(line, W / 2, descY);
-    descY += 22;
+    descY += 28;
   }
 
   // ── Course ──
   ctx.fillStyle = textMuted;
-  ctx.font = "italic 17px 'Georgia', serif";
-  ctx.fillText("Course:", W / 2, descY + 14);
+  ctx.font = "italic 18px 'Georgia', serif";
+  ctx.fillText("Course:", W / 2, descY + 18);
 
   ctx.fillStyle = navy;
   ctx.font = "bold 26px 'Georgia', serif";
   const courseLines = wrapText(ctx, courseTitle, W - 360);
-  let courseY = descY + 48;
+  let courseY = descY + 52;
   for (const line of courseLines) {
     ctx.fillText(line, W / 2, courseY);
     courseY += 34;
   }
 
-  drawModernDivider(ctx, W / 2, courseY + 8, 140, gold);
+  drawModernDivider(ctx, W / 2, courseY + 12, 140, gold);
 
   // ── Date & Serial ──
-  const infoY = courseY + 40;
+  const infoY = courseY + 44;
 
-  // Date on left, Serial on right
-  ctx.font = "500 13px 'Segoe UI', sans-serif";
+  ctx.font = "500 14px 'Segoe UI', sans-serif";
   ctx.fillStyle = textMuted;
   ctx.textAlign = "center";
-  ctx.fillText(`Issued: ${issuedDate}`, W / 2 - 160, infoY);
+  ctx.fillText(`Issued: ${issuedDate}`, W / 2 - 180, infoY);
 
   ctx.fillStyle = navy;
-  ctx.font = "bold 13px 'Segoe UI', sans-serif";
-  ctx.fillText(`Serial No: ${serialCode}`, W / 2 + 160, infoY);
+  ctx.font = "bold 14px 'Segoe UI', sans-serif";
+  ctx.fillText(`Serial No: ${serialCode}`, W / 2 + 180, infoY);
 
   // ── Signature Section ──
   const sigCx = W / 2;
-  const sigY = H - 235;
+  const sigY = H - 240;
 
   // Signature image
   try {
