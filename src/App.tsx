@@ -31,6 +31,7 @@ import Referral from "./pages/Referral";
 import Alumni from "./pages/Alumni";
 import Team from "./pages/Team";
 import Certifications from "./pages/Certifications";
+import Install from "./pages/Install";
 
 // Protected Pages
 import Dashboard from "./pages/Dashboard";
@@ -85,6 +86,7 @@ function AnimatedRoutes() {
         <Route path="/alumni" element={<Alumni />} />
         <Route path="/team" element={<Team />} />
         <Route path="/certifications" element={<Certifications />} />
+        <Route path="/install" element={<Install />} />
 
         {/* Protected Learner Routes */}
         <Route element={<ProtectedRoute />}>
