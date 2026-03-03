@@ -173,7 +173,20 @@ export function CertificatePaymentDialog({
       toast.success("Payment confirmed! Your certificate is ready for download.");
       onOpenChange(false);
     } catch (error: any) {
-      toast.error(`Upload failed: ${error.message}`);
+      const msg = error?.message || "Unknown error";
+      if (msg.includes("row-level security") || msg.includes("RLS")) {
+        toast.error("Permission denied: Unable to save your receipt. Please log out and log back in, then try again.");
+      } else if (msg.includes("storage") || msg.includes("bucket") || msg.includes("Object not found")) {
+        toast.error("File upload failed: The storage service is temporarily unavailable. Please try again in a moment.");
+      } else if (msg.includes("Payload too large") || msg.includes("413")) {
+        toast.error("Your file is too large. Please upload a receipt smaller than 5 MB.");
+      } else if (msg.includes("mime") || msg.includes("type") || msg.includes("invalid")) {
+        toast.error("Unsupported file format. Please upload an image (JPG, PNG) or a PDF.");
+      } else if (msg.includes("network") || msg.includes("fetch") || msg.includes("Failed to fetch")) {
+        toast.error("Network error: Please check your internet connection and try again.");
+      } else {
+        toast.error(`Upload failed: ${msg}. If this persists, please contact support.`);
+      }
     } finally {
       setIsProcessing(false);
     }
