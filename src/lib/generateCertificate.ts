@@ -327,7 +327,7 @@ async function renderCertificateCanvas(params: CertificateParams) {
 
   // ── Academy name (spaced) ──
   ctx.fillStyle = navy;
-  ctx.font = "600 16px 'Segoe UI', Arial, sans-serif";
+  ctx.font = "600 20px 'Segoe UI', Arial, sans-serif";
   ctx.textAlign = "center";
   ctx.letterSpacing = "4px";
   ctx.fillText("C Y T O B I Z   M E D I C A L   &   I N N O V A T I O N   A C A D E M Y", W / 2, 280);
@@ -337,7 +337,7 @@ async function renderCertificateCanvas(params: CertificateParams) {
   // ── Certificate type ──
   const certType = courseType === "cohort" ? "DIPLOMA" : "COMPLETION";
   ctx.fillStyle = textMuted;
-  ctx.font = "400 17px 'Segoe UI', sans-serif";
+  ctx.font = "400 22px 'Segoe UI', sans-serif";
   ctx.fillText("C E R T I F I C A T E   O F", W / 2, 340);
 
   // Gradient text for cert type
@@ -346,20 +346,20 @@ async function renderCertificateCanvas(params: CertificateParams) {
   certGrad.addColorStop(0.5, primaryBlue);
   certGrad.addColorStop(1, navy);
   ctx.fillStyle = certGrad;
-  ctx.font = "bold 56px 'Georgia', serif";
-  ctx.fillText(certType, W / 2, 398);
+  ctx.font = "bold 64px 'Georgia', serif";
+  ctx.fillText(certType, W / 2, 400);
 
   drawModernDivider(ctx, W / 2, 426, 180, gold);
 
   // ── "This is to certify that" ──
   ctx.fillStyle = textMuted;
-  ctx.font = "italic 22px 'Georgia', serif";
-  ctx.fillText("This is to certify that", W / 2, 464);
+  ctx.font = "italic 26px 'Georgia', serif";
+  ctx.fillText("This is to certify that", W / 2, 466);
 
   // ── Recipient Name ──
   ctx.fillStyle = navy;
-  ctx.font = "bold 52px 'Georgia', serif";
-  ctx.fillText(recipientName, W / 2, 524);
+  ctx.font = "bold 60px 'Georgia', serif";
+  ctx.fillText(recipientName, W / 2, 528);
 
   // Gold underline with fade
   const nameW = ctx.measureText(recipientName).width;
@@ -378,7 +378,7 @@ async function renderCertificateCanvas(params: CertificateParams) {
 
   // ── Certification description ──
   ctx.fillStyle = textDark;
-  ctx.font = "italic 22px 'Georgia', serif";
+  ctx.font = "italic 26px 'Georgia', serif";
   ctx.textAlign = "center";
   const certDesc =
     "This certifies that the holder has successfully completed training in Public Health Project Management, demonstrating competence in planning, implementing, monitoring, and evaluating public health programs and interventions.";
@@ -391,11 +391,11 @@ async function renderCertificateCanvas(params: CertificateParams) {
 
   // ── Course ──
   ctx.fillStyle = textMuted;
-  ctx.font = "italic 20px 'Georgia', serif";
+  ctx.font = "italic 24px 'Georgia', serif";
   ctx.fillText("Course:", W / 2, descY + 16);
 
   ctx.fillStyle = navy;
-  ctx.font = "bold 28px 'Georgia', serif";
+  ctx.font = "bold 34px 'Georgia', serif";
   const courseLines = wrapText(ctx, courseTitle, W - 320);
   let courseY = descY + 50;
   for (const line of courseLines) {
@@ -408,13 +408,13 @@ async function renderCertificateCanvas(params: CertificateParams) {
   // ── Date & Serial ──
   const infoY = courseY + 42;
 
-  ctx.font = "500 16px 'Segoe UI', sans-serif";
+  ctx.font = "500 20px 'Segoe UI', sans-serif";
   ctx.fillStyle = textMuted;
   ctx.textAlign = "center";
   ctx.fillText(`Issued: ${issuedDate}`, W / 2 - 180, infoY);
 
   ctx.fillStyle = navy;
-  ctx.font = "bold 16px 'Segoe UI', sans-serif";
+  ctx.font = "bold 20px 'Segoe UI', sans-serif";
   ctx.fillText(`Serial No: ${serialCode}`, W / 2 + 180, infoY);
 
   // ── Signature Section ──
@@ -444,20 +444,20 @@ async function renderCertificateCanvas(params: CertificateParams) {
 
   ctx.textAlign = "center";
   ctx.fillStyle = navy;
-  ctx.font = "bold 15px 'Segoe UI', sans-serif";
+  ctx.font = "bold 19px 'Segoe UI', sans-serif";
   ctx.fillText("Jimoh Habibullahi", sigCx, sigY + 44);
-  ctx.font = "400 14px 'Segoe UI', sans-serif";
+  ctx.font = "400 17px 'Segoe UI', sans-serif";
   ctx.fillStyle = textMuted;
-  ctx.fillText("GMD, Cytobiz Group", sigCx, sigY + 62);
+  ctx.fillText("GMD, Cytobiz Group", sigCx, sigY + 64);
 
   // ── QR Code (larger) ──
   const qrCx = W - 160;
   const qrCy = H - 185;
   drawQRCode(ctx, qrCx, qrCy, `https://cytobiz.com/verify/${serialCode}`, 5, navy);
   ctx.fillStyle = textMuted;
-  ctx.font = "500 12px 'Segoe UI', sans-serif";
+  ctx.font = "500 15px 'Segoe UI', sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("Scan to verify", qrCx, qrCy + 64);
+  ctx.fillText("Scan to verify", qrCx, qrCy + 66);
 
   // ── Accreditation Section ──
   const accY = H - 108;
@@ -476,17 +476,17 @@ async function renderCertificateCanvas(params: CertificateParams) {
   ctx.stroke();
 
   ctx.fillStyle = textMuted;
-  ctx.font = "500 13px 'Segoe UI', sans-serif";
+  ctx.font = "500 16px 'Segoe UI', sans-serif";
   ctx.textAlign = "center";
   ctx.fillText("A C C R E D I T E D   B Y", W / 2, accY);
 
   // WAHBS
   ctx.fillStyle = navy;
-  ctx.font = "bold 26px 'Georgia', serif";
+  ctx.font = "bold 30px 'Georgia', serif";
   ctx.fillText("WAHBS", W / 2 - 200, accY + 34);
   ctx.fillStyle = textMuted;
-  ctx.font = "400 13px 'Segoe UI', sans-serif";
-  ctx.fillText("West Africa Health Business Society", W / 2 - 200, accY + 54);
+  ctx.font = "400 16px 'Segoe UI', sans-serif";
+  ctx.fillText("West Africa Health Business Society", W / 2 - 200, accY + 56);
 
   // Separator dot
   ctx.fillStyle = gold;
@@ -496,11 +496,11 @@ async function renderCertificateCanvas(params: CertificateParams) {
 
   // SDCC
   ctx.fillStyle = navy;
-  ctx.font = "bold 26px 'Georgia', serif";
+  ctx.font = "bold 30px 'Georgia', serif";
   ctx.fillText("SDCC", W / 2 + 200, accY + 34);
   ctx.fillStyle = textMuted;
-  ctx.font = "400 13px 'Segoe UI', sans-serif";
-  ctx.fillText("Skill Development Council Canada", W / 2 + 200, accY + 54);
+  ctx.font = "400 16px 'Segoe UI', sans-serif";
+  ctx.fillText("Skill Development Council Canada", W / 2 + 200, accY + 56);
 
   // ── Bottom accent bar ──
   const botBarGrad = ctx.createLinearGradient(200, H - 46, W - 200, H - 46);
