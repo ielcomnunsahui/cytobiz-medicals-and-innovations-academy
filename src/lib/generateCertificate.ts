@@ -263,7 +263,7 @@ async function renderCertificateCanvas(params: CertificateParams) {
   const serialCode = params.verificationCode || generateSerialNumber();
   const { recipientName, courseTitle, courseType, issuedDate, logoUrl } = params;
   const W = 1600;
-  const H = 1200;
+  const H = 1280;
   const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
@@ -312,17 +312,17 @@ async function renderCertificateCanvas(params: CertificateParams) {
   ctx.fillStyle = topBarGrad;
   ctx.fillRect(200, 56, W - 400, 3);
 
-  // ── Logo ──
+  // ── Logo (large and prominent) ──
   try {
-    const logo = await loadImage(logoUrl);
-    const logoH = 200;
+    const logo = await loadImage("/certificates/logo-full.png");
+    const logoH = 160;
     const logoW = (logo.width / logo.height) * logoH;
-    ctx.drawImage(logo, (W - logoW) / 2, 75, logoW, logoH);
+    ctx.drawImage(logo, (W - logoW) / 2, 70, logoW, logoH);
   } catch {
     ctx.fillStyle = primaryBlue;
-    ctx.font = "bold 38px 'Georgia', serif";
+    ctx.font = "bold 42px 'Georgia', serif";
     ctx.textAlign = "center";
-    ctx.fillText("CYTOBIZ MEDICAL & INNOVATION HUB", W / 2, 180);
+    ctx.fillText("CYTOBIZ MEDICAL & INNOVATION HUB", W / 2, 170);
   }
 
   // ── Academy name (spaced) ──
@@ -330,15 +330,15 @@ async function renderCertificateCanvas(params: CertificateParams) {
   ctx.font = "600 20px 'Segoe UI', Arial, sans-serif";
   ctx.textAlign = "center";
   ctx.letterSpacing = "4px";
-  ctx.fillText("C Y T O B I Z   M E D I C A L   &   I N N O V A T I O N   A C A D E M Y", W / 2, 280);
+  ctx.fillText("C Y T O B I Z   M E D I C A L   &   I N N O V A T I O N   H U B", W / 2, 260);
 
-  drawModernDivider(ctx, W / 2, 306, 220, gold);
+  drawModernDivider(ctx, W / 2, 288, 220, gold);
 
   // ── Certificate type ──
   const certType = courseType === "cohort" ? "DIPLOMA" : "COMPLETION";
   ctx.fillStyle = textMuted;
-  ctx.font = "400 22px 'Segoe UI', sans-serif";
-  ctx.fillText("C E R T I F I C A T E   O F", W / 2, 340);
+  ctx.font = "400 24px 'Segoe UI', sans-serif";
+  ctx.fillText("C E R T I F I C A T E   O F", W / 2, 326);
 
   // Gradient text for cert type
   const certGrad = ctx.createLinearGradient(W / 2 - 200, 0, W / 2 + 200, 0);
@@ -346,24 +346,24 @@ async function renderCertificateCanvas(params: CertificateParams) {
   certGrad.addColorStop(0.5, primaryBlue);
   certGrad.addColorStop(1, navy);
   ctx.fillStyle = certGrad;
-  ctx.font = "bold 64px 'Georgia', serif";
-  ctx.fillText(certType, W / 2, 400);
+  ctx.font = "bold 68px 'Georgia', serif";
+  ctx.fillText(certType, W / 2, 396);
 
-  drawModernDivider(ctx, W / 2, 426, 180, gold);
+  drawModernDivider(ctx, W / 2, 424, 180, gold);
 
   // ── "This is to certify that" ──
   ctx.fillStyle = textMuted;
-  ctx.font = "italic 26px 'Georgia', serif";
-  ctx.fillText("This is to certify that", W / 2, 466);
+  ctx.font = "italic 28px 'Georgia', serif";
+  ctx.fillText("This is to certify that", W / 2, 468);
 
   // ── Recipient Name ──
   ctx.fillStyle = navy;
-  ctx.font = "bold 60px 'Georgia', serif";
-  ctx.fillText(recipientName, W / 2, 528);
+  ctx.font = "bold 64px 'Georgia', serif";
+  ctx.fillText(recipientName, W / 2, 540);
 
   // Gold underline with fade
   const nameW = ctx.measureText(recipientName).width;
-  const ulY = 542;
+  const ulY = 556;
   const nameGrad = ctx.createLinearGradient((W - nameW) / 2 - 60, ulY, (W + nameW) / 2 + 60, ulY);
   nameGrad.addColorStop(0, "rgba(212,168,67,0)");
   nameGrad.addColorStop(0.1, gold);
@@ -383,53 +383,53 @@ async function renderCertificateCanvas(params: CertificateParams) {
   const certDesc =
     "This certifies that the holder has successfully completed training in Public Health Project Management, demonstrating competence in planning, implementing, monitoring, and evaluating public health programs and interventions.";
   const descLines = wrapText(ctx, certDesc, W - 280);
-  let descY = 582;
+  let descY = 600;
   for (const line of descLines) {
     ctx.fillText(line, W / 2, descY);
-    descY += 30;
+    descY += 34;
   }
 
   // ── Course ──
   ctx.fillStyle = textMuted;
   ctx.font = "italic 24px 'Georgia', serif";
-  ctx.fillText("Course:", W / 2, descY + 16);
+  ctx.fillText("Course:", W / 2, descY + 20);
 
   ctx.fillStyle = navy;
-  ctx.font = "bold 34px 'Georgia', serif";
+  ctx.font = "bold 36px 'Georgia', serif";
   const courseLines = wrapText(ctx, courseTitle, W - 320);
-  let courseY = descY + 50;
+  let courseY = descY + 58;
   for (const line of courseLines) {
     ctx.fillText(line, W / 2, courseY);
-    courseY += 36;
+    courseY += 40;
   }
 
-  drawModernDivider(ctx, W / 2, courseY + 10, 140, gold);
+  drawModernDivider(ctx, W / 2, courseY + 14, 140, gold);
 
   // ── Date & Serial ──
-  const infoY = courseY + 42;
+  const infoY = courseY + 50;
 
-  ctx.font = "500 20px 'Segoe UI', sans-serif";
+  ctx.font = "500 22px 'Segoe UI', sans-serif";
   ctx.fillStyle = textMuted;
   ctx.textAlign = "center";
   ctx.fillText(`Issued: ${issuedDate}`, W / 2 - 180, infoY);
 
   ctx.fillStyle = navy;
-  ctx.font = "bold 20px 'Segoe UI', sans-serif";
+  ctx.font = "bold 22px 'Segoe UI', sans-serif";
   ctx.fillText(`Serial No: ${serialCode}`, W / 2 + 180, infoY);
 
   // ── Signature Section ──
   const sigCx = W / 2;
-  const sigY = H - 240;
+  const sigY = H - 260;
 
   // Signature image
   try {
     const sigImg = await loadImage("/certificates/jimoh-signature.png");
-    const sigH = 65;
+    const sigH = 70;
     const sigW = (sigImg.width / sigImg.height) * sigH;
-    ctx.drawImage(sigImg, sigCx - sigW / 2, sigY - 48, sigW, sigH);
+    ctx.drawImage(sigImg, sigCx - sigW / 2, sigY - 50, sigW, sigH);
   } catch {
     ctx.fillStyle = navy;
-    ctx.font = "italic bold 26px 'Georgia', serif";
+    ctx.font = "italic bold 28px 'Georgia', serif";
     ctx.textAlign = "center";
     ctx.fillText("Jimoh Habibullahi", sigCx, sigY - 10);
   }
@@ -438,32 +438,32 @@ async function renderCertificateCanvas(params: CertificateParams) {
   ctx.strokeStyle = gold;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.moveTo(sigCx - 120, sigY + 24);
-  ctx.lineTo(sigCx + 120, sigY + 24);
+  ctx.moveTo(sigCx - 120, sigY + 28);
+  ctx.lineTo(sigCx + 120, sigY + 28);
   ctx.stroke();
 
   ctx.textAlign = "center";
   ctx.fillStyle = navy;
-  ctx.font = "bold 19px 'Segoe UI', sans-serif";
-  ctx.fillText("Jimoh Habibullahi", sigCx, sigY + 44);
-  ctx.font = "400 17px 'Segoe UI', sans-serif";
+  ctx.font = "bold 20px 'Segoe UI', sans-serif";
+  ctx.fillText("Jimoh Habibullahi", sigCx, sigY + 50);
+  ctx.font = "400 18px 'Segoe UI', sans-serif";
   ctx.fillStyle = textMuted;
-  ctx.fillText("GMD, Cytobiz Group", sigCx, sigY + 64);
+  ctx.fillText("GMD, Cytobiz Group", sigCx, sigY + 72);
 
   // ── QR Code (larger) ──
   const qrCx = W - 160;
-  const qrCy = H - 185;
+  const qrCy = H - 200;
   drawQRCode(ctx, qrCx, qrCy, `https://cytobiz.com/verify/${serialCode}`, 5, navy);
   ctx.fillStyle = textMuted;
-  ctx.font = "500 15px 'Segoe UI', sans-serif";
+  ctx.font = "500 16px 'Segoe UI', sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("Scan to verify", qrCx, qrCy + 66);
+  ctx.fillText("Scan to verify", qrCx, qrCy + 68);
 
   // ── Accreditation Section ──
-  const accY = H - 108;
+  const accY = H - 115;
 
   // Thin gold separator
-  const accLineGrad = ctx.createLinearGradient(80, accY - 20, W - 80, accY - 20);
+  const accLineGrad = ctx.createLinearGradient(80, accY - 22, W - 80, accY - 22);
   accLineGrad.addColorStop(0, "rgba(212,168,67,0)");
   accLineGrad.addColorStop(0.15, gold);
   accLineGrad.addColorStop(0.85, gold);
@@ -471,36 +471,36 @@ async function renderCertificateCanvas(params: CertificateParams) {
   ctx.strokeStyle = accLineGrad;
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(80, accY - 20);
-  ctx.lineTo(W - 80, accY - 20);
+  ctx.moveTo(80, accY - 22);
+  ctx.lineTo(W - 80, accY - 22);
   ctx.stroke();
 
   ctx.fillStyle = textMuted;
-  ctx.font = "500 16px 'Segoe UI', sans-serif";
+  ctx.font = "500 17px 'Segoe UI', sans-serif";
   ctx.textAlign = "center";
   ctx.fillText("A C C R E D I T E D   B Y", W / 2, accY);
 
   // WAHBS
   ctx.fillStyle = navy;
-  ctx.font = "bold 30px 'Georgia', serif";
-  ctx.fillText("WAHBS", W / 2 - 200, accY + 34);
+  ctx.font = "bold 32px 'Georgia', serif";
+  ctx.fillText("WAHBS", W / 2 - 200, accY + 38);
   ctx.fillStyle = textMuted;
-  ctx.font = "400 16px 'Segoe UI', sans-serif";
-  ctx.fillText("West Africa Health Business Society", W / 2 - 200, accY + 56);
+  ctx.font = "400 17px 'Segoe UI', sans-serif";
+  ctx.fillText("West Africa Health Business Society", W / 2 - 200, accY + 60);
 
   // Separator dot
   ctx.fillStyle = gold;
   ctx.beginPath();
-  ctx.arc(W / 2, accY + 36, 3, 0, Math.PI * 2);
+  ctx.arc(W / 2, accY + 40, 3, 0, Math.PI * 2);
   ctx.fill();
 
   // SDCC
   ctx.fillStyle = navy;
-  ctx.font = "bold 30px 'Georgia', serif";
-  ctx.fillText("SDCC", W / 2 + 200, accY + 34);
+  ctx.font = "bold 32px 'Georgia', serif";
+  ctx.fillText("SDCC", W / 2 + 200, accY + 38);
   ctx.fillStyle = textMuted;
-  ctx.font = "400 16px 'Segoe UI', sans-serif";
-  ctx.fillText("Skill Development Council Canada", W / 2 + 200, accY + 56);
+  ctx.font = "400 17px 'Segoe UI', sans-serif";
+  ctx.fillText("Skill Development Council Canada", W / 2 + 200, accY + 60);
 
   // ── Bottom accent bar ──
   const botBarGrad = ctx.createLinearGradient(200, H - 46, W - 200, H - 46);
@@ -511,7 +511,6 @@ async function renderCertificateCanvas(params: CertificateParams) {
   botBarGrad.addColorStop(1, "rgba(212,168,67,0)");
   ctx.fillStyle = botBarGrad;
   ctx.fillRect(200, H - 48, W - 400, 3);
-
   return canvas;
 }
 
