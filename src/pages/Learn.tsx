@@ -26,6 +26,7 @@ import logoFull from "@/assets/logo-full.png";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -347,8 +348,35 @@ export default function LearnPage() {
 
   if (authLoading || courseLoading || enrollmentLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      <div className="min-h-screen bg-background flex">
+        {/* Sidebar skeleton */}
+        <aside className="hidden lg:flex w-80 bg-card border-r border-border flex-col p-4 space-y-4">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-2 w-full rounded-full" />
+          <div className="space-y-3 mt-6">
+            {[1,2,3,4,5,6].map(i => (
+              <div key={i} className="space-y-2">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-10 w-full rounded-lg" />
+                <Skeleton className="h-10 w-full rounded-lg" />
+              </div>
+            ))}
+          </div>
+        </aside>
+        {/* Main content skeleton */}
+        <main className="flex-1 p-6 space-y-6">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-8 w-8 rounded" />
+            <Skeleton className="h-6 w-1/3" />
+          </div>
+          <Skeleton className="h-[50vh] w-full rounded-xl" />
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+        </main>
       </div>
     );
   }

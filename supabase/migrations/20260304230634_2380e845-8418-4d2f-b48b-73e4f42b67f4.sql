@@ -1,0 +1,25 @@
+
+UPDATE public.courses SET thumbnail_url = '/courses/patient-safety-quality-improvement.jpg' WHERE slug = 'patient-safety-quality-improvement';
+UPDATE public.courses SET thumbnail_url = '/courses/health-policy-health-systems.jpg' WHERE slug = 'health-policy-health-systems';
+UPDATE public.courses SET thumbnail_url = '/courses/monitoring-evaluation.jpg' WHERE slug = 'monitoring-evaluation';
+UPDATE public.courses SET thumbnail_url = '/courses/health-promotion-behaviour-change.jpg' WHERE slug = 'health-promotion-behaviour-change';
+UPDATE public.courses SET thumbnail_url = '/courses/research-methods-health-professionals.jpg' WHERE slug = 'research-methods-health-professionals';
+UPDATE public.courses SET thumbnail_url = '/courses/biostatistics-health-professionals.jpg' WHERE slug = 'biostatistics-health-professionals';
+UPDATE public.courses SET thumbnail_url = '/courses/evidence-based-medicine.jpg' WHERE slug = 'evidence-based-medicine';
+UPDATE public.courses SET thumbnail_url = '/courses/good-clinical-practice.jpg' WHERE slug = 'good-clinical-practice';
+UPDATE public.courses SET thumbnail_url = '/courses/grant-writing-health-research.jpg' WHERE slug = 'grant-writing-health-research';
+UPDATE public.courses SET thumbnail_url = '/courses/health-it-project-management.jpg' WHERE slug = 'health-it-project-management';
+UPDATE public.courses SET thumbnail_url = '/courses/telemedicine-digital-health.jpg' WHERE slug = 'telemedicine-digital-health';
+UPDATE public.courses SET thumbnail_url = '/courses/healthcare-data-analytics.jpg' WHERE slug = 'healthcare-data-analytics';
+UPDATE public.courses SET thumbnail_url = '/courses/ai-in-healthcare.jpg' WHERE slug = 'ai-in-healthcare';
+UPDATE public.courses SET thumbnail_url = '/courses/generative-ai-for-clinicians.jpg' WHERE slug = 'generative-ai-clinicians';
+UPDATE public.courses SET thumbnail_url = '/courses/healthcare-cybersecurity.jpg' WHERE slug = 'healthcare-cybersecurity';
+UPDATE public.courses SET thumbnail_url = '/courses/healthcare-data-privacy.jpg' WHERE slug = 'healthcare-data-privacy';
+UPDATE public.courses SET thumbnail_url = '/courses/fundamentals-of-public-health.jpg' WHERE slug = 'fundamentals-public-health';
+UPDATE public.courses SET thumbnail_url = '/courses/wound-care-basic-suturing.jpg' WHERE slug = 'wound-care-basic-suturing';
+UPDATE public.courses SET thumbnail_url = '/courses/emergency-triage-assessment-treatment.jpg' WHERE slug = 'emergency-triage-assessment-treatment';
+UPDATE public.courses SET thumbnail_url = '/courses/infection-prevention-control.jpg' WHERE slug = 'infection-prevention-control';
+UPDATE public.courses SET thumbnail_url = '/courses/clinical-audit-root-cause-analysis.jpg' WHERE slug = 'clinical-audit-root-cause-analysis';
+UPDATE public.courses SET thumbnail_url = '/courses/electronic-health-records.jpg' WHERE slug = 'electronic-health-records';
+UPDATE public.courses SET thumbnail_url = '/courses/antimicrobial-stewardship.jpg' WHERE slug = 'antimicrobial-stewardship';
+UPDATE public.courses SET thumbnail_url = '/courses/first-aid-cpr-aed.jpg' WHERE slug = 'first-aid-cpr-aed';
