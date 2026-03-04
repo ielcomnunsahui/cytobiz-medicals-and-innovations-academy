@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Package, Maximize2, Minimize2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 interface ScormPlayerProps {
@@ -187,13 +188,35 @@ export function ScormPlayer({ scormUrl, title, learnerId, learnerName, onComplet
 
   return (
     <div ref={containerRef} className={cn("mb-0", isFullscreen && "fixed inset-0 z-50 bg-background")}>
-      {/* Loading Overlay */}
+      {/* Skeleton Loading Overlay */}
       {isLoading && (
-        <div className="flex items-center justify-center h-[calc(100vh-64px)] bg-background">
-          <div className="text-center">
-            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">Loading course content…</p>
+        <div className="h-[calc(100vh-64px)] bg-background p-6 space-y-6">
+          {/* Top bar skeleton */}
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-5 w-1/3" />
+              <Skeleton className="h-3 w-1/5" />
+            </div>
           </div>
+          {/* Progress bar skeleton */}
+          <Skeleton className="h-3 w-full rounded-full" />
+          {/* Main content area skeleton */}
+          <div className="space-y-4">
+            <Skeleton className="h-8 w-2/3" />
+            <Skeleton className="h-[45vh] w-full rounded-xl" />
+            <div className="space-y-3">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+              <Skeleton className="h-4 w-4/6" />
+            </div>
+          </div>
+          {/* Bottom nav skeleton */}
+          <div className="flex justify-between pt-4">
+            <Skeleton className="h-10 w-28 rounded-lg" />
+            <Skeleton className="h-10 w-28 rounded-lg" />
+          </div>
+          <p className="text-sm text-muted-foreground text-center animate-pulse">Loading course content…</p>
         </div>
       )}
 
