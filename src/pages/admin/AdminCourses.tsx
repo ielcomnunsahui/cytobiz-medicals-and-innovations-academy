@@ -162,6 +162,7 @@ export default function AdminCourses() {
       thumbnail_url: "",
       enrollment_deadline: "",
     });
+    setAccessDirty(false);
     setAccessSettings({
       content_access: 'free',
       assessment_access: 'free',
