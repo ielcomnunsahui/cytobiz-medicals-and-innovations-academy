@@ -95,6 +95,7 @@ export default function AdminCourses() {
   const updateAccessSettings = useUpdateCourseAccessSettings();
 
   // Access settings state for new courses
+  const [accessDirty, setAccessDirty] = useState(false);
   const [accessSettings, setAccessSettings] = useState<CourseAccessFormData>({
     content_access: 'free',
     assessment_access: 'free',
