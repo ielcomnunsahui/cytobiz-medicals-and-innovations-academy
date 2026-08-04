@@ -95,6 +95,7 @@ export default function AdminCourses() {
   const updateAccessSettings = useUpdateCourseAccessSettings();
 
   // Access settings state for new courses
+  const [accessDirty, setAccessDirty] = useState(false);
   const [accessSettings, setAccessSettings] = useState<CourseAccessFormData>({
     content_access: 'free',
     assessment_access: 'free',
@@ -161,6 +162,7 @@ export default function AdminCourses() {
       thumbnail_url: "",
       enrollment_deadline: "",
     });
+    setAccessDirty(false);
     setAccessSettings({
       content_access: 'free',
       assessment_access: 'free',
@@ -190,6 +192,7 @@ export default function AdminCourses() {
       thumbnail_url: course.thumbnail_url || "",
       enrollment_deadline: course.enrollment_deadline ? course.enrollment_deadline.slice(0, 16) : "",
     });
+    setAccessDirty(false);
     setEditingCourse(course);
   };
 
@@ -251,11 +254,36 @@ export default function AdminCourses() {
       ...formData,
       enrollment_deadline: formData.enrollment_deadline ? new Date(formData.enrollment_deadline).toISOString() : null,
     };
+    const persistAccessSettings = async (courseId: string) => {
+      if (!accessDirty) return;
+      try {
+        await updateAccessSettings.mutateAsync({
+          courseId,
+          settings: {
+            content_access: accessSettings.content_access,
+            assessment_access: accessSettings.assessment_access,
+            certificate_access: accessSettings.certificate_access,
+            certificate_fee: accessSettings.certificate_fee,
+            promo_enabled: accessSettings.promo_enabled,
+            promo_expiry: accessSettings.promo_expiry
+              ? accessSettings.promo_expiry.toISOString()
+              : null,
+          },
+        });
+      } catch (error: any) {
+        toast.error(`Course saved, but access settings failed: ${error.message}`);
+      }
+    };
+
     if (editingCourse) {
       await updateCourse.mutateAsync({ id: editingCourse.id, ...submitData });
+      await persistAccessSettings(editingCourse.id);
       setEditingCourse(null);
     } else {
-      await createCourse.mutateAsync(submitData);
+      const created: any = await createCourse.mutateAsync(submitData);
+      if (created?.id) {
+        await persistAccessSettings(created.id);
+      }
       setIsCreateOpen(false);
     }
   };
@@ -825,13 +853,13 @@ export default function AdminCourses() {
                       <CourseAccessSettingsForm 
                         courseId={editingCourse.id} 
                         embedded={true}
-                        onChange={(settings) => setAccessSettings(settings)}
+                        onChange={(settings) => { setAccessSettings(settings); setAccessDirty(true); }}
                       />
                     ) : (
                       <CourseAccessSettingsForm 
                         courseId="new" 
                         embedded={true}
-                        onChange={(settings) => setAccessSettings(settings)}
+                        onChange={(settings) => { setAccessSettings(settings); setAccessDirty(true); }}
                       />
                     )}
                   </div>
