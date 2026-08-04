@@ -255,6 +255,7 @@ export default function AdminCourses() {
       enrollment_deadline: formData.enrollment_deadline ? new Date(formData.enrollment_deadline).toISOString() : null,
     };
     const persistAccessSettings = async (courseId: string) => {
+      if (!accessDirty) return;
       try {
         await updateAccessSettings.mutateAsync({
           courseId,
@@ -852,13 +853,13 @@ export default function AdminCourses() {
                       <CourseAccessSettingsForm 
                         courseId={editingCourse.id} 
                         embedded={true}
-                        onChange={(settings) => setAccessSettings(settings)}
+                        onChange={(settings) => { setAccessSettings(settings); setAccessDirty(true); }}
                       />
                     ) : (
                       <CourseAccessSettingsForm 
                         courseId="new" 
                         embedded={true}
-                        onChange={(settings) => setAccessSettings(settings)}
+                        onChange={(settings) => { setAccessSettings(settings); setAccessDirty(true); }}
                       />
                     )}
                   </div>
