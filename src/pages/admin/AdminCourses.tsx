@@ -192,6 +192,7 @@ export default function AdminCourses() {
       thumbnail_url: course.thumbnail_url || "",
       enrollment_deadline: course.enrollment_deadline ? course.enrollment_deadline.slice(0, 16) : "",
     });
+    setAccessDirty(false);
     setEditingCourse(course);
   };
 
